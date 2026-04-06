@@ -25,7 +25,10 @@ export class AdminService {
 
   static async getFeatureFlags(): Promise<FeatureFlag[]> {
     const result = await db.query("SELECT * FROM feature_flags");
-    return result.rows as FeatureFlag[];
+    return result.rows.map(row => ({
+      ...row,
+      enabled: Boolean(row.enabled)
+    })) as FeatureFlag[];
   }
 
   static async toggleFeatureFlag(key: string, enabled: boolean): Promise<void> {
@@ -34,7 +37,11 @@ export class AdminService {
 
   static async getProducts(): Promise<Product[]> {
     const result = await db.query("SELECT * FROM products");
-    return result.rows as Product[];
+    return result.rows.map(row => ({
+      ...row,
+      is_active: Boolean(row.is_active),
+      allow_direct_buy: Boolean(row.allow_direct_buy)
+    })) as Product[];
   }
 
   static async getDashboardStats(): Promise<DashboardStats> {

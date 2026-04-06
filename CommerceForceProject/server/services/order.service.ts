@@ -67,7 +67,7 @@ export class OrderService {
     };
   }
 
-  static async create(userId: string, data: { items: { productId: string, quantity: number }[], shippingAddress?: string, paymentMethod?: 'prepaid' | 'credit', couponCode?: string }): Promise<Order> {
+  static async create(userId: string, data: { items: { productId: string, quantity: number }[], shippingAddress?: string, paymentMethod?: 'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay', couponCode?: string }): Promise<Order> {
     const orderId = uuidv4();
     let subtotal = 0;
     const paymentMethod = data.paymentMethod || 'prepaid';

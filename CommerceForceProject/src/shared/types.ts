@@ -24,6 +24,7 @@ export interface Product {
   base_price: number;
   image_url?: string;
   is_active: boolean;
+  allow_direct_buy: boolean;
   created_at?: string;
 }
 
@@ -45,7 +46,7 @@ export interface Order {
   status: OrderStatus;
   total_amount: number;
   shipping_address?: string;
-  payment_method: 'prepaid' | 'credit';
+  payment_method: 'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay';
   created_at: string;
   updated_at: string;
   items?: OrderItem[];

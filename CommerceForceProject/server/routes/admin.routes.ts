@@ -20,7 +20,7 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-router.get("/features", isSuperAdmin, async (req, res) => {
+router.get("/features", async (req, res) => {
   res.json(await AdminService.getFeatureFlags());
 });
 

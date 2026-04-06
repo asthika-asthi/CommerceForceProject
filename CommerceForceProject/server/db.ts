@@ -70,6 +70,7 @@ export async function initDb() {
         base_price DECIMAL NOT NULL,
         image_url TEXT,
         is_active INTEGER DEFAULT 1,
+        allow_direct_buy INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

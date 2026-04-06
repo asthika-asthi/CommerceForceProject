@@ -18,7 +18,10 @@ import { UsersAdmin } from './pages/admin/Users';
 import { CouponsAdmin } from './pages/admin/Coupons';
 import { InventoryAlerts } from './pages/admin/InventoryAlerts';
 import { CustomerRFQ } from './pages/CustomerRFQ';
+import { Checkout } from './pages/Checkout';
+import { Cart } from './pages/Cart';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import { LoginPage } from './pages/LoginPage';
 import { Loader2 } from 'lucide-react';
 
@@ -64,6 +67,10 @@ function AppContent() {
         return <InventoryAlerts />;
       case 'customer-rfq':
         return <CustomerRFQ />;
+      case 'checkout':
+        return <Checkout onBack={() => setActiveTab('products')} />;
+      case 'cart':
+        return <Cart onCheckout={() => setActiveTab('checkout')} onBack={() => setActiveTab('products')} />;
       case 'users':
         return <UsersAdmin />;
       default:
@@ -81,7 +88,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
     </AuthProvider>
   );
 }
