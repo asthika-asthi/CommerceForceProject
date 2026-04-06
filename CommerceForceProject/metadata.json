@@ -1,0 +1,5 @@
+{
+  "name": "CommerceForce",
+  "description": "A white-label modular monolith commerce platform with multi-instance deployment capabilities, featuring config-driven branding and feature flags.",
+  "requestFramePermissions": []
+}
