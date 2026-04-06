@@ -14,8 +14,34 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
   const [shippingAddress, setShippingAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay'>('prepaid');
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const b2bEnabled = Boolean(features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setIsApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch(`/api/coupons/validate/${couponCode}?amount=${totalPrice}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.isValid) {
+        setCouponDiscount(data.discount);
+      } else {
+        setCouponError(data.error || 'Invalid coupon');
+        setCouponDiscount(0);
+      }
+    } catch (err) {
+      setCouponError('Failed to validate coupon');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
 
   useEffect(() => {
     if (token) {
@@ -47,7 +73,8 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             quantity: item.quantity
           })),
           shippingAddress,
-          paymentMethod
+          paymentMethod,
+          couponCode: couponDiscount > 0 ? couponCode : undefined
         })
       });
 
@@ -236,11 +263,11 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                   <div className="flex-1">
                     <div className="font-medium text-sm">{item.product.name}</div>
                     <div className="text-xs text-[#141414]/40 font-mono">
-                      {item.quantity} x £{item.product.base_price.toFixed(2)}
+                      {item.quantity} x £{((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price).toFixed(2)}
                     </div>
                   </div>
                   <div className="font-mono text-sm">
-                    £{(item.product.base_price * item.quantity).toFixed(2)}
+                    £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price) * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -251,13 +278,47 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                 <span>Subtotal</span>
                 <span className="font-mono">£{totalPrice.toFixed(2)}</span>
               </div>
+              
+              {/* Coupon Section */}
+              <div className="py-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Promo code"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-[#e5e5e5] focus:outline-none focus:ring-1 focus:ring-[#141414]"
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={isApplyingCoupon || !couponCode}
+                    className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-lg hover:bg-black transition-all disabled:opacity-50"
+                  >
+                    {isApplyingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Apply'}
+                  </button>
+                </div>
+                {couponError && <p className="text-[10px] text-rose-600 mt-1 ml-1">{couponError}</p>}
+                {couponDiscount > 0 && (
+                  <p className="text-[10px] text-emerald-600 mt-1 ml-1 font-medium flex items-center gap-1">
+                    <CheckCircle2 size={10} /> Coupon applied: -£{couponDiscount.toFixed(2)}
+                  </p>
+                )}
+              </div>
+
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-600 text-sm font-medium">
+                  <span>Discount</span>
+                  <span className="font-mono">-£{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-[#141414]/60 text-sm">
                 <span>Shipping</span>
                 <span className="font-mono">FREE</span>
               </div>
               <div className="flex justify-between text-[#141414] text-lg font-bold pt-2">
                 <span>Total</span>
-                <span className="font-mono text-xl">£{totalPrice.toFixed(2)}</span>
+                <span className="font-mono text-xl">£{(totalPrice - couponDiscount).toFixed(2)}</span>
               </div>
             </div>
           </div>

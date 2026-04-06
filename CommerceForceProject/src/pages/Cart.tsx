@@ -99,8 +99,19 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
                     </button>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-[#141414]/40 font-mono mb-1">£{item.product.base_price.toFixed(2)} each</div>
-                    <div className="text-xl font-bold font-mono">£{(item.product.base_price * item.quantity).toFixed(2)}</div>
+                    <div className="text-xs text-[#141414]/40 font-mono mb-1">
+                      {item.product.sale_percentage && item.product.sale_percentage > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="line-through text-[8px] opacity-30">£{item.product.base_price.toFixed(2)}</span>
+                          <span className="text-rose-600 font-bold">£{(item.product.base_price * (1 - item.product.sale_percentage / 100)).toFixed(2)} each</span>
+                        </div>
+                      ) : (
+                        `£${item.product.base_price.toFixed(2)} each`
+                      )}
+                    </div>
+                    <div className="text-xl font-bold font-mono">
+                      £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price) * item.quantity).toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>

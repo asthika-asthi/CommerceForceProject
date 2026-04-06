@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { CouponService } from '../services/coupon.service';
-import { isAuthenticated, isAdmin } from '../middleware/auth.middleware';
+import { isAuthenticated, isAdmin, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // Public/Customer Endpoints
-router.get('/validate/:code', isAuthenticated, async (req, res) => {
+router.get('/validate/:code', isAuthenticated, async (req: AuthRequest, res) => {
   const { amount } = req.query;
-  const result = await CouponService.validateCoupon(req.params.code, parseFloat(amount as string) || 0);
+  const result = await CouponService.validateCoupon(req.params.code, parseFloat(amount as string) || 0, req.user?.id);
   res.json(result);
 });
 

@@ -79,11 +79,13 @@ export class OrderService {
       // Calculate total and prepare items
       const itemsToInsert: any[] = [];
       for (const item of data.items) {
-        const productResult = await db.queryWithClient(client, 'SELECT base_price FROM products WHERE id = ?', [item.productId]);
+        const productResult = await db.queryWithClient(client, 'SELECT base_price, sale_percentage FROM products WHERE id = ?', [item.productId]);
         const product = productResult.rows[0];
         if (!product) throw new Error(`Product ${item.productId} not found`);
 
-        const unitPrice = Number(product.base_price);
+        const basePrice = Number(product.base_price);
+        const salePercentage = Number(product.sale_percentage || 0);
+        const unitPrice = salePercentage > 0 ? basePrice * (1 - salePercentage / 100) : basePrice;
         const totalPrice = unitPrice * item.quantity;
         subtotal += totalPrice;
 
@@ -101,7 +103,7 @@ export class OrderService {
       let couponId: string | null = null;
 
       if (data.couponCode) {
-        const validation = await CouponService.validateCoupon(data.couponCode, subtotal);
+        const validation = await CouponService.validateCoupon(data.couponCode, subtotal, userId);
         if (!validation.isValid) {
           throw new Error(validation.error || 'Invalid coupon');
         }

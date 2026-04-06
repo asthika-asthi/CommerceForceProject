@@ -22,6 +22,7 @@ export interface Product {
   description?: string;
   category?: string;
   base_price: number;
+  sale_percentage?: number;
   image_url?: string;
   is_active: boolean;
   allow_direct_buy: boolean;
@@ -131,6 +132,7 @@ export interface Coupon {
   expiry_date?: string;
   usage_limit?: number;
   used_count: number;
+  is_loyalty_only: boolean;
   is_active: boolean;
   created_at: string;
 }

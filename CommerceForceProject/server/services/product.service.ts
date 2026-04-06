@@ -26,16 +26,16 @@ export class ProductService {
 
   static async create(data: Partial<Product>): Promise<Product> {
     const id = uuidv4();
-    const { sku, name, description, category, base_price, image_url, is_active = 1, allow_direct_buy = 1 } = data;
+    const { sku, name, description, category, base_price, sale_percentage = 0, image_url, is_active = 1, allow_direct_buy = 1 } = data;
 
     if (!sku || !name || base_price === undefined) {
       throw new Error('Missing required product fields: sku, name, base_price');
     }
 
     await db.query(`
-      INSERT INTO products (id, sku, name, description, category, base_price, image_url, is_active, allow_direct_buy)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, sku, name, description, category, base_price, image_url, is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
+      INSERT INTO products (id, sku, name, description, category, base_price, sale_percentage, image_url, is_active, allow_direct_buy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, sku, name, description, category, base_price, sale_percentage, image_url, is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
 
     const product = await this.getById(id);
     return product!;
@@ -48,7 +48,7 @@ export class ProductService {
     }
 
     const fields = Object.keys(data).filter(key => 
-      ['sku', 'name', 'description', 'category', 'base_price', 'image_url', 'is_active', 'allow_direct_buy'].includes(key)
+      ['sku', 'name', 'description', 'category', 'base_price', 'sale_percentage', 'image_url', 'is_active', 'allow_direct_buy'].includes(key)
     );
 
     if (fields.length === 0) return existing;
@@ -74,7 +74,8 @@ export class ProductService {
     return {
       ...row,
       is_active: Boolean(row.is_active),
-      allow_direct_buy: Boolean(row.allow_direct_buy)
+      allow_direct_buy: Boolean(row.allow_direct_buy),
+      sale_percentage: Number(row.sale_percentage || 0)
     };
   }
 }

@@ -13,7 +13,8 @@ describe('CouponService Unit Tests', () => {
       code: 'TEST50',
       type: 'percentage',
       value: 50,
-      min_order_amount: 100
+      min_order_amount: 100,
+      is_loyalty_only: false
     });
 
     expect(coupon.code).toBe('TEST50');
@@ -38,7 +39,8 @@ describe('CouponService Unit Tests', () => {
       code: 'FLAT20',
       type: 'fixed',
       value: 20,
-      min_order_amount: 50
+      min_order_amount: 50,
+      is_loyalty_only: false
     });
 
     const result = await CouponService.validateCoupon('FLAT20', 100);
@@ -52,7 +54,8 @@ describe('CouponService Unit Tests', () => {
       type: 'fixed',
       value: 10,
       min_order_amount: 0,
-      usage_limit: 1
+      usage_limit: 1,
+      is_loyalty_only: false
     });
 
     const result1 = await CouponService.validateCoupon('ONCE', 100);
@@ -74,7 +77,8 @@ describe('CouponService Unit Tests', () => {
       type: 'fixed',
       value: 10,
       min_order_amount: 0,
-      expiry_date: pastDate.toISOString()
+      expiry_date: pastDate.toISOString(),
+      is_loyalty_only: false
     });
 
     const result = await CouponService.validateCoupon('EXPIRED', 100);

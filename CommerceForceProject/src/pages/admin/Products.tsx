@@ -21,6 +21,7 @@ export const Products = () => {
     sku: '',
     name: '',
     base_price: '',
+    sale_percentage: '0',
     category: '',
     description: '',
     image_url: '',
@@ -57,6 +58,7 @@ export const Products = () => {
       sku: product.sku,
       name: product.name,
       base_price: product.base_price.toString(),
+      sale_percentage: (product.sale_percentage || 0).toString(),
       category: product.category || '',
       description: product.description || '',
       image_url: product.image_url || '',
@@ -83,6 +85,7 @@ export const Products = () => {
         body: JSON.stringify({
           ...formData,
           base_price: parseFloat(formData.base_price),
+          sale_percentage: parseFloat(formData.sale_percentage || '0'),
           allow_direct_buy: formData.allow_direct_buy ? 1 : 0
         })
       });
@@ -106,7 +109,7 @@ export const Products = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    setFormData({ sku: '', name: '', base_price: '', category: '', description: '', image_url: '', allow_direct_buy: true });
+    setFormData({ sku: '', name: '', base_price: '', sale_percentage: '0', category: '', description: '', image_url: '', allow_direct_buy: true });
   };
 
   const handleBuyNow = async (product: Product) => {
@@ -203,6 +206,7 @@ export const Products = () => {
               <th className="p-4 font-medium">Product Name</th>
               <th className="p-4 font-medium">Category</th>
               <th className="p-4 font-medium">Base Price</th>
+              <th className="p-4 font-medium">Sale %</th>
               {isAdmin && <th className="p-4 font-medium">Direct Buy</th>}
               {isAdmin && <th className="p-4 font-medium">Status</th>}
               <th className="p-4 font-medium"></th>
@@ -214,7 +218,23 @@ export const Products = () => {
                 <td className="p-4 text-xs font-mono text-[#141414]/60">{product.sku}</td>
                 <td className="p-4 text-sm font-medium">{product.name}</td>
                 <td className="p-4 text-xs text-[#141414]/60">{product.category || '-'}</td>
-                <td className="p-4 text-sm font-mono">£{product.base_price.toFixed(2)}</td>
+                <td className="p-4 text-sm font-mono">
+                  {product.sale_percentage && product.sale_percentage > 0 ? (
+                    <div className="flex flex-col">
+                      <span className="line-through text-[10px] opacity-40">£{product.base_price.toFixed(2)}</span>
+                      <span className="text-rose-600 font-bold">£{(product.base_price * (1 - product.sale_percentage / 100)).toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    `£${product.base_price.toFixed(2)}`
+                  )}
+                </td>
+                <td className="p-4 text-sm font-mono">
+                  {product.sale_percentage && product.sale_percentage > 0 ? (
+                    <span className="text-rose-600 font-bold">{product.sale_percentage}%</span>
+                  ) : (
+                    <span className="opacity-30">-</span>
+                  )}
+                </td>
                 {isAdmin && (
                   <td className="p-4">
                     <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 ${
@@ -332,6 +352,19 @@ export const Products = () => {
                       onChange={e => setFormData({...formData, base_price: e.target.value})}
                       className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
                       placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Sale Discount (%)</label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="100"
+                      value={formData.sale_percentage}
+                      onChange={e => setFormData({...formData, sale_percentage: e.target.value})}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
+                      placeholder="0"
                     />
                   </div>
                 </div>

@@ -18,7 +18,8 @@ export const CouponsAdmin = () => {
     min_order_amount: 0,
     max_discount_amount: undefined as number | undefined,
     expiry_date: '',
-    usage_limit: undefined as number | undefined
+    usage_limit: undefined as number | undefined,
+    is_loyalty_only: false
   });
 
   const fetchCoupons = async () => {
@@ -61,7 +62,8 @@ export const CouponsAdmin = () => {
           min_order_amount: 0,
           max_discount_amount: undefined,
           expiry_date: '',
-          usage_limit: undefined
+          usage_limit: undefined,
+          is_loyalty_only: false
         });
         fetchCoupons();
       }
@@ -117,7 +119,12 @@ export const CouponsAdmin = () => {
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <Ticket size={14} className="opacity-30" />
-                    <span className="text-sm font-mono font-bold">{coupon.code}</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-mono font-bold">{coupon.code}</span>
+                      {coupon.is_loyalty_only && (
+                        <span className="text-[8px] font-mono uppercase tracking-widest text-amber-600 bg-amber-50 px-1 rounded w-fit">Loyalty Only</span>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="p-4">
@@ -259,6 +266,18 @@ export const CouponsAdmin = () => {
                       onChange={e => setNewCoupon({...newCoupon, usage_limit: e.target.value ? parseInt(e.target.value) : undefined})}
                       className="w-full bg-[#f9f9f9] border border-[#f0f0f0] px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#141414]"
                     />
+                  </div>
+                  <div className="col-span-2 flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                    <input
+                      type="checkbox"
+                      id="is_loyalty_only"
+                      checked={newCoupon.is_loyalty_only}
+                      onChange={e => setNewCoupon({...newCoupon, is_loyalty_only: e.target.checked})}
+                      className="w-4 h-4 rounded border-[#141414]/20 text-[#141414] focus:ring-[#141414]"
+                    />
+                    <label htmlFor="is_loyalty_only" className="text-xs font-medium text-amber-900 cursor-pointer">
+                      Restrict to Loyalty Customers Only
+                    </label>
                   </div>
                 </div>
                 <div className="pt-4">

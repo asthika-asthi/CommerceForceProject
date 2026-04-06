@@ -40,7 +40,8 @@ export class AdminService {
     return result.rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
-      allow_direct_buy: Boolean(row.allow_direct_buy)
+      allow_direct_buy: Boolean(row.allow_direct_buy),
+      sale_percentage: Number(row.sale_percentage || 0)
     })) as Product[];
   }
 

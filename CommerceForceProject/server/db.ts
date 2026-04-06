@@ -68,6 +68,7 @@ export async function initDb() {
         description TEXT,
         category TEXT,
         base_price DECIMAL NOT NULL,
+        sale_percentage DECIMAL DEFAULT 0,
         image_url TEXT,
         is_active INTEGER DEFAULT 1,
         allow_direct_buy INTEGER DEFAULT 1,
@@ -176,6 +177,7 @@ export async function initDb() {
         expiry_date TIMESTAMP,
         usage_limit INTEGER,
         used_count INTEGER DEFAULT 0,
+        is_loyalty_only INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

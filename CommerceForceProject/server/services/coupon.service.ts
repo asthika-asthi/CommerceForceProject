@@ -5,21 +5,29 @@ import { Coupon } from '../../src/shared/types';
 export class CouponService {
   static async getAll(): Promise<Coupon[]> {
     const result = await db.query('SELECT * FROM coupons ORDER BY created_at DESC');
-    return result.rows.map(row => ({ ...row, is_active: !!row.is_active }));
+    return result.rows.map(row => ({ 
+      ...row, 
+      is_active: !!row.is_active,
+      is_loyalty_only: !!row.is_loyalty_only
+    }));
   }
 
   static async getByCode(code: string): Promise<Coupon | null> {
     const result = await db.query('SELECT * FROM coupons WHERE code = ? AND is_active = 1', [code]);
     const row = result.rows[0];
     if (!row) return null;
-    return { ...row, is_active: !!row.is_active };
+    return { 
+      ...row, 
+      is_active: !!row.is_active,
+      is_loyalty_only: !!row.is_loyalty_only
+    };
   }
 
   static async create(data: Omit<Coupon, 'id' | 'used_count' | 'is_active' | 'created_at'>): Promise<Coupon> {
     const id = uuidv4();
     await db.query(`
-      INSERT INTO coupons (id, code, type, value, min_order_amount, max_discount_amount, expiry_date, usage_limit, used_count, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
+      INSERT INTO coupons (id, code, type, value, min_order_amount, max_discount_amount, expiry_date, usage_limit, used_count, is_loyalty_only, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1)
     `, [
       id, 
       data.code.toUpperCase(), 
@@ -28,7 +36,8 @@ export class CouponService {
       data.min_order_amount || 0, 
       data.max_discount_amount || null, 
       data.expiry_date || null, 
-      data.usage_limit || null
+      data.usage_limit || null,
+      data.is_loyalty_only ? 1 : 0
     ]);
     const coupon = await this.getById(id);
     return coupon!;
@@ -38,18 +47,31 @@ export class CouponService {
     const result = await db.query('SELECT * FROM coupons WHERE id = ?', [id]);
     const row = result.rows[0];
     if (!row) return null;
-    return { ...row, is_active: !!row.is_active };
+    return { 
+      ...row, 
+      is_active: !!row.is_active,
+      is_loyalty_only: !!row.is_loyalty_only
+    };
   }
 
   static async delete(id: string): Promise<void> {
     await db.query('DELETE FROM coupons WHERE id = ?', [id]);
   }
 
-  static async validateCoupon(code: string, orderAmount: number): Promise<{ isValid: boolean; discount: number; error?: string }> {
+  static async validateCoupon(code: string, orderAmount: number, userId?: string): Promise<{ isValid: boolean; discount: number; error?: string }> {
     const coupon = await this.getByCode(code);
     if (!coupon) return { isValid: false, discount: 0, error: 'Invalid coupon code' };
 
     if (!coupon.is_active) return { isValid: false, discount: 0, error: 'Coupon is inactive' };
+
+    if (coupon.is_loyalty_only) {
+      if (!userId) return { isValid: false, discount: 0, error: 'This coupon is for loyalty members only' };
+      
+      const loyaltyResult = await db.query('SELECT points FROM loyalty_points WHERE user_id = ?', [userId]);
+      if (loyaltyResult.rows.length === 0 || loyaltyResult.rows[0].points < 1) {
+        return { isValid: false, discount: 0, error: 'This coupon is for loyalty members only' };
+      }
+    }
 
     if (coupon.expiry_date && new Date(coupon.expiry_date) < new Date()) {
       return { isValid: false, discount: 0, error: 'Coupon has expired' };
