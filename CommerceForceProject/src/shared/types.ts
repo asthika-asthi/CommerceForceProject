@@ -128,6 +128,7 @@ export interface Coupon {
   type: 'percentage' | 'fixed';
   value: number;
   min_order_amount: number;
+  min_quantity?: number;
   max_discount_amount?: number;
   expiry_date?: string;
   usage_limit?: number;

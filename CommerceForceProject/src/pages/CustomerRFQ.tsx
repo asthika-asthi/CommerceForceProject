@@ -109,7 +109,8 @@ export const CustomerRFQ = () => {
     if (!rfq) return;
 
     try {
-      const res = await fetch(`/api/coupons/validate/${couponCode}?amount=${rfq.total_quoted_amount}`, {
+      const totalQuantity = rfq.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+      const res = await fetch(`/api/coupons/validate/${couponCode}?amount=${rfq.total_quoted_amount}&quantity=${totalQuantity}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -182,6 +183,8 @@ export const CustomerRFQ = () => {
                     <button 
                       onClick={() => {
                         setSelectedRfqId(rfq.id);
+                        setDiscountInfo(null);
+                        setCouponCode('');
                         setIsConvertModalOpen(true);
                       }}
                       className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
@@ -252,7 +255,10 @@ export const CustomerRFQ = () => {
                     <input 
                       type="text"
                       value={couponCode}
-                      onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      onChange={e => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setDiscountInfo(null);
+                      }}
                       placeholder="ENTER CODE"
                       className="flex-1 bg-[#f9f9f9] border border-[#141414]/10 px-4 py-2 rounded-xl text-sm font-mono focus:outline-none focus:ring-1 focus:ring-[#141414]"
                     />

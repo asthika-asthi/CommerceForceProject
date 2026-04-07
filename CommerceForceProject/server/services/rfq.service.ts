@@ -187,7 +187,8 @@ export class RFQService {
 
       let discountAmount = 0;
       if (couponCode) {
-        const validation = await CouponService.validateCoupon(couponCode, subtotal, rfq.user_id);
+        const totalQuantity = rfq.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        const validation = await CouponService.validateCoupon(couponCode, subtotal, totalQuantity, rfq.user_id);
         if (!validation.isValid) {
           throw new Error(validation.error || 'Invalid coupon');
         }

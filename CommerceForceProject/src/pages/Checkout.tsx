@@ -26,7 +26,8 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
     setIsApplyingCoupon(true);
     setCouponError('');
     try {
-      const res = await fetch(`/api/coupons/validate/${couponCode}?amount=${totalPrice}`, {
+      const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const res = await fetch(`/api/coupons/validate/${couponCode}?amount=${totalPrice}&quantity=${totalQuantity}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -320,7 +321,11 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                     type="text"
                     placeholder="Promo code"
                     value={couponCode}
-                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    onChange={e => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      setCouponDiscount(0);
+                      setCouponError('');
+                    }}
                     className="flex-1 px-3 py-2 text-xs rounded-lg border border-[#e5e5e5] focus:outline-none focus:ring-1 focus:ring-[#141414]"
                   />
                   <button

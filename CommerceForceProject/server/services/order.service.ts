@@ -103,7 +103,8 @@ export class OrderService {
       let couponId: string | null = null;
 
       if (data.couponCode) {
-        const validation = await CouponService.validateCoupon(data.couponCode, subtotal, userId);
+        const totalQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
+        const validation = await CouponService.validateCoupon(data.couponCode, subtotal, totalQuantity, userId);
         if (!validation.isValid) {
           throw new Error(validation.error || 'Invalid coupon');
         }

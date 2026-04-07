@@ -6,8 +6,13 @@ const router = Router();
 
 // Public/Customer Endpoints
 router.get('/validate/:code', isAuthenticated, async (req: AuthRequest, res) => {
-  const { amount } = req.query;
-  const result = await CouponService.validateCoupon(req.params.code, parseFloat(amount as string) || 0, req.user?.id);
+  const { amount, quantity } = req.query;
+  const result = await CouponService.validateCoupon(
+    req.params.code, 
+    parseFloat(amount as string) || 0, 
+    parseInt(quantity as string) || 0,
+    req.user?.id
+  );
   res.json(result);
 });
 
@@ -20,6 +25,15 @@ router.post('/', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const coupon = await CouponService.create(req.body);
     res.status(201).json(coupon);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const coupon = await CouponService.update(req.params.id, req.body);
+    res.json(coupon);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

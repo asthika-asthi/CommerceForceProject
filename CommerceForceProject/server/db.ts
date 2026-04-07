@@ -9,12 +9,16 @@ const pool = new Pool({
 });
 
 export async function initDb() {
+  const connectionString = process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/commerce';
+  const url = new URL(connectionString);
+  console.log(`Attempting to connect to database: ${url.hostname}:${url.port || 5432}${url.pathname} as user: ${url.username}`);
+
   let client;
-  let retries = 20; // Increased retries for slower Docker startups
+  let retries = 20;
   while (retries > 0) {
     try {
       client = await pool.connect();
-      console.log("Successfully connected to the database.");
+      console.log(`Successfully connected to ${url.hostname}`);
       break;
     } catch (err: any) {
       console.log(`Waiting for database... (${retries} retries left). Error: ${err.message}`);
@@ -24,10 +28,12 @@ export async function initDb() {
   }
 
   if (!client) {
-    throw new Error("Could not connect to database after multiple retries");
+    throw new Error(`Could not connect to database at ${url.hostname} after multiple retries`);
   }
 
   try {
+    console.log("Initializing database schema...");
+    await client.query('BEGIN');
     await client.query(`
       CREATE TABLE IF NOT EXISTS branding_config (
         id SERIAL PRIMARY KEY,
@@ -174,6 +180,7 @@ export async function initDb() {
         type TEXT NOT NULL,
         value DECIMAL NOT NULL,
         min_order_amount DECIMAL DEFAULT 0,
+        min_quantity INTEGER DEFAULT 0,
         max_discount_amount DECIMAL,
         expiry_date TIMESTAMP,
         usage_limit INTEGER,
@@ -221,6 +228,12 @@ export async function initDb() {
         role_id = EXCLUDED.role_id,
         name = EXCLUDED.name;
     `);
+    await client.query('COMMIT');
+    console.log("Database schema initialized successfully.");
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Failed to initialize database schema:", err);
+    throw err;
   } finally {
     client.release();
   }

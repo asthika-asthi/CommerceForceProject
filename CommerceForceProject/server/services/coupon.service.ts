@@ -26,19 +26,48 @@ export class CouponService {
   static async create(data: Omit<Coupon, 'id' | 'used_count' | 'is_active' | 'created_at'>): Promise<Coupon> {
     const id = uuidv4();
     await db.query(`
-      INSERT INTO coupons (id, code, type, value, min_order_amount, max_discount_amount, expiry_date, usage_limit, used_count, is_loyalty_only, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1)
+      INSERT INTO coupons (id, code, type, value, min_order_amount, min_quantity, max_discount_amount, expiry_date, usage_limit, used_count, is_loyalty_only, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1)
     `, [
       id, 
       data.code.toUpperCase(), 
       data.type, 
       data.value, 
       data.min_order_amount || 0, 
+      data.min_quantity || 0,
       data.max_discount_amount || null, 
       data.expiry_date || null, 
       data.usage_limit || null,
       data.is_loyalty_only ? 1 : 0
     ]);
+    const coupon = await this.getById(id);
+    return coupon!;
+  }
+
+  static async update(id: string, data: Partial<Coupon>): Promise<Coupon> {
+    const current = await this.getById(id);
+    if (!current) throw new Error('Coupon not found');
+
+    await db.query(`
+      UPDATE coupons 
+      SET code = ?, type = ?, value = ?, min_order_amount = ?, min_quantity = ?, 
+          max_discount_amount = ?, expiry_date = ?, usage_limit = ?, 
+          is_loyalty_only = ?, is_active = ?
+      WHERE id = ?
+    `, [
+      (data.code || current.code).toUpperCase(),
+      data.type || current.type,
+      data.value !== undefined ? data.value : current.value,
+      data.min_order_amount !== undefined ? data.min_order_amount : current.min_order_amount,
+      data.min_quantity !== undefined ? data.min_quantity : current.min_quantity,
+      data.max_discount_amount !== undefined ? data.max_discount_amount : current.max_discount_amount,
+      data.expiry_date !== undefined ? data.expiry_date : current.expiry_date,
+      data.usage_limit !== undefined ? data.usage_limit : current.usage_limit,
+      data.is_loyalty_only !== undefined ? (data.is_loyalty_only ? 1 : 0) : (current.is_loyalty_only ? 1 : 0),
+      data.is_active !== undefined ? (data.is_active ? 1 : 0) : (current.is_active ? 1 : 0),
+      id
+    ]);
+
     const coupon = await this.getById(id);
     return coupon!;
   }
@@ -58,7 +87,7 @@ export class CouponService {
     await db.query('DELETE FROM coupons WHERE id = ?', [id]);
   }
 
-  static async validateCoupon(code: string, orderAmount: number, userId?: string): Promise<{ isValid: boolean; discount: number; error?: string }> {
+  static async validateCoupon(code: string, orderAmount: number, totalQuantity: number, userId?: string): Promise<{ isValid: boolean; discount: number; error?: string }> {
     const coupon = await this.getByCode(code);
     if (!coupon) return { isValid: false, discount: 0, error: 'Invalid coupon code' };
 
@@ -83,6 +112,11 @@ export class CouponService {
 
     if (orderAmount < coupon.min_order_amount) {
       return { isValid: false, discount: 0, error: `Minimum order amount of $${coupon.min_order_amount} required` };
+    }
+
+    const minQty = Number(coupon.min_quantity || 0);
+    if (minQty > 0 && totalQuantity < minQty) {
+      return { isValid: false, discount: 0, error: `Minimum quantity of ${minQty} items required` };
     }
 
     let discount = 0;
