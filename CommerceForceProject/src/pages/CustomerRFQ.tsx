@@ -30,8 +30,8 @@ export const CustomerRFQ = () => {
         fetch('/api/products')
       ]);
       const [rfqData, prodData] = await Promise.all([rfqRes.json(), prodRes.json()]);
-      setRfqs(rfqData);
-      setProducts(prodData.filter((p: Product) => p.is_active));
+      setRfqs(Array.isArray(rfqData) ? rfqData : []);
+      setProducts(Array.isArray(prodData) ? prodData.filter((p: Product) => p.is_active) : []);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {

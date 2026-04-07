@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { Dashboard } from './pages/admin/Dashboard';
 import { Branding } from './pages/admin/Branding';
@@ -23,11 +23,104 @@ import { Cart } from './pages/Cart';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LoginPage } from './pages/LoginPage';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: any;
+}
+
+class ErrorBoundary extends Component<any, any> {
+  state = { hasError: false, error: null as any };
+
+  constructor(props: any) {
+    super(props);
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#E4E3E0] flex items-center justify-center p-8">
+          <div className="max-w-md w-full bg-white p-12 rounded-[32px] border border-[#141414] shadow-xl text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle size={32} />
+            </div>
+            <h1 className="text-2xl font-bold mb-4 font-serif italic">Something went wrong</h1>
+            <p className="text-sm opacity-60 mb-8 leading-relaxed">
+              The application encountered an unexpected error. Please try refreshing the page or contact support if the issue persists.
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full bg-[#141414] text-white py-4 rounded-full font-bold hover:bg-black transition-all"
+            >
+              Refresh Page
+            </button>
+            <pre className="mt-8 p-4 bg-red-50 text-red-800 text-[10px] text-left overflow-auto rounded-xl max-h-40 font-mono">
+              {this.state.error?.toString()}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+
+    return (this as any).props.children;
+  }
+}
 
 function AppContent() {
   const { user, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem('activeTab');
+    if (saved) return saved;
+    return 'dashboard';
+  });
+
+  useEffect(() => {
+    if (activeTab) {
+      localStorage.setItem('activeTab', activeTab);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      const navItems = [
+        { id: 'dashboard', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'branding', roles: ['superadmin'] },
+        { id: 'features', roles: ['superadmin'] },
+        { id: 'products', roles: ['admin', 'superadmin', 'client', 'customer'] },
+        { id: 'inventory', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'inventory-alerts', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'orders', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'rfq', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'loyalty', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'coupons', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'email', roles: ['superadmin'] },
+        { id: 'users', roles: ['superadmin'] },
+        { id: 'customer-rfq', roles: ['customer', 'admin', 'superadmin', 'client'] },
+      ];
+
+      const saved = localStorage.getItem('activeTab');
+      const currentItem = navItems.find(i => i.id === saved);
+      const hasAccess = currentItem?.roles.includes(user.role) ?? false;
+
+      if (!saved || !hasAccess) {
+        const defaultTab = user.role === 'customer' ? 'products' : 'dashboard';
+        setActiveTab(defaultTab);
+      }
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (
@@ -87,10 +180,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

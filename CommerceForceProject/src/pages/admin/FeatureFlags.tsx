@@ -14,7 +14,7 @@ export const FeatureFlags = () => {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(setFeatures);
+      .then(data => setFeatures(Array.isArray(data) ? data : []));
   }, [token]);
 
   const toggleFeature = async (key: string, current: boolean) => {

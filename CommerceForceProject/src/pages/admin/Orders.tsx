@@ -21,7 +21,7 @@ export const Orders = () => {
     })
       .then(res => res.json())
       .then(data => {
-        setOrders(data);
+        setOrders(Array.isArray(data) ? data : []);
         setIsLoading(false);
       })
       .catch(err => {

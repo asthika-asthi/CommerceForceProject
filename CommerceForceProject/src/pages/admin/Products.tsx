@@ -13,6 +13,7 @@ export const Products = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const { token, user } = useAuth();
   const { addToCart } = useCart();
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'client';
@@ -32,10 +33,23 @@ export const Products = () => {
   const b2bEnabled = Boolean(features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true);
 
   const fetchProducts = () => {
-    fetch('/api/products')
+    setIsLoading(true);
+    fetch('/api/products', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
-      .then(setProducts)
-      .catch(err => console.error('Failed to fetch products:', err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          setProducts([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch products:', err);
+        setProducts([]);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   const fetchFeatures = () => {
@@ -43,8 +57,17 @@ export const Products = () => {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(setFeatures)
-      .catch(err => console.error('Failed to fetch features:', err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setFeatures(data);
+        } else {
+          setFeatures([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch features:', err);
+        setFeatures([]);
+      });
   };
 
   useEffect(() => {
@@ -162,11 +185,20 @@ export const Products = () => {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    (p.name.toLowerCase().includes(search.toLowerCase()) || 
-    p.sku.toLowerCase().includes(search.toLowerCase())) &&
-    (isAdmin || p.is_active)
-  );
+  const filteredProducts = products.filter(p => {
+    if (!p) return false;
+    const nameMatch = (p.name || '').toLowerCase().includes(search.toLowerCase());
+    const skuMatch = (p.sku || '').toLowerCase().includes(search.toLowerCase());
+    return (nameMatch || skuMatch) && (isAdmin || p.is_active);
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-20">
+        <Loader2 className="animate-spin opacity-20" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -219,14 +251,16 @@ export const Products = () => {
                 <td className="p-4 text-sm font-medium">{product.name}</td>
                 <td className="p-4 text-xs text-[#141414]/60">{product.category || '-'}</td>
                 <td className="p-4 text-sm font-mono">
-                  {product.sale_percentage && product.sale_percentage > 0 ? (
-                    <div className="flex flex-col">
-                      <span className="line-through text-[10px] opacity-40">£{product.base_price.toFixed(2)}</span>
-                      <span className="text-rose-600 font-bold">£{(product.base_price * (1 - product.sale_percentage / 100)).toFixed(2)}</span>
-                    </div>
-                  ) : (
-                    `£${product.base_price.toFixed(2)}`
-                  )}
+                  {product.base_price !== undefined && product.base_price !== null ? (
+                    product.sale_percentage && product.sale_percentage > 0 ? (
+                      <div className="flex flex-col">
+                        <span className="line-through text-[10px] opacity-40">£{(Number(product.base_price) || 0).toFixed(2)}</span>
+                        <span className="text-rose-600 font-bold">£{((Number(product.base_price) || 0) * (1 - (Number(product.sale_percentage) || 0) / 100)).toFixed(2)}</span>
+                      </div>
+                    ) : (
+                      `£${(Number(product.base_price) || 0).toFixed(2)}`
+                    )
+                  ) : '-'}
                 </td>
                 <td className="p-4 text-sm font-mono">
                   {product.sale_percentage && product.sale_percentage > 0 ? (
@@ -259,7 +293,6 @@ export const Products = () => {
                       <button 
                         onClick={() => {
                           addToCart(product, 1);
-                          alert(`${product.name} added to cart!`);
                         }}
                         className="bg-[#141414] text-white px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
                       >

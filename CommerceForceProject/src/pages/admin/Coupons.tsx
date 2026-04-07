@@ -29,7 +29,7 @@ export const CouponsAdmin = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      setCoupons(data);
+      setCoupons(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch coupons:', err);
     } finally {

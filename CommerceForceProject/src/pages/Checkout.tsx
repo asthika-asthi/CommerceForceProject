@@ -49,7 +49,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())
-        .then(setFeatures)
+        .then(data => setFeatures(Array.isArray(data) ? data : []))
         .catch(err => console.error('Failed to fetch features:', err));
     }
   }, [token]);
@@ -68,10 +68,12 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          items: items.map(item => ({
-            productId: item.product.id,
-            quantity: item.quantity
-          })),
+          items: items
+            .filter(item => item.product)
+            .map(item => ({
+              productId: item.product.id,
+              quantity: item.quantity
+            })),
           shippingAddress,
           paymentMethod,
           couponCode: couponDiscount > 0 ? couponCode : undefined
@@ -115,6 +117,26 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             Return to Products
           </button>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 text-center">
+        <div className="w-20 h-20 bg-[#141414]/5 rounded-full flex items-center justify-center mx-auto mb-6">
+          <ShoppingBag size={32} className="opacity-20" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
+        <p className="text-sm opacity-50 mb-8 max-w-xs mx-auto">
+          Add some products to your cart before checking out to see the order summary.
+        </p>
+        <button 
+          onClick={onBack}
+          className="bg-[#141414] text-white px-8 py-3 rounded-xl font-medium hover:bg-black transition-all"
+        >
+          Go to Products
+        </button>
       </div>
     );
   }
@@ -178,13 +200,13 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                     paymentMethod === 'credit' 
                       ? 'border-[#141414] bg-[#141414]/5' 
                       : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                  }`}
-                >
-                  <div className="font-bold mb-1">Credit Limit</div>
-                  <div className="text-xs text-[#141414]/60">
-                    Charge to your account credit (£{user?.available_credit?.toFixed(2) || '0.00'} available)
-                  </div>
-                </button>
+                }`}
+              >
+                <div className="font-bold mb-1">Credit Limit</div>
+                <div className="text-xs text-[#141414]/60">
+                  Charge to your account credit (£{Number(user?.available_credit || 0).toFixed(2)} available)
+                </div>
+              </button>
               )}
 
               <button
@@ -236,7 +258,10 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
           )}
 
           <button
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e);
+            }}
             disabled={isSubmitting || items.length === 0 || !shippingAddress}
             className="w-full bg-[#141414] text-white py-4 rounded-[20px] font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
@@ -258,25 +283,34 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             </h2>
             
             <div className="space-y-4 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              {items.map((item) => (
-                <div key={item.product.id} className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{item.product.name}</div>
-                    <div className="text-xs text-[#141414]/40 font-mono">
-                      {item.quantity} x £{((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price).toFixed(2)}
+              {items.map((item) => {
+                if (!item || !item.product) return null;
+                const basePrice = Number(item.product.base_price || 0);
+                const salePercentage = Number(item.product.sale_percentage || 0);
+                const price = salePercentage > 0
+                  ? basePrice * (1 - salePercentage / 100)
+                  : basePrice;
+
+                return (
+                  <div key={item.product.id} className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{item.product.name}</div>
+                      <div className="text-xs text-[#141414]/40 font-mono">
+                        {item.quantity} x £{price.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="font-mono text-sm">
+                      £{(price * (item.quantity || 0)).toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-mono text-sm">
-                    £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price) * item.quantity).toFixed(2)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="space-y-3 pt-6 border-t border-[#141414]/5">
               <div className="flex justify-between text-[#141414]/60 text-sm">
                 <span>Subtotal</span>
-                <span className="font-mono">£{totalPrice.toFixed(2)}</span>
+                <span className="font-mono">£{Number(totalPrice || 0).toFixed(2)}</span>
               </div>
               
               {/* Coupon Section */}

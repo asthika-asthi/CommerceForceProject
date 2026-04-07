@@ -23,6 +23,7 @@ export async function createApp() {
   await initDb();
 
   app.use(express.json());
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // API Routes
   app.use("/api/admin", adminRoutes);

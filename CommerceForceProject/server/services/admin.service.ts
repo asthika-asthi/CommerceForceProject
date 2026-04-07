@@ -1,4 +1,5 @@
 import db from "../db";
+import bcrypt from "bcryptjs";
 import { BrandingConfig, FeatureFlag, Product, DashboardStats } from "../../src/shared/types";
 
 export class AdminService {
@@ -65,7 +66,21 @@ export class AdminService {
       FROM users u
       JOIN roles r ON u.role_id = r.id
     `);
-    return result.rows;
+    return result.rows.map(row => ({
+      ...row,
+      credit_limit: row.credit_limit ? Number(row.credit_limit) : 0,
+      available_credit: row.available_credit ? Number(row.available_credit) : 0
+    }));
+  }
+
+  static async getUserByEmail(email: string): Promise<any> {
+    const result = await db.query(`
+      SELECT u.id, u.email, u.name, r.name as role
+      FROM users u
+      JOIN roles r ON u.role_id = r.id
+      WHERE u.email = ?
+    `, [email]);
+    return result.rows[0];
   }
 
   static async updateUserCreditLimit(userId: string, creditLimit: number): Promise<void> {
@@ -83,5 +98,52 @@ export class AdminService {
     if (!role) throw new Error('Role not found');
 
     await db.query('UPDATE users SET role_id = ? WHERE id = ?', [role.id, userId]);
+  }
+
+  static async seedData(): Promise<void> {
+    // 1. Create users
+    const roles = await db.query("SELECT id, name FROM roles");
+    const roleMap = roles.rows.reduce((acc, r) => ({ ...acc, [r.name]: r.id }), {} as any);
+
+    const usersToSeed = [
+      { id: 'u-admin-001', email: 'admin-user@commerceforce.com', name: 'Admin User', role: 'admin', credit: 1000 },
+      { id: 'u-client-001', email: 'client-user@commerceforce.com', name: 'Client User', role: 'client', credit: 5000 },
+      { id: 'u-customer-001', email: 'customer-user@commerceforce.com', name: 'Customer User', role: 'customer', credit: 0 }
+    ];
+
+    const passwordHash = await bcrypt.hash('password123', 10);
+
+    for (const u of usersToSeed) {
+      await db.query(`
+        INSERT INTO users (id, email, name, password_hash, role_id, credit_limit, available_credit)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (email) DO UPDATE SET 
+          password_hash = EXCLUDED.password_hash,
+          name = EXCLUDED.name,
+          role_id = EXCLUDED.role_id,
+          credit_limit = EXCLUDED.credit_limit,
+          available_credit = EXCLUDED.available_credit
+      `, [u.id, u.email, u.name, passwordHash, roleMap[u.role], u.credit, u.credit]);
+    }
+
+    // 2. Create Warehouse
+    const whId = 'wh-main-001';
+    await db.query(`
+      INSERT INTO warehouses (id, name, code, location)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, location = EXCLUDED.location
+    `, [whId, 'Main Distribution Center', 'MAIN-DC-01', 'London, UK']);
+
+    // 3. Add all products to this warehouse
+    const products = await db.query("SELECT id FROM products");
+    for (const p of products.rows) {
+      await db.query(`
+        INSERT INTO inventory (id, warehouse_id, product_id, quantity, min_stock_level)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT (id) DO UPDATE SET 
+          quantity = EXCLUDED.quantity,
+          min_stock_level = EXCLUDED.min_stock_level
+      `, [`inv-${whId}-${p.id}`, whId, p.id, 100, 10]);
+    }
   }
 }

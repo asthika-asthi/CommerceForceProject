@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig } from '../../shared/types';
-import { Save, Globe, Palette, Type } from 'lucide-react';
+import { Save, Globe, Palette, Type, Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Branding = () => {
   const [config, setConfig] = useState<BrandingConfig | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { token } = useAuth();
 
@@ -17,6 +19,33 @@ export const Branding = () => {
       .then(res => res.json())
       .then(setConfig);
   }, [token]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !token || !config) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    try {
+      const res = await fetch('/api/admin/branding/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.logoUrl) {
+        setConfig({ ...config, logo_url: data.logoUrl });
+      }
+    } catch (err) {
+      console.error('Failed to upload logo:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,13 +125,20 @@ export const Branding = () => {
                 <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">
                   Logo URL
                 </label>
-                <input
-                  type="text"
-                  placeholder="https://..."
-                  value={config.logo_url || ''}
-                  onChange={e => setConfig({ ...config, logo_url: e.target.value })}
-                  className="w-full bg-transparent border-b border-[#141414] py-2 text-sm focus:outline-none focus:border-blue-600 transition-colors"
-                />
+                <div className="space-y-4">
+                  {config.logo_url && (
+                    <div className="w-20 h-20 border border-[#141414] p-2 bg-white flex items-center justify-center">
+                      <img src={config.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Logo URL (https://...)"
+                    value={config.logo_url || ''}
+                    onChange={e => setConfig({ ...config, logo_url: e.target.value })}
+                    className="w-full bg-transparent border-b border-[#141414] py-2 text-sm focus:outline-none focus:border-blue-600 transition-colors"
+                  />
+                </div>
               </div>
             </div>
           </div>

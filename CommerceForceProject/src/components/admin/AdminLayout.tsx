@@ -52,8 +52,17 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())
-        .then(setFeatures)
-        .catch(err => console.error('Failed to fetch features:', err));
+        .then(data => {
+          if (Array.isArray(data)) {
+            setFeatures(data);
+          } else {
+            setFeatures([]);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch features:', err);
+          setFeatures([]);
+        });
 
       if (user?.role === 'customer') {
         fetch('/api/loyalty/points', {
@@ -107,7 +116,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           isSidebarOpen ? 'w-64' : 'w-20'
         } border-r border-[#141414] transition-all duration-300 flex flex-col bg-[#E4E3E0]`}
       >
-        <div className="p-6 border-bottom border-[#141414] flex items-center justify-between">
+        <div className="p-6 border-b border-[#141414] flex items-center justify-between">
           {isSidebarOpen && (
             <span className="font-serif italic font-bold text-xl tracking-tight text-[#141414]">
               CommerceForce

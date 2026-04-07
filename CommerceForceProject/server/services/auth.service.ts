@@ -57,8 +57,8 @@ export class AuthService {
       email: userRecord.email,
       name: userRecord.name,
       role: userRecord.role,
-      credit_limit: userRecord.credit_limit,
-      available_credit: userRecord.available_credit
+      credit_limit: userRecord.credit_limit ? Number(userRecord.credit_limit) : undefined,
+      available_credit: userRecord.available_credit ? Number(userRecord.available_credit) : undefined
     };
 
     const token = this.generateToken(user);
@@ -84,8 +84,8 @@ export class AuthService {
       email: userRecord.email,
       name: userRecord.name,
       role: userRecord.role,
-      credit_limit: userRecord.credit_limit,
-      available_credit: userRecord.available_credit
+      credit_limit: userRecord.credit_limit ? Number(userRecord.credit_limit) : undefined,
+      available_credit: userRecord.available_credit ? Number(userRecord.available_credit) : undefined
     };
   }
 

@@ -19,6 +19,7 @@ FROM node:22-slim
 WORKDIR /app
 
 # Install production dependencies
+# Now includes tsx and typescript as they are in 'dependencies'
 COPY package*.json ./
 RUN npm install --production
 
@@ -28,11 +29,8 @@ COPY --from=build /app/server ./server
 COPY --from=build /app/server.ts ./server.ts
 COPY --from=build /app/package.json ./package.json
 
-# Install tsx for running the server
-RUN npm install -g tsx
-
 # Expose port 3000
 EXPOSE 3000
 
-# Start the server
-CMD ["tsx", "server.ts"]
+# Start the server using tsx
+CMD ["npx", "tsx", "server.ts"]

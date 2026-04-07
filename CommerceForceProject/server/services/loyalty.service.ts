@@ -14,53 +14,65 @@ export class LoyaltyService {
     return result.rows;
   }
 
-  static async addPoints(userId: string, points: number, type: LoyaltyTransaction['type'], description?: string, orderId?: string): Promise<void> {
+  static async addPoints(userId: string, points: number, type: LoyaltyTransaction['type'], description?: string, orderId?: string, client?: any): Promise<void> {
     if (points === 0) return;
 
-    const client = await db.getClient();
+    const useExternalClient = !!client;
+    const dbClient = client || await db.getClient();
+    
     try {
-      await client.query('BEGIN');
+      if (!useExternalClient) {
+        await dbClient.query('BEGIN');
+      }
       
       // 1. Record transaction
       const id = uuidv4();
-      await db.queryWithClient(client, `
+      await db.queryWithClient(dbClient, `
         INSERT INTO loyalty_transactions (id, user_id, order_id, points, type, description)
         VALUES (?, ?, ?, ?, ?, ?)
       `, [id, userId, orderId || null, points, type, description || null]);
 
       // 2. Update balance
-      const existingResult = await db.queryWithClient(client, 'SELECT points FROM loyalty_points WHERE user_id = ?', [userId]);
+      const existingResult = await db.queryWithClient(dbClient, 'SELECT points FROM loyalty_points WHERE user_id = ?', [userId]);
       const existing = existingResult.rows[0];
       
       if (existing) {
-        await db.queryWithClient(client, 'UPDATE loyalty_points SET points = points + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?', [points, userId]);
+        await db.queryWithClient(dbClient, 'UPDATE loyalty_points SET points = points + ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?', [points, userId]);
       } else {
-        await db.queryWithClient(client, 'INSERT INTO loyalty_points (user_id, points) VALUES (?, ?)', [userId, points]);
+        await db.queryWithClient(dbClient, 'INSERT INTO loyalty_points (user_id, points) VALUES (?, ?)', [userId, points]);
       }
 
-      await client.query('COMMIT');
+      if (!useExternalClient) {
+        await dbClient.query('COMMIT');
+      }
     } catch (error) {
-      await client.query('ROLLBACK');
+      if (!useExternalClient) {
+        await dbClient.query('ROLLBACK');
+      }
       throw error;
     } finally {
-      client.release();
+      if (!useExternalClient) {
+        dbClient.release();
+      }
     }
   }
 
-  static async earnFromOrder(userId: string, orderId: string, totalAmount: number): Promise<void> {
+  static async earnFromOrder(userId: string, orderId: string, totalAmount: number, client?: any): Promise<void> {
     // Rule: 1 point for every $1 spent
     const points = Math.floor(totalAmount);
     if (points > 0) {
-      await this.addPoints(userId, points, 'earn', `Points earned from order #${orderId.substring(0, 8)}`, orderId);
+      await this.addPoints(userId, points, 'earn', `Points earned from order #${orderId.substring(0, 8)}`, orderId, client);
     }
   }
 
   static async getAllStats(): Promise<any[]> {
     const result = await db.query(`
-      SELECT u.name, u.email, lp.points, lp.updated_at
-      FROM loyalty_points lp
-      JOIN users u ON lp.user_id = u.id
-      ORDER BY lp.points DESC
+      SELECT u.name, u.email, COALESCE(lp.points, 0) as points, lp.updated_at
+      FROM users u
+      LEFT JOIN loyalty_points lp ON u.id = lp.user_id
+      JOIN roles r ON u.role_id = r.id
+      WHERE r.name IN ('customer', 'client')
+      ORDER BY points DESC
     `);
     return result.rows;
   }

@@ -22,7 +22,7 @@ export const UsersAdmin = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch users:', err);
     } finally {

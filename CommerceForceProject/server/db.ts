@@ -10,15 +10,16 @@ const pool = new Pool({
 
 export async function initDb() {
   let client;
-  let retries = 5;
+  let retries = 20; // Increased retries for slower Docker startups
   while (retries > 0) {
     try {
       client = await pool.connect();
+      console.log("Successfully connected to the database.");
       break;
-    } catch (err) {
-      console.log(`Waiting for database... (${retries} retries left)`);
+    } catch (err: any) {
+      console.log(`Waiting for database... (${retries} retries left). Error: ${err.message}`);
       retries -= 1;
-      await new Promise(res => setTimeout(res, 5000));
+      await new Promise(res => setTimeout(res, 3000));
     }
   }
 

@@ -145,7 +145,7 @@ export class OrderService {
       }
 
       // Award loyalty points
-      await LoyaltyService.earnFromOrder(userId, orderId, totalAmount);
+      await LoyaltyService.earnFromOrder(userId, orderId, totalAmount, client);
 
       await client.query('COMMIT');
     } catch (error) {

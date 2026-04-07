@@ -187,7 +187,7 @@ export class RFQService {
 
       let discountAmount = 0;
       if (couponCode) {
-        const validation = await CouponService.validateCoupon(couponCode, subtotal);
+        const validation = await CouponService.validateCoupon(couponCode, subtotal, rfq.user_id);
         if (!validation.isValid) {
           throw new Error(validation.error || 'Invalid coupon');
         }
@@ -232,6 +232,10 @@ export class RFQService {
 
       await db.queryWithClient(client, 'UPDATE rfqs SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['converted', id]);
       
+      // Award loyalty points
+      const { LoyaltyService } = await import('./loyalty.service');
+      await LoyaltyService.earnFromOrder(rfq.user_id, orderId, totalAmount, client);
+
       await client.query('COMMIT');
       return { orderId };
     } catch (error) {

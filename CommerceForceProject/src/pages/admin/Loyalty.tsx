@@ -13,10 +13,12 @@ export const LoyaltyAdmin = () => {
   const { token } = useAuth();
 
   const [adjustForm, setAdjustForm] = useState({
+    email: '',
     userId: '',
     points: '',
     description: ''
   });
+  const [lookupError, setLookupError] = useState('');
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -25,9 +27,14 @@ export const LoyaltyAdmin = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      setStats(data);
+      if (Array.isArray(data)) {
+        setStats(data);
+      } else {
+        setStats([]);
+      }
     } catch (err) {
       console.error('Failed to fetch loyalty stats:', err);
+      setStats([]);
     } finally {
       setIsLoading(false);
     }
@@ -37,8 +44,31 @@ export const LoyaltyAdmin = () => {
     fetchStats();
   }, []);
 
+  const handleLookup = async (email: string) => {
+    setLookupError('');
+    if (!email.includes('@')) return;
+    try {
+      const res = await fetch(`/api/admin/users/by-email/${encodeURIComponent(email)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const user = await res.json();
+        setAdjustForm(prev => ({ ...prev, userId: user.id, email }));
+      } else {
+        setLookupError('User not found');
+        setAdjustForm(prev => ({ ...prev, userId: '', email }));
+      }
+    } catch (err) {
+      console.error('Lookup failed:', err);
+    }
+  };
+
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!adjustForm.userId) {
+      setLookupError('Please enter a valid customer email first');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/loyalty/adjust', {
@@ -55,8 +85,12 @@ export const LoyaltyAdmin = () => {
       });
       if (res.ok) {
         setIsModalOpen(false);
-        setAdjustForm({ userId: '', points: '', description: '' });
-        fetchStats();
+        setAdjustForm({ email: '', userId: '', points: '', description: '' });
+        // Add a small delay to ensure DB consistency before refetch
+        setTimeout(() => fetchStats(), 500);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to adjust points');
       }
     } catch (err) {
       console.error('Failed to adjust points:', err);
@@ -65,10 +99,13 @@ export const LoyaltyAdmin = () => {
     }
   };
 
-  const filteredStats = stats.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) || 
-    s.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredStats = Array.isArray(stats) ? stats.filter(s => 
+    s.name?.toLowerCase().includes(search.toLowerCase()) || 
+    s.email?.toLowerCase().includes(search.toLowerCase())
+  ) : [];
+
+  const totalPoints = Array.isArray(stats) ? stats.reduce((acc, s) => acc + (s.points || 0), 0) : 0;
+  const avgBalance = stats.length > 0 ? Math.floor(totalPoints / stats.length) : 0;
 
   return (
     <div className="space-y-6">
@@ -81,7 +118,7 @@ export const LoyaltyAdmin = () => {
             </div>
             <div>
               <p className="text-xs font-mono uppercase opacity-50">Total Points Issued</p>
-              <p className="text-2xl font-bold">{stats.reduce((acc, s) => acc + s.points, 0).toLocaleString()}</p>
+              <p className="text-2xl font-bold">{totalPoints.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -103,9 +140,7 @@ export const LoyaltyAdmin = () => {
             </div>
             <div>
               <p className="text-xs font-mono uppercase opacity-50">Avg. Balance</p>
-              <p className="text-2xl font-bold">
-                {stats.length > 0 ? Math.floor(stats.reduce((acc, s) => acc + s.points, 0) / stats.length).toLocaleString() : 0}
-              </p>
+              <p className="text-2xl font-bold">{avgBalance.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -144,7 +179,13 @@ export const LoyaltyAdmin = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#141414]">
-            {filteredStats.map((s, idx) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={4} className="p-12 text-center">
+                  <Loader2 className="animate-spin mx-auto opacity-20" size={32} />
+                </td>
+              </tr>
+            ) : filteredStats.map((s, idx) => (
               <tr key={idx} className="hover:bg-white transition-colors group">
                 <td className="p-4">
                   <div className="flex flex-col">
@@ -153,15 +194,15 @@ export const LoyaltyAdmin = () => {
                   </div>
                 </td>
                 <td className="p-4 text-right">
-                  <span className="text-lg font-bold font-mono">{s.points.toLocaleString()}</span>
+                  <span className="text-lg font-bold font-mono">{(s.points || 0).toLocaleString()}</span>
                 </td>
                 <td className="p-4 text-[10px] font-mono opacity-40">
-                  {new Date(s.updated_at).toLocaleString()}
+                  {s.updated_at ? new Date(s.updated_at).toLocaleString() : '-'}
                 </td>
                 <td className="p-4">
-                  {s.points > 1000 ? (
+                  {(s.points || 0) > 1000 ? (
                     <span className="text-[10px] font-mono uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded">Gold Member</span>
-                  ) : s.points > 500 ? (
+                  ) : (s.points || 0) > 500 ? (
                     <span className="text-[10px] font-mono uppercase text-slate-600 bg-slate-50 px-2 py-1 rounded">Silver Member</span>
                   ) : (
                     <span className="text-[10px] font-mono uppercase text-stone-600 bg-stone-50 px-2 py-1 rounded">Bronze Member</span>
@@ -171,7 +212,7 @@ export const LoyaltyAdmin = () => {
             ))}
           </tbody>
         </table>
-        {filteredStats.length === 0 && (
+        {!isLoading && filteredStats.length === 0 && (
           <div className="p-12 text-center text-[#141414]/40 italic font-serif">
             No loyalty data found.
           </div>
@@ -194,15 +235,17 @@ export const LoyaltyAdmin = () => {
                   <input 
                     type="email" 
                     required 
+                    value={adjustForm.email}
                     placeholder="customer@example.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414]"
-                    onChange={async (e) => {
-                      // Simple lookup or just use email if backend supports it
-                      // For now we assume we need the ID, so we'd need a way to find it
-                      // Let's assume the form takes an email and we'll handle it
+                    className={`w-full px-4 py-2.5 rounded-xl border ${adjustForm.userId ? 'border-green-500' : 'border-[#e5e5e5]'} focus:outline-none focus:ring-2 focus:ring-[#141414]`}
+                    onChange={(e) => {
+                      const email = e.target.value;
+                      setAdjustForm(prev => ({ ...prev, email }));
+                      handleLookup(email);
                     }}
                   />
-                  <p className="text-[10px] opacity-40 mt-1 italic">Note: In a real app, this would be a searchable dropdown.</p>
+                  {lookupError && <p className="text-[10px] text-red-500 mt-1">{lookupError}</p>}
+                  {adjustForm.userId && <p className="text-[10px] text-green-600 mt-1">✓ Customer identified</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5">Points (Negative to deduct)</label>
@@ -212,7 +255,7 @@ export const LoyaltyAdmin = () => {
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5">Reason / Description</label>
                   <textarea required value={adjustForm.description} onChange={e => setAdjustForm({...adjustForm, description: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] min-h-[100px]" placeholder="e.g. Customer service goodwill" />
                 </div>
-                <button type="submit" disabled={isSubmitting} className="w-full bg-[#141414] text-white py-3 rounded-xl font-medium hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmitting || !adjustForm.userId} className="w-full bg-[#141414] text-white py-3 rounded-xl font-medium hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                   {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Apply Adjustment'}
                 </button>
               </form>

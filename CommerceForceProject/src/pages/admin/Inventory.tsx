@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Warehouse, Inventory, Product } from '../../shared/types';
-import { Search, Plus, MoreHorizontal, Filter, Loader2, Warehouse as WarehouseIcon, Package, AlertTriangle, X, Settings, ArrowRightLeft } from 'lucide-react';
+import { Warehouse, Inventory, Product, FeatureFlag } from '../../shared/types';
+import { Search, Plus, MoreHorizontal, Filter, Loader2, Warehouse as WarehouseIcon, Package, AlertTriangle, X, Settings, ArrowRightLeft, ShoppingCart, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const InventoryPage = () => {
@@ -15,7 +16,12 @@ export const InventoryPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const { token, user } = useAuth();
+  const { addToCart } = useCart();
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'client';
+  const rfqEnabled = Boolean(features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true);
 
   const [warehouseForm, setWarehouseForm] = useState({
     name: '',
@@ -81,9 +87,28 @@ export const InventoryPage = () => {
     }
   };
 
+  const fetchFeatures = () => {
+    fetch('/api/admin/features', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setFeatures(data);
+        } else {
+          setFeatures([]);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch features:', err);
+        setFeatures([]);
+      });
+  };
+
   useEffect(() => {
     fetchWarehouses();
     fetchProducts();
+    if (token) fetchFeatures();
   }, []);
 
   useEffect(() => {
@@ -155,6 +180,31 @@ export const InventoryPage = () => {
     }
   };
 
+  const handleRequestQuote = async (product: Product) => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/rfq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          items: [{ productId: product.id, quantity: 1 }],
+          notes: `Quote request for ${product.name} from Inventory view`
+        })
+      });
+      if (res.ok) {
+        alert('RFQ submitted successfully!');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit RFQ');
+      }
+    } catch (err) {
+      console.error('Failed to submit RFQ:', err);
+    }
+  };
+
   const filteredInventory = inventory.filter(i => 
     i.product?.name.toLowerCase().includes(search.toLowerCase()) || 
     i.product?.sku.toLowerCase().includes(search.toLowerCase())
@@ -180,7 +230,7 @@ export const InventoryPage = () => {
               <span className="text-[10px] opacity-50 font-mono">{wh.code}</span>
             </button>
           ))}
-          {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'client') && (
+          {(user?.role === 'admin' || user?.role === 'superadmin') && (
             <button 
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 rounded-xl border border-dashed border-[#141414]/30 text-[#141414]/60 hover:border-[#141414] hover:text-[#141414] transition-all flex items-center gap-2"
@@ -207,13 +257,15 @@ export const InventoryPage = () => {
               />
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <button 
-                onClick={() => setIsStockModalOpen(true)}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#141414] text-[#E4E3E0] text-sm hover:bg-[#141414]/90 transition-colors"
-              >
-                <ArrowRightLeft size={16} />
-                Adjust Stock
-              </button>
+              {(user?.role === 'admin' || user?.role === 'superadmin') && (
+                <button 
+                  onClick={() => setIsStockModalOpen(true)}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#141414] text-[#E4E3E0] text-sm hover:bg-[#141414]/90 transition-colors"
+                >
+                  <ArrowRightLeft size={16} />
+                  Adjust Stock
+                </button>
+              )}
             </div>
           </div>
 
@@ -228,6 +280,7 @@ export const InventoryPage = () => {
                   <th className="p-4 font-medium">Min Level</th>
                   <th className="p-4 font-medium">Status</th>
                   <th className="p-4 font-medium">Last Updated</th>
+                  <th className="p-4 font-medium"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#141414]">
@@ -255,6 +308,32 @@ export const InventoryPage = () => {
                     </td>
                     <td className="p-4 text-[10px] font-mono opacity-40">
                       {new Date(item.updated_at).toLocaleString()}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        {!isAdmin && item.product?.allow_direct_buy && (
+                          <button 
+                            onClick={() => {
+                              if (item.product) {
+                                addToCart(item.product, 1);
+                              }
+                            }}
+                            className="bg-[#141414] text-white px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
+                          >
+                            <ShoppingCart size={12} />
+                            Buy
+                          </button>
+                        )}
+                        {!isAdmin && rfqEnabled && (
+                          <button 
+                            onClick={() => item.product && handleRequestQuote(item.product)}
+                            className="border border-[#141414] text-[#141414] px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-white transition-all flex items-center gap-2"
+                          >
+                            <FileText size={12} />
+                            Quote
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

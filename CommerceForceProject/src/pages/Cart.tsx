@@ -47,76 +47,79 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8 space-y-6">
-          {items.map((item) => (
-            <motion.div
-              layout
-              key={item.product.id}
-              className="bg-white p-6 rounded-[32px] border border-[#141414]/5 shadow-sm flex gap-6 items-center"
-            >
-              <div className="w-24 h-24 bg-[#f5f5f5] rounded-2xl flex-shrink-0 overflow-hidden border border-[#141414]/5">
-                {item.product.image_url ? (
-                  <img 
-                    src={item.product.image_url} 
-                    alt={item.product.name}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#141414]/20">
-                    <ShoppingBag size={32} />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-lg font-bold text-[#141414]">{item.product.name}</h3>
-                    <p className="text-sm text-[#141414]/40 font-mono">SKU: {item.product.sku}</p>
-                  </div>
-                  <button 
-                    onClick={() => removeFromCart(item.product.id)}
-                    className="p-2 text-[#141414]/20 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                  >
-                    <Trash2 size={20} />
-                  </button>
+          {items.map((item) => {
+            if (!item.product) return null;
+            return (
+              <motion.div
+                layout
+                key={item.product.id}
+                className="bg-white p-6 rounded-[32px] border border-[#141414]/5 shadow-sm flex gap-6 items-center"
+              >
+                <div className="w-24 h-24 bg-[#f5f5f5] rounded-2xl flex-shrink-0 overflow-hidden border border-[#141414]/5">
+                  {item.product.image_url ? (
+                    <img 
+                      src={item.product.image_url} 
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#141414]/20">
+                      <ShoppingBag size={32} />
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-4 bg-[#f5f5f5] rounded-xl px-3 py-1.5">
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#141414]">{item.product.name}</h3>
+                      <p className="text-sm text-[#141414]/40 font-mono">SKU: {item.product.sku}</p>
+                    </div>
                     <button 
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                      className="p-1 hover:bg-white rounded-lg transition-colors"
+                      onClick={() => removeFromCart(item.product.id)}
+                      className="p-2 text-[#141414]/20 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                     >
-                      <Minus size={16} />
-                    </button>
-                    <span className="text-sm font-bold font-mono w-6 text-center">{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                      className="p-1 hover:bg-white rounded-lg transition-colors"
-                    >
-                      <Plus size={16} />
+                      <Trash2 size={20} />
                     </button>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-[#141414]/40 font-mono mb-1">
-                      {item.product.sale_percentage && item.product.sale_percentage > 0 ? (
-                        <div className="flex flex-col items-end">
-                          <span className="line-through text-[8px] opacity-30">£{item.product.base_price.toFixed(2)}</span>
-                          <span className="text-rose-600 font-bold">£{(item.product.base_price * (1 - item.product.sale_percentage / 100)).toFixed(2)} each</span>
-                        </div>
-                      ) : (
-                        `£${item.product.base_price.toFixed(2)} each`
-                      )}
+
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-4 bg-[#f5f5f5] rounded-xl px-3 py-1.5">
+                      <button 
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        className="p-1 hover:bg-white rounded-lg transition-colors"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-sm font-bold font-mono w-6 text-center">{item.quantity}</span>
+                      <button 
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        className="p-1 hover:bg-white rounded-lg transition-colors"
+                      >
+                        <Plus size={16} />
+                      </button>
                     </div>
-                    <div className="text-xl font-bold font-mono">
-                      £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? (item.product.base_price * (1 - item.product.sale_percentage / 100)) : item.product.base_price) * item.quantity).toFixed(2)}
+                    <div className="text-right">
+                      <div className="text-xs text-[#141414]/40 font-mono mb-1">
+                        {item.product.sale_percentage && item.product.sale_percentage > 0 ? (
+                          <div className="flex flex-col items-end">
+                            <span className="line-through text-[8px] opacity-30">£{(Number(item.product.base_price) || 0).toFixed(2)}</span>
+                            <span className="text-rose-600 font-bold">£{((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)).toFixed(2)} each</span>
+                          </div>
+                        ) : (
+                          `£${(Number(item.product.base_price) || 0).toFixed(2)} each`
+                        )}
+                      </div>
+                      <div className="text-xl font-bold font-mono">
+                        £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? ((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)) : (Number(item.product.base_price) || 0)) * item.quantity).toFixed(2)}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="lg:col-span-4">

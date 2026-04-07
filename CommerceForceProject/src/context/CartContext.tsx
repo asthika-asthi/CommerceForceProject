@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '../shared/types';
+import { useAuth } from './AuthContext';
 
 interface CartItem {
   product: Product;
@@ -19,21 +20,68 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('cart');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { user, isLoading } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Load cart when auth state is ready
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
+    if (!isLoading) {
+      const storageKey = user ? `cart_${user.id}` : 'cart_guest';
+      const saved = localStorage.getItem(storageKey);
+      setItems(saved ? JSON.parse(saved) : []);
+      setIsInitialized(true);
+    }
+  }, [user?.id, isLoading]);
+
+  // Save cart whenever items change
+  useEffect(() => {
+    if (isInitialized) {
+      const storageKey = user ? `cart_${user.id}` : 'cart_guest';
+      if (items.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(items));
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    }
+  }, [items, user?.id, isInitialized]);
+
+  // Merge guest cart into user cart on login
+  useEffect(() => {
+    if (!isLoading && user) {
+      const guestCart = localStorage.getItem('cart_guest');
+      if (guestCart) {
+        try {
+          const guestItems: CartItem[] = JSON.parse(guestCart);
+          if (guestItems.length > 0) {
+            setItems(prev => {
+              const newItems = [...prev];
+              guestItems.forEach(guestItem => {
+                const existing = newItems.find(i => String(i.product.id) === String(guestItem.product.id));
+                if (existing) {
+                  existing.quantity += guestItem.quantity;
+                } else {
+                  newItems.push(guestItem);
+                }
+              });
+              return newItems;
+            });
+          }
+          localStorage.removeItem('cart_guest');
+        } catch (e) {
+          console.error('Failed to parse guest cart:', e);
+          localStorage.removeItem('cart_guest');
+        }
+      }
+    }
+  }, [user?.id, isLoading]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existing = prev.find(item => String(item.product.id) === String(product.id));
       if (existing) {
         return prev.map(item =>
-          item.product.id === product.id
+          String(item.product.id) === String(product.id)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -43,7 +91,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = (productId: string) => {
-    setItems(prev => prev.filter(item => item.product.id !== productId));
+    setItems(prev => prev.filter(item => String(item.product.id) !== String(productId)));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -53,19 +101,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setItems(prev =>
       prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
+        String(item.product.id) === String(productId) ? { ...item, quantity } : item
       )
     );
   };
 
   const clearCart = () => setItems([]);
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const totalPrice = items.reduce((sum, item) => {
-    const price = item.product.sale_percentage && item.product.sale_percentage > 0
-      ? item.product.base_price * (1 - item.product.sale_percentage / 100)
-      : item.product.base_price;
-    return sum + (price * item.quantity);
+    if (!item.product) return sum;
+    const basePrice = Number(item.product.base_price || 0);
+    const salePercentage = Number(item.product.sale_percentage || 0);
+    const price = salePercentage > 0
+      ? basePrice * (1 - salePercentage / 100)
+      : basePrice;
+    return sum + (price * (item.quantity || 0));
   }, 0);
 
   return (
