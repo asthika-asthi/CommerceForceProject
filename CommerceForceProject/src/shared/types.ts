@@ -3,8 +3,29 @@ export interface BrandingConfig {
   company_name: string;
   domain: string;
   logo_url?: string;
+  favicon_url?: string;
   primary_color?: string;
+  secondary_color?: string;
+  font_family?: string;
+  button_style?: 'rounded' | 'square' | 'pill';
+  background_style?: 'solid' | 'gradient' | 'image';
+  background_value?: string; // Color, gradient string, or image URL
+  hero_title?: string;
+  hero_subtitle?: string;
+  hero_image_url?: string;
+  hero_cta_text?: string;
+  hero_cta_link?: string;
+  featured_products?: string; // JSON string of product IDs
+  layout_config?: string; // JSON string of LayoutSection[]
+  footer_config?: string; // JSON string for footer links and social
   created_at?: string;
+}
+
+export interface LayoutSection {
+  id: string;
+  type: 'hero' | 'features' | 'products' | 'promotions' | 'content' | 'testimonials' | 'faq' | 'cta';
+  enabled: boolean;
+  config: any;
 }
 
 export interface FeatureFlag {
@@ -24,6 +45,7 @@ export interface Product {
   base_price: number;
   sale_percentage?: number;
   image_url?: string;
+  images?: string[]; // Array of image URLs
   is_active: boolean;
   allow_direct_buy: boolean;
   created_at?: string;

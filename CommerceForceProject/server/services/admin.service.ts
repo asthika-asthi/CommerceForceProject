@@ -13,12 +13,30 @@ export class AdminService {
     if (current) {
       await db.query(`
         UPDATE branding_config 
-        SET company_name = ?, primary_color = ?, logo_url = ?
+        SET company_name = ?, primary_color = ?, secondary_color = ?, font_family = ?, 
+            logo_url = ?, favicon_url = ?, button_style = ?, background_style = ?, 
+            background_value = ?, hero_title = ?, hero_subtitle = ?, hero_image_url = ?, 
+            hero_cta_text = ?, hero_cta_link = ?, featured_products = ?, 
+            layout_config = ?, footer_config = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
         config.primary_color || current.primary_color,
+        config.secondary_color || current.secondary_color,
+        config.font_family || current.font_family,
         config.logo_url || current.logo_url,
+        config.favicon_url || current.favicon_url,
+        config.button_style || current.button_style,
+        config.background_style || current.background_style,
+        config.background_value || current.background_value,
+        config.hero_title || current.hero_title,
+        config.hero_subtitle || current.hero_subtitle,
+        config.hero_image_url || current.hero_image_url,
+        config.hero_cta_text || current.hero_cta_text,
+        config.hero_cta_link || current.hero_cta_link,
+        config.featured_products || current.featured_products,
+        config.layout_config || current.layout_config,
+        config.footer_config || current.footer_config,
         current.id
       ]);
     }

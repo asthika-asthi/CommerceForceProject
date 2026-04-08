@@ -40,9 +40,49 @@ export async function initDb() {
         company_name TEXT NOT NULL,
         domain TEXT NOT NULL UNIQUE,
         logo_url TEXT,
+        favicon_url TEXT,
         primary_color TEXT,
+        secondary_color TEXT,
+        font_family TEXT,
+        button_style TEXT DEFAULT 'rounded',
+        background_style TEXT DEFAULT 'solid',
+        background_value TEXT,
+        hero_title TEXT,
+        hero_subtitle TEXT,
+        hero_image_url TEXT,
+        hero_cta_text TEXT,
+        hero_cta_link TEXT,
+        featured_products TEXT DEFAULT '[]',
+        layout_config TEXT DEFAULT '[]',
+        footer_config TEXT DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Add missing columns if they don't exist
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='favicon_url') THEN
+          ALTER TABLE branding_config ADD COLUMN favicon_url TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='button_style') THEN
+          ALTER TABLE branding_config ADD COLUMN button_style TEXT DEFAULT 'rounded';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='background_style') THEN
+          ALTER TABLE branding_config ADD COLUMN background_style TEXT DEFAULT 'solid';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='background_value') THEN
+          ALTER TABLE branding_config ADD COLUMN background_value TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='hero_cta_text') THEN
+          ALTER TABLE branding_config ADD COLUMN hero_cta_text TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='hero_cta_link') THEN
+          ALTER TABLE branding_config ADD COLUMN hero_cta_link TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_config') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_config TEXT DEFAULT '[]';
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS feature_flags (
         id SERIAL PRIMARY KEY,
@@ -77,6 +117,7 @@ export async function initDb() {
         base_price DECIMAL NOT NULL,
         sale_percentage DECIMAL DEFAULT 0,
         image_url TEXT,
+        images TEXT DEFAULT '[]',
         is_active INTEGER DEFAULT 1,
         allow_direct_buy INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -3,6 +3,7 @@ import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, Shopp
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useBranding } from '../../context/BrandingContext';
 import { CartModal } from '../CartModal';
 import { FeatureFlag } from '../../shared/types';
 
@@ -17,10 +18,10 @@ interface NavItemProps {
 const NavItem = ({ icon: Icon, label, active, onClick }: NavItemProps) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
       active 
-        ? 'bg-[#141414] text-[#E4E3E0]' 
-        : 'text-[#141414]/60 hover:text-[#141414] hover:bg-black/5'
+        ? 'bg-[var(--primary-color)] text-white shadow-lg shadow-[var(--primary-color)]/20 rounded-xl' 
+        : 'text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-xl'
     }`}
   >
     <Icon size={18} />
@@ -41,6 +42,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
   const { user, logout, token } = useAuth();
   const { totalItems } = useCart();
+  const { config } = useBranding();
 
   const b2bEnabled = features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true;
   const rfqEnabled = features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true;
@@ -76,6 +78,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   }, [token, user?.role]);
 
   const navItems = [
+    { id: 'landing', label: 'Home', icon: ShoppingBag, roles: ['customer', 'admin', 'superadmin', 'client'] },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'superadmin', 'client'] },
     { id: 'branding', label: 'Branding', icon: Settings, roles: ['superadmin'] },
     { id: 'features', label: 'Feature Flags', icon: Flag, roles: ['superadmin'] },
@@ -109,28 +112,37 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   });
 
   return (
-    <div className="min-h-screen bg-[#E4E3E0] flex">
+    <div className="min-h-screen bg-[#F8F9FA] flex font-[var(--font-family)]">
       {/* Sidebar */}
       <aside 
         className={`${
-          isSidebarOpen ? 'w-64' : 'w-20'
-        } border-r border-[#141414] transition-all duration-300 flex flex-col bg-[#E4E3E0]`}
+          isSidebarOpen ? 'w-72' : 'w-24'
+        } border-r border-black/5 transition-all duration-300 flex flex-col bg-white shadow-xl z-20`}
       >
-        <div className="p-6 border-b border-[#141414] flex items-center justify-between">
+        <div className="p-8 flex items-center justify-between">
           {isSidebarOpen && (
-            <span className="font-serif italic font-bold text-xl tracking-tight text-[#141414]">
-              CommerceForce
-            </span>
+            <div className="flex items-center gap-3">
+              {config?.logo_url ? (
+                <img src={config.logo_url} alt="Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-[var(--primary-color)] flex items-center justify-center text-white font-bold">
+                  {config?.company_name?.charAt(0) || 'C'}
+                </div>
+              )}
+              <span className="font-bold text-lg tracking-tight text-[#141414] truncate max-w-[140px]">
+                {config?.company_name || 'CommerceForce'}
+              </span>
+            </div>
           )}
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1 hover:bg-black/5 rounded"
+            className="p-2 hover:bg-black/5 rounded-xl transition-colors"
           >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
 
-        <nav className="flex-1 py-4">
+        <nav className="flex-1 px-4 py-4 space-y-1">
           {filteredNavItems.map((item) => (
             <NavItem
               key={item.id}
@@ -142,8 +154,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           ))}
 
           {isSidebarOpen && filteredCustomerNavItems.length > 0 && (
-            <div className="mt-8 mb-2 px-4">
-              <p className="text-[10px] font-mono uppercase opacity-40 tracking-widest">Customer Portal</p>
+            <div className="mt-10 mb-4 px-4">
+              <p className="text-[10px] font-mono uppercase opacity-40 tracking-widest font-bold">Customer Portal</p>
             </div>
           )}
           
@@ -158,23 +170,23 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           ))}
         </nav>
 
-        <div className="p-4 border-t border-[#141414]">
-          <div className="flex items-center justify-between gap-3 px-2">
+        <div className="p-6 border-t border-black/5">
+          <div className="flex items-center justify-between gap-3 bg-black/5 p-3 rounded-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#141414] flex items-center justify-center text-[#E4E3E0] text-xs font-bold">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary-color)] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[var(--primary-color)]/20">
                 {user?.name?.substring(0, 2).toUpperCase() || 'CF'}
               </div>
               {isSidebarOpen && (
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-[#141414] truncate max-w-[100px]">{user?.name}</span>
-                  <span className="text-[10px] text-[#141414]/50 uppercase tracking-wider">{user?.role}</span>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-xs font-bold text-[#141414] truncate">{user?.name}</span>
+                  <span className="text-[10px] text-[#141414]/50 uppercase tracking-wider font-bold">{user?.role}</span>
                 </div>
               )}
             </div>
             {isSidebarOpen && (
               <button 
                 onClick={logout}
-                className="p-1.5 hover:bg-black/5 rounded-lg text-[#141414]/60 hover:text-red-600 transition-colors"
+                className="p-2 hover:bg-white rounded-xl text-[#141414]/60 hover:text-red-600 transition-all shadow-sm"
                 title="Logout"
               >
                 <LogOut size={16} />
@@ -186,45 +198,52 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b border-[#141414] flex items-center justify-between px-8 bg-[#E4E3E0]">
-          <h1 className="font-serif italic text-lg text-[#141414]">
+        <header className="h-20 border-b border-black/5 flex items-center justify-between px-10 bg-white/80 backdrop-blur-md z-10">
+          <h1 className="font-bold text-xl text-[#141414] tracking-tight">
             {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {user?.role === 'customer' && loyaltyEnabled && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full border border-amber-100">
-                <Coins size={14} />
+              <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm">
+                <Award size={16} />
                 <span className="text-xs font-bold font-mono">{loyaltyPoints} pts</span>
               </div>
             )}
             {user?.role === 'customer' && (
               <button 
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2 hover:bg-black/5 rounded-full transition-colors group"
+                className="relative p-3 bg-white border border-black/5 rounded-2xl transition-all hover:shadow-lg group"
               >
                 <ShoppingBag size={20} className="text-[#141414]" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#141414] text-[#E4E3E0] text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#E4E3E0] animate-in zoom-in duration-300">
+                  <span className="absolute -top-1 -right-1 w-6 h-6 bg-[var(--primary-color)] text-white text-[10px] font-bold rounded-lg flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
                     {totalItems}
                   </span>
                 )}
               </button>
             )}
-            <span className="text-[10px] font-mono uppercase tracking-widest opacity-50">
-              v2.5.0-stable
-            </span>
+            <div className="hidden md:flex flex-col items-end">
+              <span className="text-[10px] font-mono uppercase tracking-widest opacity-30 font-bold">
+                Platform Status
+              </span>
+              <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
+                v2.6.0-enterprise
+              </span>
+            </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {children}
-          </motion.div>
+        <div className="flex-1 overflow-y-auto bg-[#F8F9FA]">
+          <div className="p-10 max-w-[1600px] mx-auto">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              {children}
+            </motion.div>
+          </div>
         </div>
       </main>
 

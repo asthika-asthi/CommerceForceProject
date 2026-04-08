@@ -20,8 +20,10 @@ import { InventoryAlerts } from './pages/admin/InventoryAlerts';
 import { CustomerRFQ } from './pages/CustomerRFQ';
 import { Checkout } from './pages/Checkout';
 import { Cart } from './pages/Cart';
+import { LandingPage } from './pages/LandingPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { BrandingProvider } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
@@ -96,6 +98,7 @@ function AppContent() {
   useEffect(() => {
     if (!isLoading && user) {
       const navItems = [
+        { id: 'landing', roles: ['customer', 'admin', 'superadmin', 'client'] },
         { id: 'dashboard', roles: ['admin', 'superadmin', 'client'] },
         { id: 'branding', roles: ['superadmin'] },
         { id: 'features', roles: ['superadmin'] },
@@ -116,7 +119,7 @@ function AppContent() {
       const hasAccess = currentItem?.roles.includes(user.role) ?? false;
 
       if (!saved || !hasAccess) {
-        const defaultTab = user.role === 'customer' ? 'products' : 'dashboard';
+        const defaultTab = user.role === 'customer' ? 'landing' : 'dashboard';
         setActiveTab(defaultTab);
       }
     }
@@ -136,6 +139,8 @@ function AppContent() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'landing':
+        return <LandingPage onShopNow={() => setActiveTab('products')} />;
       case 'dashboard':
         return <Dashboard />;
       case 'branding':
@@ -181,11 +186,13 @@ function AppContent() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
-      </AuthProvider>
+      <BrandingProvider>
+        <AuthProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </AuthProvider>
+      </BrandingProvider>
     </ErrorBoundary>
   );
 }

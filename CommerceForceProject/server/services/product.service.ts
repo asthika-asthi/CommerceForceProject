@@ -26,16 +26,16 @@ export class ProductService {
 
   static async create(data: Partial<Product>): Promise<Product> {
     const id = uuidv4();
-    const { sku, name, description, category, base_price, sale_percentage = 0, image_url, is_active = 1, allow_direct_buy = 1 } = data;
+    const { sku, name, description, category, base_price, sale_percentage = 0, image_url, images = [], is_active = 1, allow_direct_buy = 1 } = data;
 
     if (!sku || !name || base_price === undefined) {
       throw new Error('Missing required product fields: sku, name, base_price');
     }
 
     await db.query(`
-      INSERT INTO products (id, sku, name, description, category, base_price, sale_percentage, image_url, is_active, allow_direct_buy)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, sku, name, description, category, base_price, sale_percentage, image_url, is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
+      INSERT INTO products (id, sku, name, description, category, base_price, sale_percentage, image_url, images, is_active, allow_direct_buy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, sku, name, description, category, base_price, sale_percentage, image_url, JSON.stringify(images), is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
 
     const product = await this.getById(id);
     return product!;
@@ -48,7 +48,7 @@ export class ProductService {
     }
 
     const fields = Object.keys(data).filter(key => 
-      ['sku', 'name', 'description', 'category', 'base_price', 'sale_percentage', 'image_url', 'is_active', 'allow_direct_buy'].includes(key)
+      ['sku', 'name', 'description', 'category', 'base_price', 'sale_percentage', 'image_url', 'images', 'is_active', 'allow_direct_buy'].includes(key)
     );
 
     if (fields.length === 0) return existing;
@@ -57,6 +57,7 @@ export class ProductService {
     const values = fields.map(field => {
       const val = (data as any)[field];
       if (field === 'is_active' || field === 'allow_direct_buy') return val ? 1 : 0;
+      if (field === 'images') return JSON.stringify(val);
       return val;
     });
 
@@ -71,8 +72,15 @@ export class ProductService {
   }
 
   private static mapToProduct(row: any): Product {
+    let images = [];
+    try {
+      images = typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []);
+    } catch (e) {
+      images = [];
+    }
     return {
       ...row,
+      images,
       is_active: Boolean(row.is_active),
       allow_direct_buy: Boolean(row.allow_direct_buy),
       sale_percentage: Number(row.sale_percentage || 0)

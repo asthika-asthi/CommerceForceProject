@@ -12,6 +12,7 @@ import loyaltyRoutes from "./server/routes/loyalty.routes";
 import rfqRoutes from "./server/routes/rfq.routes";
 import emailRoutes from "./server/routes/email.routes";
 import couponRoutes from "./server/routes/coupon.routes";
+import { AdminService } from "./server/services/admin.service";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,15 @@ export async function createApp() {
   app.use("/api/rfq", rfqRoutes);
   app.use("/api/email", emailRoutes);
   app.use("/api/coupons", couponRoutes);
+
+  app.get("/api/branding", async (req, res) => {
+    try {
+      const branding = await AdminService.getBranding();
+      res.json(branding);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "CommerceForce API is running" });
