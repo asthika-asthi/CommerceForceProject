@@ -18,6 +18,11 @@ export interface BrandingConfig {
   featured_products?: string; // JSON string of product IDs
   layout_config?: string; // JSON string of LayoutSection[]
   footer_config?: string; // JSON string for footer links and social
+  footer_email?: string;
+  footer_address?: string;
+  footer_copyright?: string;
+  footer_use_brand_color?: boolean;
+  contact_page_enabled?: boolean;
   created_at?: string;
 }
 

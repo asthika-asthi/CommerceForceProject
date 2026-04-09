@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useBranding } from '../../context/BrandingContext';
 import { CartModal } from '../CartModal';
+import { Footer } from '../Footer';
 import { FeatureFlag } from '../../shared/types';
 
 interface NavItemProps {
@@ -95,6 +96,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
   const customerNavItems = [
     { id: 'customer-rfq', label: 'My RFQs', icon: FileText, path: '/rfq', roles: ['customer', 'admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
+    { id: 'contact', label: 'Contact Us', icon: MessageSquare, roles: ['customer', 'admin', 'superadmin', 'client'], enabled: config?.contact_page_enabled },
   ];
 
   const filteredNavItems = navItems.filter(item => {
@@ -108,7 +110,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
     const hasRole = item.roles.includes(user?.role || '');
     const featureFlag = features.find(f => f.feature_key === item.feature);
     const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
-    return hasRole && isFeatureEnabled;
+    const isExplicitlyEnabled = item.enabled !== undefined ? item.enabled : true;
+    return hasRole && isFeatureEnabled && isExplicitlyEnabled;
   });
 
   return (
@@ -234,15 +237,18 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
         </header>
 
         <div className="flex-1 overflow-y-auto bg-[#F8F9FA]">
-          <div className="p-10 max-w-[1600px] mx-auto">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              {children}
-            </motion.div>
+          <div className="min-h-full flex flex-col">
+            <div className="flex-1 p-10 max-w-[1600px] w-full mx-auto">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                {children}
+              </motion.div>
+            </div>
+            <Footer />
           </div>
         </div>
       </main>

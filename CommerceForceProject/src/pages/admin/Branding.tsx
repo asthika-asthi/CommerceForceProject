@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig, LayoutSection } from '../../shared/types';
-import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer';
@@ -69,12 +69,12 @@ export const Branding = () => {
 
   const getDefaultConfig = (type: LayoutSection['type']) => {
     switch (type) {
-      case 'features': return { title: 'Our Features', items: [{ title: 'Fast', desc: 'Very fast' }] };
-      case 'promotions': return { title: 'Seasonal Sale', subtitle: 'Up to 50% off on all electronics', buttonText: 'Shop Sale', link: '/products', variant: 'dark', tag: 'Limited Time' };
-      case 'content': return { title: 'About Us', body: 'We are a great company.' };
-      case 'testimonials': return { title: 'What Clients Say', items: [{ name: 'John Doe', text: 'Amazing!' }] };
-      case 'faq': return { title: 'FAQ', items: [{ q: 'How?', a: 'Like this.' }] };
-      case 'cta': return { title: 'Ready?', buttonText: 'Get Started', link: '/products' };
+      case 'features': return { title: 'Our Features', items: [{ title: 'Feature Name', desc: 'Feature description goes here' }] };
+      case 'promotions': return { title: 'Special Offer', subtitle: 'Limited time promotion', buttonText: 'Learn More', link: '/products', variant: 'dark', tag: 'Limited Time' };
+      case 'content': return { title: 'Content Section', body: 'Enter your content here...' };
+      case 'testimonials': return { title: 'Customer Testimonials', items: [{ name: 'Customer Name', text: 'Their feedback here' }] };
+      case 'faq': return { title: 'Frequently Asked Questions', items: [{ q: 'Question?', a: 'Answer here.' }] };
+      case 'cta': return { title: 'Ready to start?', buttonText: 'Get Started', link: '/products' };
       default: return {};
     }
   };
@@ -359,6 +359,166 @@ export const Branding = () => {
                       <button type="button" onClick={() => removeSection(section.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"><Trash2 size={16} /></button>
                     </div>
 
+                    {section.type === 'features' && (
+                      <div className="space-y-4">
+                        {(section.config.items || []).map((item: any, i: number) => (
+                          <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-black/5 rounded-xl relative group/item">
+                            <input
+                              type="text"
+                              value={item.title || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].title = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                              placeholder="Feature Title"
+                            />
+                            <input
+                              type="text"
+                              value={item.desc || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].desc = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                              placeholder="Feature Description"
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items.splice(i, 1);
+                                setLayout(newLayout);
+                              }}
+                              className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLayout = [...layout];
+                            if (!newLayout[index].config.items) newLayout[index].config.items = [];
+                            newLayout[index].config.items.push({ title: 'New Feature', desc: 'Description here' });
+                            setLayout(newLayout);
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                        >
+                          + Add Feature Item
+                        </button>
+                      </div>
+                    )}
+
+                    {section.type === 'testimonials' && (
+                      <div className="space-y-4">
+                        {(section.config.items || []).map((item: any, i: number) => (
+                          <div key={i} className="space-y-3 p-4 bg-black/5 rounded-xl relative group/item">
+                            <input
+                              type="text"
+                              value={item.name || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].name = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-bold"
+                              placeholder="Customer Name"
+                            />
+                            <textarea
+                              value={item.text || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].text = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm min-h-[80px]"
+                              placeholder="Testimonial text..."
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items.splice(i, 1);
+                                setLayout(newLayout);
+                              }}
+                              className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLayout = [...layout];
+                            if (!newLayout[index].config.items) newLayout[index].config.items = [];
+                            newLayout[index].config.items.push({ name: 'Customer Name', text: 'Great service!' });
+                            setLayout(newLayout);
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                        >
+                          + Add Testimonial
+                        </button>
+                      </div>
+                    )}
+
+                    {section.type === 'faq' && (
+                      <div className="space-y-4">
+                        {(section.config.items || []).map((item: any, i: number) => (
+                          <div key={i} className="space-y-3 p-4 bg-black/5 rounded-xl relative group/item">
+                            <input
+                              type="text"
+                              value={item.q || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].q = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-bold"
+                              placeholder="Question"
+                            />
+                            <textarea
+                              value={item.a || ''}
+                              onChange={e => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items[i].a = e.target.value;
+                                setLayout(newLayout);
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                              placeholder="Answer"
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items.splice(i, 1);
+                                setLayout(newLayout);
+                              }}
+                              className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLayout = [...layout];
+                            if (!newLayout[index].config.items) newLayout[index].config.items = [];
+                            newLayout[index].config.items.push({ q: 'Question?', a: 'Answer here.' });
+                            setLayout(newLayout);
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                        >
+                          + Add FAQ Item
+                        </button>
+                      </div>
+                    )}
+
                     {section.type === 'promotions' && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input
@@ -478,6 +638,79 @@ export const Branding = () => {
                   No custom sections added yet.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'footer' && (
+          <div className="border border-[#141414] p-8 space-y-8 bg-white/50 rounded-3xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Layout size={18} className="text-blue-600" />
+              <h3 className="font-bold text-xl uppercase tracking-tight">Footer & Contact Page</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Footer Details</h4>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Support Email</label>
+                  <input
+                    type="email"
+                    value={config.footer_email || ''}
+                    onChange={e => setConfig({ ...config, footer_email: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="support@company.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Office Address</label>
+                  <textarea
+                    value={config.footer_address || ''}
+                    onChange={e => setConfig({ ...config, footer_address: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[80px]"
+                    placeholder="123 Business St, City, Country"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Copyright Statement</label>
+                  <input
+                    type="text"
+                    value={config.footer_copyright || ''}
+                    onChange={e => setConfig({ ...config, footer_copyright: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="© 2026 Company Name. All rights reserved."
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="footer_brand_color"
+                    checked={config.footer_use_brand_color || false}
+                    onChange={e => setConfig({ ...config, footer_use_brand_color: e.target.checked })}
+                    className="w-5 h-5 rounded border-black/10 text-black focus:ring-black"
+                  />
+                  <label htmlFor="footer_brand_color" className="text-sm font-bold">Use Primary Brand Color for Footer Background</label>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Contact Page Settings</h4>
+                <div className="p-6 bg-black/5 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-sm">Enable Contact Us Page</p>
+                      <p className="text-[10px] opacity-50">Adds a dedicated contact form page to your site</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConfig({ ...config, contact_page_enabled: !config.contact_page_enabled })}
+                      className={`w-12 h-6 rounded-full transition-all relative ${config.contact_page_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.contact_page_enabled ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

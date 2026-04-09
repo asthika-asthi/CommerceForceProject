@@ -5,7 +5,14 @@ import { BrandingConfig, FeatureFlag, Product, DashboardStats } from "../../src/
 export class AdminService {
   static async getBranding(): Promise<BrandingConfig> {
     const result = await db.query("SELECT * FROM branding_config LIMIT 1");
-    return result.rows[0] as BrandingConfig;
+    const branding = result.rows[0];
+    if (!branding) return {} as BrandingConfig;
+    
+    return {
+      ...branding,
+      footer_use_brand_color: Boolean(branding.footer_use_brand_color),
+      contact_page_enabled: Boolean(branding.contact_page_enabled)
+    } as BrandingConfig;
   }
 
   static async updateBranding(config: Partial<BrandingConfig>): Promise<void> {
@@ -17,7 +24,8 @@ export class AdminService {
             logo_url = ?, favicon_url = ?, button_style = ?, background_style = ?, 
             background_value = ?, hero_title = ?, hero_subtitle = ?, hero_image_url = ?, 
             hero_cta_text = ?, hero_cta_link = ?, featured_products = ?, 
-            layout_config = ?, footer_config = ?
+            layout_config = ?, footer_config = ?, footer_email = ?, footer_address = ?,
+            footer_copyright = ?, footer_use_brand_color = ?, contact_page_enabled = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -37,6 +45,11 @@ export class AdminService {
         config.featured_products || current.featured_products,
         config.layout_config || current.layout_config,
         config.footer_config || current.footer_config,
+        config.footer_email !== undefined ? config.footer_email : current.footer_email,
+        config.footer_address !== undefined ? config.footer_address : current.footer_address,
+        config.footer_copyright !== undefined ? config.footer_copyright : current.footer_copyright,
+        config.footer_use_brand_color !== undefined ? (config.footer_use_brand_color ? 1 : 0) : (current.footer_use_brand_color ? 1 : 0),
+        config.contact_page_enabled !== undefined ? (config.contact_page_enabled ? 1 : 0) : (current.contact_page_enabled ? 1 : 0),
         current.id
       ]);
     }

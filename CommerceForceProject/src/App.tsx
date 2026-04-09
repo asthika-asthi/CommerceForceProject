@@ -21,9 +21,10 @@ import { CustomerRFQ } from './pages/CustomerRFQ';
 import { Checkout } from './pages/Checkout';
 import { Cart } from './pages/Cart';
 import { LandingPage } from './pages/LandingPage';
+import { ContactUsPage } from './pages/ContactUsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { BrandingProvider } from './context/BrandingContext';
+import { BrandingProvider, useBranding } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
@@ -83,15 +84,42 @@ class ErrorBoundary extends Component<any, any> {
 
 function AppContent() {
   const { user, isLoading } = useAuth();
+  const { config } = useBranding();
   const [activeTab, setActiveTab] = useState(() => {
+    // Check URL path first
+    const path = window.location.pathname.substring(1);
+    const rootPath = path.split('/')[0];
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout'].includes(rootPath)) {
+      return rootPath;
+    }
+    
     const saved = localStorage.getItem('activeTab');
     if (saved) return saved;
     return 'dashboard';
   });
 
+  // Handle browser back/forward and manual URL changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname.substring(1);
+      const rootPath = path.split('/')[0];
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout'].includes(rootPath)) {
+        setActiveTab(rootPath);
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
   useEffect(() => {
     if (activeTab) {
       localStorage.setItem('activeTab', activeTab);
+      // Update URL without reload if it doesn't match
+      const currentPath = window.location.pathname.substring(1);
+      if (currentPath !== activeTab) {
+        window.history.pushState({}, '', `/${activeTab}`);
+      }
     }
   }, [activeTab]);
 
@@ -112,6 +140,7 @@ function AppContent() {
         { id: 'email', roles: ['superadmin'] },
         { id: 'users', roles: ['superadmin'] },
         { id: 'customer-rfq', roles: ['customer', 'admin', 'superadmin', 'client'] },
+        { id: 'contact', roles: ['customer', 'admin', 'superadmin', 'client'] },
       ];
 
       const saved = localStorage.getItem('activeTab');
@@ -165,6 +194,8 @@ function AppContent() {
         return <InventoryAlerts />;
       case 'customer-rfq':
         return <CustomerRFQ />;
+      case 'contact':
+        return <ContactUsPage />;
       case 'checkout':
         return <Checkout onBack={() => setActiveTab('products')} />;
       case 'cart':

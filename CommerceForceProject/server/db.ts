@@ -55,6 +55,11 @@ export async function initDb() {
         featured_products TEXT DEFAULT '[]',
         layout_config TEXT DEFAULT '[]',
         footer_config TEXT DEFAULT '[]',
+        footer_email TEXT,
+        footer_address TEXT,
+        footer_copyright TEXT,
+        footer_use_brand_color INTEGER DEFAULT 0,
+        contact_page_enabled INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -81,6 +86,21 @@ export async function initDb() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_config') THEN
           ALTER TABLE branding_config ADD COLUMN footer_config TEXT DEFAULT '[]';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_email') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_email TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_address') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_address TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_copyright') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_copyright TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_use_brand_color') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_use_brand_color INTEGER DEFAULT 0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='contact_page_enabled') THEN
+          ALTER TABLE branding_config ADD COLUMN contact_page_enabled INTEGER DEFAULT 1;
         END IF;
       END $$;
 
