@@ -8,8 +8,8 @@ export const Footer = () => {
   if (!config) return null;
 
   const footerStyle = config.footer_use_brand_color 
-    ? { backgroundColor: config.primary_color || '#141414', color: '#ffffff' }
-    : { backgroundColor: '#ffffff', color: '#141414' };
+    ? { backgroundColor: config.primary_color || 'var(--secondary-color)', color: '#ffffff' }
+    : { backgroundColor: '#ffffff', color: 'var(--secondary-color)' };
 
   const opacityClass = config.footer_use_brand_color ? 'opacity-70' : 'opacity-40';
   const borderClass = config.footer_use_brand_color ? 'border-white/10' : 'border-black/5';
@@ -23,18 +23,20 @@ export const Footer = () => {
               {config.logo_url ? (
                 <img src={config.logo_url} alt={config.company_name} className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               ) : (
-                <span className="text-xl font-bold tracking-tighter">{config.company_name}</span>
+                <span className="text-xl font-bold tracking-tighter" style={{ color: config.footer_use_brand_color ? '#ffffff' : 'var(--secondary-color)' }}>{config.company_name}</span>
               )}
             </div>
             <p className={`text-sm leading-relaxed ${opacityClass}`}>
               Providing premium solutions and high-quality products to our valued clients worldwide.
             </p>
-            <div className="flex gap-4">
-              <SocialIcon icon={Instagram} />
-              <SocialIcon icon={Twitter} />
-              <SocialIcon icon={Facebook} />
-              <SocialIcon icon={Linkedin} />
-            </div>
+            {config.social_links_enabled !== false && (
+              <div className="flex gap-4">
+                <SocialIcon icon={Instagram} />
+                <SocialIcon icon={Twitter} />
+                <SocialIcon icon={Facebook} />
+                <SocialIcon icon={Linkedin} />
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -61,7 +63,7 @@ export const Footer = () => {
                 )}
                 <div className="flex items-center gap-3">
                   <Phone size={18} className={opacityClass} />
-                  <span className="text-sm font-medium">+1 (555) 000-0000</span>
+                  <span className="text-sm font-medium">{config.footer_phone || '+1 (555) 000-0000'}</span>
                 </div>
               </div>
               {config.footer_address && (
@@ -91,7 +93,7 @@ export const Footer = () => {
 };
 
 const SocialIcon = ({ icon: Icon }: { icon: any }) => (
-  <a href="#" className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center hover:bg-[var(--primary-color)] hover:text-white transition-all group">
-    <Icon size={18} className="opacity-60 group-hover:opacity-100" />
+  <a href="#" className="w-10 h-10 rounded-xl bg-[var(--secondary-color-light)] flex items-center justify-center hover:bg-[var(--primary-color)] hover:text-white transition-all group">
+    <Icon size={18} className="opacity-60 group-hover:opacity-100" style={{ color: 'var(--secondary-color)' }} />
   </a>
 );

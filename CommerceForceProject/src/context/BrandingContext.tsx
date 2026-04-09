@@ -30,27 +30,36 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!config) return;
 
     const root = document.documentElement;
-    if (config.primary_color) {
-      root.style.setProperty('--primary-color', config.primary_color);
-      root.style.setProperty('--primary-color-light', `${config.primary_color}15`);
-    }
-    if (config.secondary_color) {
-      root.style.setProperty('--secondary-color', config.secondary_color);
-    }
+    const primary = config.primary_color || '#1A56DB';
+    const secondary = config.secondary_color || '#4B5563';
+
+    root.style.setProperty('--primary-color', primary);
+    root.style.setProperty('--primary-color-light', `${primary}15`);
+    
+    root.style.setProperty('--secondary-color', secondary);
+    root.style.setProperty('--secondary-color-light', `${secondary}15`);
+
     if (config.font_family) {
       root.style.setProperty('--font-family', config.font_family);
       document.body.style.fontFamily = `"${config.font_family}", sans-serif`;
     }
 
     // Apply Background
+    document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = '';
+    document.body.style.background = '';
+
     if (config.background_style === 'solid') {
-      document.body.style.background = config.background_value || '#F9F9F8';
+      document.body.style.backgroundColor = config.background_value || '#F9F9F8';
     } else if (config.background_style === 'gradient') {
       document.body.style.background = config.background_value || 'linear-gradient(to bottom right, #F9F9F8, #FFFFFF)';
     } else if (config.background_style === 'image') {
       document.body.style.backgroundImage = `url(${config.background_value})`;
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundAttachment = 'fixed';
+      document.body.style.backgroundPosition = 'center';
+    } else {
+      document.body.style.backgroundColor = '#F9F9F8';
     }
 
     // Favicon
@@ -68,6 +77,12 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     fetchBranding();
   }, []);
+
+  useEffect(() => {
+    if (config) {
+      applyBranding(config);
+    }
+  }, [config]);
 
   return (
     <BrandingContext.Provider value={{ config, isLoading, refreshBranding: fetchBranding }}>

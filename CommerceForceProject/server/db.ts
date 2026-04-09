@@ -57,8 +57,10 @@ export async function initDb() {
         footer_config TEXT DEFAULT '[]',
         footer_email TEXT,
         footer_address TEXT,
+        footer_phone TEXT,
         footer_copyright TEXT,
         footer_use_brand_color INTEGER DEFAULT 0,
+        social_links_enabled INTEGER DEFAULT 1,
         contact_page_enabled INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -101,6 +103,12 @@ export async function initDb() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='contact_page_enabled') THEN
           ALTER TABLE branding_config ADD COLUMN contact_page_enabled INTEGER DEFAULT 1;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_phone') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_phone TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='social_links_enabled') THEN
+          ALTER TABLE branding_config ADD COLUMN social_links_enabled INTEGER DEFAULT 1;
         END IF;
       END $$;
 

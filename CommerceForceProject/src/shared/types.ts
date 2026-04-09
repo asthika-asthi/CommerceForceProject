@@ -20,8 +20,10 @@ export interface BrandingConfig {
   footer_config?: string; // JSON string for footer links and social
   footer_email?: string;
   footer_address?: string;
+  footer_phone?: string;
   footer_copyright?: string;
   footer_use_brand_color?: boolean;
+  social_links_enabled?: boolean;
   contact_page_enabled?: boolean;
   created_at?: string;
 }

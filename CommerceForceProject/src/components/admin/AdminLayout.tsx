@@ -115,7 +115,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   });
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex font-[var(--font-family)]">
+    <div className="min-h-screen flex font-[var(--font-family)]">
       {/* Sidebar */}
       <aside 
         className={`${
@@ -236,7 +236,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto bg-[#F8F9FA]">
+        <div className="flex-1 overflow-y-auto">
           <div className="min-h-full flex flex-col">
             <div className="flex-1 p-10 max-w-[1600px] w-full mx-auto">
               <motion.div

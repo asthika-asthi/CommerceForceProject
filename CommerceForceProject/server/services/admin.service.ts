@@ -11,6 +11,7 @@ export class AdminService {
     return {
       ...branding,
       footer_use_brand_color: Boolean(branding.footer_use_brand_color),
+      social_links_enabled: branding.social_links_enabled !== 0,
       contact_page_enabled: Boolean(branding.contact_page_enabled)
     } as BrandingConfig;
   }
@@ -25,7 +26,8 @@ export class AdminService {
             background_value = ?, hero_title = ?, hero_subtitle = ?, hero_image_url = ?, 
             hero_cta_text = ?, hero_cta_link = ?, featured_products = ?, 
             layout_config = ?, footer_config = ?, footer_email = ?, footer_address = ?,
-            footer_copyright = ?, footer_use_brand_color = ?, contact_page_enabled = ?
+            footer_phone = ?, footer_copyright = ?, footer_use_brand_color = ?, 
+            social_links_enabled = ?, contact_page_enabled = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -47,8 +49,10 @@ export class AdminService {
         config.footer_config || current.footer_config,
         config.footer_email !== undefined ? config.footer_email : current.footer_email,
         config.footer_address !== undefined ? config.footer_address : current.footer_address,
+        config.footer_phone !== undefined ? config.footer_phone : current.footer_phone,
         config.footer_copyright !== undefined ? config.footer_copyright : current.footer_copyright,
         config.footer_use_brand_color !== undefined ? (config.footer_use_brand_color ? 1 : 0) : (current.footer_use_brand_color ? 1 : 0),
+        config.social_links_enabled !== undefined ? (config.social_links_enabled ? 1 : 0) : (current.social_links_enabled ? 1 : 0),
         config.contact_page_enabled !== undefined ? (config.contact_page_enabled ? 1 : 0) : (current.contact_page_enabled ? 1 : 0),
         current.id
       ]);

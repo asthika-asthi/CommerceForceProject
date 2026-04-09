@@ -52,13 +52,17 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
   const navigate = (path: string) => {
     if (path.startsWith('/')) {
-      const tab = path.split('/')[1];
-      if (tab === 'products' && path.split('/')[2]) {
-        // Handle specific product link if needed
-        onShopNow();
-      } else if (['products', 'contact', 'landing'].includes(tab)) {
+      const parts = path.split('/');
+      const tab = parts[1];
+      
+      if (['products', 'contact', 'landing', 'cart', 'checkout', 'category'].includes(tab)) {
         window.history.pushState({}, '', path);
         window.dispatchEvent(new PopStateEvent('popstate'));
+        
+        // If it's a product link, we might want to scroll to top or handle it specifically
+        if (tab === 'products' && parts[2]) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       } else {
         window.location.href = path;
       }
@@ -89,7 +93,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       case 'promotions':
         return (
           <section key={section.id} className="py-12">
-            <div className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${section.config.variant === 'dark' ? 'bg-black text-white' : 'bg-white border border-black/5 shadow-sm'}`}>
+            <div className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${section.config.variant === 'dark' ? 'bg-[var(--secondary-color)] text-white' : 'bg-white border border-black/5 shadow-sm'}`}>
               {section.config.image && (
                 <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
                   <img src={section.config.image} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -136,24 +140,112 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
         );
 
       case 'content':
+        const items = section.config.items || [{ title: section.config.title, body: section.config.body, alignment: 'center' }];
+        const isGrid = section.config.layoutType === 'grid';
+        const gridItems = items.filter((item: any) => item.includeInGrid);
+        const hasGridItems = gridItems.length > 0;
+
         return (
-          <section key={section.id} className="py-20 px-10 bg-white rounded-[40px] border border-black/5 shadow-sm text-center max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold mb-8">{section.config.title}</h2>
-            <div className="text-lg text-black/60 leading-relaxed whitespace-pre-wrap">
-              {section.config.body}
+          <section key={section.id} className="py-20 space-y-16">
+            {section.config.title && (
+               <h2 className="text-4xl font-bold text-center mb-12">{section.config.title}</h2>
+            )}
+            
+            <div className="space-y-24">
+              {items.map((item: any, i: number) => {
+                const hasImage = !!item.imageUrl;
+                const hasText = !!(item.title || item.body);
+                const alignment = item.alignment || 'center';
+                
+                if (isGrid && item.includeInGrid) {
+                   const firstGridIndex = items.findIndex((it: any) => it.includeInGrid);
+                   if (i !== firstGridIndex) return null;
+
+                   return (
+                     <div key={`grid-${i}`} className="grid gap-8 max-w-7xl mx-auto px-4" style={{ 
+                       gridTemplateColumns: `repeat(${section.config.columns || 3}, minmax(0, 1fr))`,
+                     }}>
+                       {gridItems.map((gItem: any, gi: number) => (
+                         <div 
+                           key={gi} 
+                           onClick={() => gItem.link && navigate(gItem.link)}
+                           className={`flex flex-col gap-6 p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all h-full ${
+                             gItem.link ? 'cursor-pointer hover:scale-[1.02] duration-300' : ''
+                           } ${
+                             gItem.alignment === 'left' ? 'text-left items-start' :
+                             gItem.alignment === 'right' ? 'text-right items-end' : 'text-center items-center'
+                           }`}
+                         >
+                           {gItem.imageUrl && (
+                             <div className="w-full aspect-video rounded-3xl overflow-hidden mb-2 shrink-0">
+                               <img src={gItem.imageUrl} alt={gItem.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                             </div>
+                           )}
+                           <div className="space-y-3 flex-1">
+                             {gItem.title && <h3 className="text-2xl font-bold">{gItem.title}</h3>}
+                             {gItem.body && <p className="text-black/60 leading-relaxed whitespace-pre-wrap">{gItem.body}</p>}
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   );
+                }
+
+                const isStacked = alignment === 'center' || !hasImage || !hasText;
+                
+                return (
+                  <div 
+                    key={i} 
+                    onClick={() => item.link && navigate(item.link)}
+                    className={`flex flex-col ${isStacked ? 'items-center text-center' : 'md:flex-row items-center gap-16'} max-w-7xl mx-auto px-6 transition-all ${
+                      item.link ? 'cursor-pointer hover:opacity-90 group/content' : ''
+                    } ${
+                      !isStacked && alignment === 'right' ? 'md:flex-row-reverse text-right' : 
+                      !isStacked && alignment === 'left' ? 'text-left' : ''
+                    }`}
+                  >
+                    {hasImage && (
+                      <div className={`w-full ${hasText && !isStacked ? 'md:w-1/2' : 'max-w-5xl'} aspect-video rounded-[48px] overflow-hidden shadow-2xl transition-transform ${item.link ? 'group-hover/content:scale-[1.02]' : 'hover:scale-[1.02]'} duration-500`}>
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    )}
+                    {hasText && (
+                      <div className={`flex-1 space-y-8 ${isStacked ? 'max-w-4xl' : ''}`}>
+                        {item.title && <h2 className="text-5xl font-bold leading-tight tracking-tight group-hover/content:text-[var(--primary-color)] transition-colors">{item.title}</h2>}
+                        {item.body && <div className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium">{item.body}</div>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         );
 
       case 'testimonials':
         return (
-          <section key={section.id} className="py-20 space-y-12">
-            <h2 className="text-3xl font-bold text-center">{section.config.title || 'Testimonials'}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <section key={section.id} className="py-20 space-y-12 max-w-7xl mx-auto px-4">
+            {section.config.title && (
+              <h2 className="text-3xl font-bold text-center">{section.config.title}</h2>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(section.config.items || []).map((item: any, i: number) => (
-                <div key={i} className="p-8 bg-white rounded-[32px] border border-black/5 shadow-sm italic text-black/60">
-                  "{item.text}"
-                  <div className="mt-4 font-bold text-black not-italic">- {item.name}</div>
+                <div key={i} className="p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex gap-1 text-[var(--primary-color)]">
+                      {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                    </div>
+                    <p className="text-lg text-black/60 leading-relaxed italic">"{item.text}"</p>
+                  </div>
+                  <div className="mt-8 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[var(--primary-color-light)] flex items-center justify-center text-[var(--primary-color)] font-bold text-sm">
+                      {item.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-bold text-black">{item.name}</div>
+                      <div className="text-[10px] uppercase tracking-widest opacity-40">Verified Customer</div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -182,7 +274,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
               <h2 className="text-4xl font-bold">{section.config.title}</h2>
               <button 
                 onClick={() => navigate(section.config.link || '#')}
-                className={`px-10 py-4 bg-white text-[var(--primary-color)] font-bold hover:bg-black hover:text-white transition-all shadow-xl ${
+                className={`px-10 py-4 bg-white text-[var(--primary-color)] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all shadow-xl ${
                   config?.button_style === 'pill' ? 'rounded-full' : 
                   config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
                 }`}
@@ -279,7 +371,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
 
-  const buttonClass = `w-full flex items-center justify-center gap-2 py-4 bg-black text-white font-bold hover:bg-[var(--primary-color)] transition-all shadow-lg ${
+  const buttonClass = `w-full flex items-center justify-center gap-2 py-4 bg-[var(--secondary-color)] text-white font-bold hover:bg-[var(--primary-color)] transition-all shadow-lg ${
     config?.button_style === 'pill' ? 'rounded-full' : 
     config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   }`;
@@ -324,7 +416,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
 
       <div className="p-8 space-y-4">
         <div className="flex justify-between items-start">
-          <h3 className="font-bold text-lg leading-tight group-hover:text-[var(--primary-color)] transition-colors">
+          <h3 className="font-bold text-lg leading-tight group-hover:text-[var(--primary-color)] transition-colors" style={{ color: 'var(--secondary-color)' }}>
             {product.name}
           </h3>
           <span className="font-mono font-bold text-[var(--primary-color)]">

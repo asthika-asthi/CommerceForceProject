@@ -26,6 +26,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { BrandingProvider, useBranding } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
+import { CategoryPage } from './pages/CategoryPage';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -89,7 +90,7 @@ function AppContent() {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout'].includes(rootPath)) {
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category'].includes(rootPath)) {
       return rootPath;
     }
     
@@ -103,7 +104,7 @@ function AppContent() {
     const handleLocationChange = () => {
       const path = window.location.pathname.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout'].includes(rootPath)) {
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -117,7 +118,9 @@ function AppContent() {
       localStorage.setItem('activeTab', activeTab);
       // Update URL without reload if it doesn't match
       const currentPath = window.location.pathname.substring(1);
-      if (currentPath !== activeTab) {
+      const rootPath = currentPath.split('/')[0];
+      
+      if (rootPath !== activeTab) {
         window.history.pushState({}, '', `/${activeTab}`);
       }
     }
@@ -196,6 +199,9 @@ function AppContent() {
         return <CustomerRFQ />;
       case 'contact':
         return <ContactUsPage />;
+      case 'category':
+        const categoryName = window.location.pathname.split('/')[2] || 'general';
+        return <CategoryPage categoryName={categoryName} onBack={() => setActiveTab('landing')} />;
       case 'checkout':
         return <Checkout onBack={() => setActiveTab('products')} />;
       case 'cart':
