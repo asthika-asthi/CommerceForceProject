@@ -4,7 +4,8 @@ import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
-import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
+import { AIChat } from '../components/AIChat';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const { config } = useBranding();
@@ -254,15 +255,44 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'faq':
         return (
-          <section key={section.id} className="py-20 max-w-3xl mx-auto space-y-8">
-            <h2 className="text-3xl font-bold text-center">{section.config.title || 'FAQ'}</h2>
-            <div className="space-y-4">
-              {(section.config.items || []).map((item: any, i: number) => (
-                <div key={i} className="p-6 bg-white rounded-2xl border border-black/5 shadow-sm">
-                  <h4 className="font-bold mb-2 flex items-center gap-2"><HelpCircle size={18} className="text-[var(--primary-color)]" /> {item.q}</h4>
-                  <p className="text-sm text-black/50">{item.a}</p>
+          <section key={section.id} className="py-20 max-w-7xl mx-auto px-4 space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl font-bold tracking-tight">{section.config.title || 'Frequently Asked Questions'}</h2>
+              <p className="text-black/40 max-w-2xl mx-auto">Find quick answers to common questions or chat with our AI assistant for personalized help.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+              <div className="space-y-4">
+                {(section.config.items || []).map((item: any, i: number) => (
+                  <div key={i} className="p-6 bg-white rounded-3xl border border-black/5 shadow-sm hover:shadow-md transition-all">
+                    <h4 className="font-bold mb-3 flex items-center gap-3 text-lg">
+                      <div className="w-8 h-8 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-lg flex items-center justify-center shrink-0">
+                        <HelpCircle size={18} />
+                      </div>
+                      {item.q}
+                    </h4>
+                    <p className="text-black/60 leading-relaxed pl-11">{item.a}</p>
+                  </div>
+                ))}
+                {(!section.config.items || section.config.items.length === 0) && (
+                  <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-black/10 opacity-40">
+                    No FAQs added yet.
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-8 bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] rounded-[40px] text-white shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                    <Sparkles size={120} />
+                  </div>
+                  <div className="relative z-10 space-y-4">
+                    <h3 className="text-2xl font-bold">Can't find what you're looking for?</h3>
+                    <p className="text-white/80 leading-relaxed">Our AI assistant is trained on our specific products and services to give you accurate, real-time answers.</p>
+                  </div>
                 </div>
-              ))}
+                <AIChat />
+              </div>
             </div>
           </section>
         );
