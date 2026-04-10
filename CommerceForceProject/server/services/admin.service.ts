@@ -27,7 +27,7 @@ export class AdminService {
             hero_cta_text = ?, hero_cta_link = ?, featured_products = ?, 
             layout_config = ?, footer_config = ?, footer_email = ?, footer_address = ?,
             footer_phone = ?, footer_copyright = ?, footer_use_brand_color = ?, 
-            social_links_enabled = ?, contact_page_enabled = ?
+            social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -54,6 +54,7 @@ export class AdminService {
         config.footer_use_brand_color !== undefined ? (config.footer_use_brand_color ? 1 : 0) : (current.footer_use_brand_color ? 1 : 0),
         config.social_links_enabled !== undefined ? (config.social_links_enabled ? 1 : 0) : (current.social_links_enabled ? 1 : 0),
         config.contact_page_enabled !== undefined ? (config.contact_page_enabled ? 1 : 0) : (current.contact_page_enabled ? 1 : 0),
+        config.payment_methods_config !== undefined ? config.payment_methods_config : current.payment_methods_config,
         current.id
       ]);
     }

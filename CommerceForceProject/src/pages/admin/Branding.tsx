@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { BrandingConfig, LayoutSection } from '../../shared/types';
-import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square } from 'lucide-react';
+import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared/types';
+import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, DollarSign, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer';
+type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments';
 
 export const Branding = () => {
   const [config, setConfig] = useState<BrandingConfig | null>(null);
@@ -11,6 +11,7 @@ export const Branding = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [layout, setLayout] = useState<LayoutSection[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>([]);
   
   const { token } = useAuth();
 
@@ -50,8 +51,30 @@ export const Branding = () => {
             setLayout([]);
           }
         }
+        if (data.payment_methods_config) {
+          try {
+            const parsed = JSON.parse(data.payment_methods_config);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setPaymentMethods(parsed);
+            } else {
+              setPaymentMethods(defaultPaymentMethods);
+            }
+          } catch (e) {
+            setPaymentMethods(defaultPaymentMethods);
+          }
+        } else {
+          setPaymentMethods(defaultPaymentMethods);
+        }
       });
   }, [token]);
+
+  const defaultPaymentMethods: PaymentMethodConfig[] = [
+    { id: 'cash', name: 'Cash on Delivery', description: 'Pay when you receive your order', enabled: true, order: 0, type: 'cash' },
+    { id: 'credit_limit', name: 'Credit Limit', description: 'Charge to your approved credit limit', enabled: true, order: 1, type: 'credit_limit' },
+    { id: 'stripe', name: 'Credit Card (Stripe)', description: 'Secure payment via Stripe', enabled: true, order: 2, type: 'stripe', config: { publicKey: '', secretKey: '' } },
+    { id: 'paypal', name: 'PayPal', description: 'Pay via your PayPal account', enabled: false, order: 3, type: 'paypal' },
+    { id: 'razorpay', name: 'Razorpay', description: 'Secure payment via Razorpay', enabled: false, order: 4, type: 'razorpay' },
+  ];
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +83,8 @@ export const Branding = () => {
     try {
       const updatedConfig = {
         ...config,
-        layout_config: JSON.stringify(layout)
+        layout_config: JSON.stringify(layout),
+        payment_methods_config: JSON.stringify(paymentMethods)
       };
       await fetch('/api/admin/branding', {
         method: 'POST',
@@ -150,6 +174,7 @@ export const Branding = () => {
         <TabButton id="hero" label="Hero" icon={ImageIcon} />
         <TabButton id="sections" label="Sections" icon={Layers} />
         <TabButton id="footer" label="Footer" icon={Layout} />
+        <TabButton id="payments" label="Payments" icon={DollarSign} />
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
@@ -1037,6 +1062,127 @@ export const Branding = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="border border-[#141414] p-8 space-y-8 bg-white/50 rounded-3xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard size={18} className="text-blue-600" />
+              <h3 className="font-bold text-xl uppercase tracking-tight">Payment Methods</h3>
+            </div>
+
+            <div className="space-y-6">
+              {[...paymentMethods].sort((a, b) => a.order - b.order).map((method, displayIndex, sortedArray) => {
+                const actualIndex = paymentMethods.findIndex(m => m.id === method.id);
+                
+                return (
+                  <div key={method.id} className="border border-[#141414]/10 p-6 rounded-2xl bg-white space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-black/5 rounded-xl">
+                          {method.type === 'cash' && <DollarSign size={20} />}
+                          {method.type === 'credit_limit' && <Settings size={20} />}
+                          {method.type === 'stripe' && <CreditCard size={20} />}
+                          {method.type === 'paypal' && <CreditCard size={20} />}
+                          {method.type === 'razorpay' && <CreditCard size={20} />}
+                        </div>
+                        <div>
+                          <h4 className="font-bold">{method.name}</h4>
+                          <p className="text-xs text-black/40">{method.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            disabled={displayIndex === 0}
+                            onClick={() => {
+                              const prevMethod = sortedArray[displayIndex - 1];
+                              const newMethods = [...paymentMethods];
+                              const currIdx = newMethods.findIndex(m => m.id === method.id);
+                              const prevIdx = newMethods.findIndex(m => m.id === prevMethod.id);
+                              
+                              const tempOrder = newMethods[currIdx].order;
+                              newMethods[currIdx].order = newMethods[prevIdx].order;
+                              newMethods[prevIdx].order = tempOrder;
+                              
+                              setPaymentMethods(newMethods);
+                            }}
+                            className="p-1 hover:bg-black/5 rounded disabled:opacity-20"
+                          >
+                            <ChevronUp size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={displayIndex === sortedArray.length - 1}
+                            onClick={() => {
+                              const nextMethod = sortedArray[displayIndex + 1];
+                              const newMethods = [...paymentMethods];
+                              const currIdx = newMethods.findIndex(m => m.id === method.id);
+                              const nextIdx = newMethods.findIndex(m => m.id === nextMethod.id);
+                              
+                              const tempOrder = newMethods[currIdx].order;
+                              newMethods[currIdx].order = newMethods[nextIdx].order;
+                              newMethods[nextIdx].order = tempOrder;
+                              
+                              setPaymentMethods(newMethods);
+                            }}
+                            className="p-1 hover:bg-black/5 rounded disabled:opacity-20"
+                          >
+                            <ChevronDown size={16} />
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMethods = [...paymentMethods];
+                            newMethods[actualIndex].enabled = !newMethods[actualIndex].enabled;
+                            setPaymentMethods(newMethods);
+                          }}
+                          className={`w-12 h-6 rounded-full transition-all relative ${method.enabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${method.enabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {method.enabled && method.type === 'stripe' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-black/5">
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Stripe Publishable Key</label>
+                          <input
+                            type="text"
+                            value={method.config?.publicKey || ''}
+                            onChange={e => {
+                              const newMethods = [...paymentMethods];
+                              newMethods[actualIndex].config = { ...newMethods[actualIndex].config, publicKey: e.target.value };
+                              setPaymentMethods(newMethods);
+                            }}
+                            className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                            placeholder="pk_test_..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Stripe Secret Key</label>
+                          <input
+                            type="password"
+                            value={method.config?.secretKey || ''}
+                            onChange={e => {
+                              const newMethods = [...paymentMethods];
+                              newMethods[actualIndex].config = { ...newMethods[actualIndex].config, secretKey: e.target.value };
+                              setPaymentMethods(newMethods);
+                            }}
+                            className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                            placeholder="sk_test_..."
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

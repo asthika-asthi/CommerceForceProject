@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import db from '../db';
-import { Order, OrderItem, OrderStatus } from '../../src/shared/types';
+import { Order, OrderItem, OrderStatus, PaymentMethodConfig } from '../../src/shared/types';
 import { LoyaltyService } from './loyalty.service';
 import { EmailService } from './email.service';
 import { AuthService } from './auth.service';
 import { CouponService } from './coupon.service';
 import { WarehouseService } from './warehouse.service';
+import { AdminService } from './admin.service';
 
 export class OrderService {
   static async getAll(): Promise<Order[]> {
@@ -67,10 +68,25 @@ export class OrderService {
     };
   }
 
-  static async create(userId: string, data: { items: { productId: string, quantity: number }[], shippingAddress?: string, paymentMethod?: 'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay', couponCode?: string }): Promise<Order> {
+  static async create(userId: string, data: { items: { productId: string, quantity: number }[], shippingAddress?: string, paymentMethod?: string, couponCode?: string }): Promise<Order> {
     const orderId = uuidv4();
     let subtotal = 0;
-    const paymentMethod = data.paymentMethod || 'prepaid';
+    const paymentMethodId = data.paymentMethod;
+
+    // Fetch branding to get payment method type
+    const branding = await AdminService.getBranding();
+    let paymentMethodType = 'cash';
+    if (branding.payment_methods_config) {
+      try {
+        const methods: PaymentMethodConfig[] = JSON.parse(branding.payment_methods_config);
+        const method = methods.find(m => m.id === paymentMethodId);
+        if (method) {
+          paymentMethodType = method.type;
+        }
+      } catch (e) {
+        console.error('Failed to parse payment methods config:', e);
+      }
+    }
 
     const client = await db.getClient();
     try {
@@ -118,8 +134,8 @@ export class OrderService {
 
       const totalAmount = subtotal - discountAmount;
 
-      // Check Credit Limit if payment method is credit
-      if (paymentMethod === 'credit') {
+      // Check Credit Limit if payment method type is credit_limit
+      if (paymentMethodType === 'credit_limit') {
         const userResult = await db.queryWithClient(client, 'SELECT available_credit FROM users WHERE id = ?', [userId]);
         const user = userResult.rows[0];
         if (Number(user.available_credit) < totalAmount) {
@@ -132,7 +148,7 @@ export class OrderService {
       await db.queryWithClient(client, `
         INSERT INTO orders (id, user_id, status, total_amount, shipping_address, payment_method)
         VALUES (?, ?, ?, ?, ?, ?)
-      `, [orderId, userId, 'pending', totalAmount, data.shippingAddress, paymentMethod]);
+      `, [orderId, userId, 'pending', totalAmount, data.shippingAddress, paymentMethodId || 'cash']);
 
       // Insert Order Items
       for (const item of itemsToInsert) {
@@ -164,7 +180,7 @@ export class OrderService {
       await EmailService.sendEmail(
         user.email,
         `Order Confirmation - #${order!.id.substring(0, 8)}`,
-        `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for $${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethod.toUpperCase()}`
+        `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for $${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethodId?.toUpperCase()}`
       );
     } catch (err) {
       console.error('Failed to send order confirmation email:', err);
@@ -177,6 +193,19 @@ export class OrderService {
     const orderBefore = await this.getById(id);
     if (!orderBefore) throw new Error('Order not found');
 
+    // Fetch branding to get payment method type for credit restoration
+    const branding = await AdminService.getBranding();
+    let paymentMethodType = 'cash';
+    if (branding.payment_methods_config) {
+      try {
+        const methods: PaymentMethodConfig[] = JSON.parse(branding.payment_methods_config);
+        const method = methods.find(m => m.id === orderBefore.payment_method);
+        if (method) {
+          paymentMethodType = method.type;
+        }
+      } catch (e) {}
+    }
+
     const client = await db.getClient();
     try {
       await client.query('BEGIN');
@@ -184,7 +213,7 @@ export class OrderService {
       await db.queryWithClient(client, 'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [status, id]);
 
       // If cancelled and was paid by credit, restore credit
-      if (status === 'cancelled' && orderBefore.status !== 'cancelled' && orderBefore.payment_method === 'credit') {
+      if (status === 'cancelled' && orderBefore.status !== 'cancelled' && paymentMethodType === 'credit_limit') {
         await db.queryWithClient(client, 'UPDATE users SET available_credit = available_credit + ? WHERE id = ?', [orderBefore.total_amount, orderBefore.user_id]);
       }
 

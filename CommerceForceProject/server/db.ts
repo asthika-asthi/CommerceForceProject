@@ -110,6 +110,9 @@ export async function initDb() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='social_links_enabled') THEN
           ALTER TABLE branding_config ADD COLUMN social_links_enabled INTEGER DEFAULT 1;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='payment_methods_config') THEN
+          ALTER TABLE branding_config ADD COLUMN payment_methods_config TEXT DEFAULT '[]';
+        END IF;
       END $$;
 
       CREATE TABLE IF NOT EXISTS feature_flags (

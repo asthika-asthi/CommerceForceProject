@@ -25,7 +25,23 @@ export interface BrandingConfig {
   footer_use_brand_color?: boolean;
   social_links_enabled?: boolean;
   contact_page_enabled?: boolean;
+  payment_methods_config?: string; // JSON string of PaymentMethodConfig[]
   created_at?: string;
+}
+
+export interface PaymentMethodConfig {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  order: number;
+  type: 'cash' | 'credit_limit' | 'stripe' | 'paypal' | 'razorpay';
+  config?: {
+    publicKey?: string;
+    secretKey?: string;
+    merchantId?: string;
+    [key: string]: any;
+  };
 }
 
 export interface LayoutSection {
@@ -76,7 +92,7 @@ export interface Order {
   status: OrderStatus;
   total_amount: number;
   shipping_address?: string;
-  payment_method: 'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay';
+  payment_method: string;
   created_at: string;
   updated_at: string;
   items?: OrderItem[];

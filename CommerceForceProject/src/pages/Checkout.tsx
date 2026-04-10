@@ -1,25 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingBag, ArrowLeft, CreditCard, Truck, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { useBranding } from '../context/BrandingContext';
+import { ShoppingBag, ArrowLeft, CreditCard, Truck, CheckCircle2, Loader2, AlertCircle, DollarSign, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FeatureFlag } from '../shared/types';
+import { FeatureFlag, PaymentMethodConfig } from '../shared/types';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { StripePaymentForm } from '../components/StripePaymentForm';
 
 export const Checkout = ({ onBack }: { onBack: () => void }) => {
   const { items, totalPrice, clearCart } = useCart();
   const { token, user } = useAuth();
+  const { config: brandingConfig } = useBranding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [error, setError] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'prepaid' | 'credit' | 'credit_card' | 'paypal' | 'razorpay'>('prepaid');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [stripePromise, setStripePromise] = useState<any>(null);
+  const [clientSecret, setClientSecret] = useState('');
 
   const b2bEnabled = Boolean(features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true);
+  
+  const availablePaymentMethods: PaymentMethodConfig[] = React.useMemo(() => {
+    if (!brandingConfig?.payment_methods_config) return [];
+    try {
+      const methods: PaymentMethodConfig[] = JSON.parse(brandingConfig.payment_methods_config);
+      return methods
+        .filter(m => m.enabled)
+        .filter(m => {
+          if (m.type === 'credit_limit') {
+            return b2bEnabled && (user?.credit_limit || 0) > 0;
+          }
+          return true;
+        })
+        .sort((a, b) => a.order - b.order);
+    } catch (e) {
+      return [];
+    }
+  }, [brandingConfig, b2bEnabled, user]);
+
+  useEffect(() => {
+    if (availablePaymentMethods.length > 0 && !paymentMethod) {
+      setPaymentMethod(availablePaymentMethods[0].id);
+    }
+  }, [availablePaymentMethods]);
+
+  useEffect(() => {
+    const stripeMethod = availablePaymentMethods.find(m => m.type === 'stripe');
+    if (stripeMethod?.config?.publicKey) {
+      setStripePromise(loadStripe(stripeMethod.config.publicKey));
+    }
+  }, [availablePaymentMethods]);
+
+  useEffect(() => {
+    if (paymentMethod) {
+      const method = availablePaymentMethods.find(m => m.id === paymentMethod);
+      if (method?.type === 'stripe' && token) {
+        fetch('/api/stripe/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ amount: totalPrice - couponDiscount })
+        })
+        .then(res => res.json())
+        .then(data => setClientSecret(data.clientSecret))
+        .catch(err => console.error('Failed to create payment intent:', err));
+      }
+    }
+  }, [paymentMethod, totalPrice, couponDiscount, token, availablePaymentMethods]);
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
@@ -180,99 +237,89 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
               Payment Method
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('prepaid')}
-                className={`p-6 rounded-[24px] border-2 text-left transition-all ${
-                  paymentMethod === 'prepaid' 
-                    ? 'border-[#141414] bg-[#141414]/5' 
-                    : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                }`}
-              >
-                <div className="font-bold mb-1">Direct Payment</div>
-                <div className="text-xs text-[#141414]/60">Pay now using card or bank transfer</div>
-              </button>
-
-              {b2bEnabled && (
+              {availablePaymentMethods.map((method) => (
                 <button
+                  key={method.id}
                   type="button"
-                  onClick={() => setPaymentMethod('credit')}
+                  onClick={() => setPaymentMethod(method.id)}
                   className={`p-6 rounded-[24px] border-2 text-left transition-all ${
-                    paymentMethod === 'credit' 
+                    paymentMethod === method.id 
                       ? 'border-[#141414] bg-[#141414]/5' 
                       : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                }`}
-              >
-                <div className="font-bold mb-1">Credit Limit</div>
-                <div className="text-xs text-[#141414]/60">
-                  Charge to your account credit (£{Number(user?.available_credit || 0).toFixed(2)} available)
-                </div>
-              </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('credit_card')}
-                className={`p-6 rounded-[24px] border-2 text-left transition-all ${
-                  paymentMethod === 'credit_card' 
-                    ? 'border-[#141414] bg-[#141414]/5' 
-                    : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                }`}
-              >
-                <div className="font-bold mb-1">Credit Card</div>
-                <div className="text-xs text-[#141414]/60">Visa, Mastercard, AMEX</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('paypal')}
-                className={`p-6 rounded-[24px] border-2 text-left transition-all ${
-                  paymentMethod === 'paypal' 
-                    ? 'border-[#141414] bg-[#141414]/5' 
-                    : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                }`}
-              >
-                <div className="font-bold mb-1">PayPal</div>
-                <div className="text-xs text-[#141414]/60">Pay via your PayPal account</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('razorpay')}
-                className={`p-6 rounded-[24px] border-2 text-left transition-all ${
-                  paymentMethod === 'razorpay' 
-                    ? 'border-[#141414] bg-[#141414]/5' 
-                    : 'border-[#141414]/5 bg-white hover:border-[#141414]/20'
-                }`}
-              >
-                <div className="font-bold mb-1">Razorpay</div>
-                <div className="text-xs text-[#141414]/60">Secure payment via Razorpay</div>
-              </button>
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="p-2 bg-black/5 rounded-lg">
+                      {method.type === 'cash' && <DollarSign size={18} />}
+                      {method.type === 'credit_limit' && <Settings size={18} />}
+                      {method.type === 'stripe' && <CreditCard size={18} />}
+                      {method.type === 'paypal' && <CreditCard size={18} />}
+                      {method.type === 'razorpay' && <CreditCard size={18} />}
+                    </div>
+                    <div className="font-bold">{method.name}</div>
+                  </div>
+                  <div className="text-xs text-[#141414]/60">
+                    {method.type === 'credit_limit' 
+                      ? `Charge to your account credit (£${Number(user?.available_credit || 0).toFixed(2)} available)`
+                      : method.description}
+                  </div>
+                </button>
+              ))}
             </div>
           </section>
 
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm">
-              <AlertCircle size={18} />
-              {error}
-            </div>
-          )}
+          {paymentMethod && availablePaymentMethods.find(m => m.id === paymentMethod)?.type === 'stripe' ? (
+            stripePromise && clientSecret ? (
+              <section className="bg-white p-8 rounded-[32px] border border-[#141414]/5 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                <h3 className="text-lg font-bold mb-6">Card Details</h3>
+                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                  <StripePaymentForm 
+                    amount={totalPrice - couponDiscount}
+                    onSuccess={() => handleSubmit(new Event('submit') as any)}
+                    onError={(err) => setError(err)}
+                  />
+                </Elements>
+              </section>
+            ) : (
+              <div className="p-8 bg-white rounded-[32px] border border-[#141414]/5 text-center">
+                <div className="flex flex-col items-center justify-center py-4">
+                  <Loader2 className="animate-spin mb-4 opacity-20" size={32} />
+                  <p className="text-sm opacity-50">Initializing secure payment...</p>
+                  {!stripePromise && (
+                    <div className="mt-4 p-3 bg-rose-50 text-rose-600 text-xs rounded-xl flex items-center gap-2">
+                      <AlertCircle size={14} />
+                      Stripe is not configured correctly.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          ) : (
+            <>
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
 
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              handleSubmit(e);
-            }}
-            disabled={isSubmitting || items.length === 0 || !shippingAddress}
-            className="w-full bg-[#141414] text-white py-4 rounded-[20px] font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-          >
-            {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : (
-              <>
-                Place Order
-                <CheckCircle2 size={24} />
-              </>
-            )}
-          </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                disabled={isSubmitting || items.length === 0 || !shippingAddress}
+                className="w-full bg-[#141414] text-white py-4 rounded-[20px] font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : (
+                  <>
+                    Place Order
+                    <CheckCircle2 size={24} />
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Order Summary */}
