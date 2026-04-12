@@ -9,8 +9,21 @@ const pool = new Pool({
 });
 
 export async function initDb() {
-  const connectionString = process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/commerce';
-  const url = new URL(connectionString);
+  const rawConnectionString = process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/commerce';
+  const connectionString = rawConnectionString.trim();
+  
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is empty or only contains whitespace');
+  }
+
+  let url: URL;
+  try {
+    url = new URL(connectionString);
+  } catch (err) {
+    console.error(`Invalid DATABASE_URL: "${connectionString}"`);
+    throw new Error(`Invalid database connection string format: ${connectionString}`);
+  }
+
   console.log(`Attempting to connect to database: ${url.hostname}:${url.port || 5432}${url.pathname} as user: ${url.username}`);
 
   let client;

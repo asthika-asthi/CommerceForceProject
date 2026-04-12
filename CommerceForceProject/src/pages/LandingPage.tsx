@@ -8,21 +8,47 @@ import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, Chevro
 import { AIChat } from '../components/AIChat';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
-  const { config } = useBranding();
+  const { config: brandingConfig } = useBranding();
   const { token } = useAuth();
   const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uiConfig, setUiConfig] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/config/landing');
+        if (res.ok) {
+          const data = await res.json();
+          setUiConfig(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch landing config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const layout: LayoutSection[] = React.useMemo(() => {
-    if (!config?.layout_config) return [];
-    try {
-      return JSON.parse(config.layout_config);
-    } catch (e) {
-      console.error('Failed to parse layout_config:', e);
-      return [];
+    // 1. Try local uiConfig (from /api/config/landing)
+    if (uiConfig) {
+      const sections = Array.isArray(uiConfig) ? uiConfig : uiConfig.sections;
+      if (sections && Array.isArray(sections)) return sections;
     }
-  }, [config?.layout_config]);
+
+    // 2. Fallback to brandingConfig (which is merged on the server)
+    if (brandingConfig?.layout_config) {
+      try {
+        const parsed = JSON.parse(brandingConfig.layout_config);
+        return Array.isArray(parsed) ? parsed : (parsed.sections || []);
+      } catch (e) {
+        console.error('Failed to parse layout_config:', e);
+      }
+    }
+
+    return [];
+  }, [brandingConfig?.layout_config, uiConfig]);
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -30,8 +56,12 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
         const res = await fetch('/api/products');
         const allProducts: Product[] = await res.json();
         
-        if (config?.featured_products) {
-          const ids = config.featured_products.split(',').map(id => id.trim());
+        const featuredIds = uiConfig?.featured_products || brandingConfig?.featured_products;
+
+        if (featuredIds) {
+          const ids = typeof featuredIds === 'string' 
+            ? featuredIds.split(',').map(id => id.trim())
+            : featuredIds;
           setFeaturedProducts(allProducts.filter(p => ids.includes(p.id)));
         } else {
           setFeaturedProducts(allProducts.slice(0, 3));
@@ -44,11 +74,21 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
     };
 
     fetchFeatured();
-  }, [config?.featured_products]);
+  }, [brandingConfig?.featured_products, uiConfig]);
+
+  const heroSection = layout.find((s: any) => s.type === 'hero');
+  const heroConfig = heroSection?.config || {
+    title: brandingConfig?.hero_title || 'Welcome to Our Premium Store',
+    subtitle: brandingConfig?.hero_subtitle || 'Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.',
+    image: brandingConfig?.hero_image_url,
+    cta_text: brandingConfig?.hero_cta_text || 'Explore Collection',
+    cta_link: brandingConfig?.hero_cta_link,
+    backgroundColor: brandingConfig?.primary_color
+  };
 
   const buttonClass = `group flex items-center justify-center gap-3 px-10 py-5 font-bold transition-all shadow-xl ${
-    config?.button_style === 'pill' ? 'rounded-full' : 
-    config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   } bg-[var(--primary-color)] text-white hover:opacity-90`;
 
   const navigate = (path: string) => {
@@ -108,8 +148,8 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                   <button 
                     onClick={() => navigate(section.config.link || '#')}
                     className={`px-8 py-4 font-bold transition-all ${
-                      config?.button_style === 'pill' ? 'rounded-full' : 
-                      config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+                      brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+                      brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
                     } ${section.config.variant === 'dark' ? 'bg-white text-black hover:bg-[var(--primary-color)] hover:text-white' : 'bg-[var(--primary-color)] text-white hover:opacity-90'}`}
                   >
                     {section.config.buttonText}
@@ -305,8 +345,8 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
               <button 
                 onClick={() => navigate(section.config.link || '#')}
                 className={`px-10 py-4 bg-white text-[var(--primary-color)] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all shadow-xl ${
-                  config?.button_style === 'pill' ? 'rounded-full' : 
-                  config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+                  brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+                  brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
                 }`}
               >
                 {section.config.buttonText}
@@ -324,21 +364,24 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
     <div className="space-y-12 pb-24">
       {/* Hero Section */}
       <section className="relative h-[600px] rounded-[40px] overflow-hidden group">
-        {config?.hero_image_url ? (
-          config.hero_image_url.endsWith('.mp4') ? (
+        {heroConfig.image ? (
+          heroConfig.image.endsWith('.mp4') ? (
             <video autoPlay muted loop className="absolute inset-0 w-full h-full object-cover">
-              <source src={config.hero_image_url} type="video/mp4" />
+              <source src={heroConfig.image} type="video/mp4" />
             </video>
           ) : (
             <img 
-              src={config.hero_image_url} 
+              src={heroConfig.image} 
               alt="Hero" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               referrerPolicy="no-referrer"
             />
           )
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary-color)] to-black" />
+          <div 
+            className="absolute inset-0 bg-gradient-to-br from-[var(--primary-color)] to-black" 
+            style={heroConfig.backgroundColor ? { backgroundImage: `linear-gradient(to bottom right, ${heroConfig.backgroundColor}, black)` } : {}}
+          />
         )}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
         
@@ -348,7 +391,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight"
           >
-            {config?.hero_title || 'Welcome to Our Premium Store'}
+            {heroConfig.title}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -356,26 +399,26 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
             transition={{ delay: 0.1 }}
             className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl leading-relaxed"
           >
-            {config?.hero_subtitle || 'Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.'}
+            {heroConfig.subtitle}
           </motion.p>
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            onClick={() => config?.hero_cta_link ? navigate(config.hero_cta_link) : onShopNow()}
+            onClick={() => heroConfig.cta_link ? navigate(heroConfig.cta_link) : onShopNow()}
             className={buttonClass}
           >
-            {config?.hero_cta_text || 'Explore Collection'}
+            {heroConfig.cta_text}
             <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
           </motion.button>
         </div>
       </section>
 
       {/* Dynamic Sections */}
-      {layout.map(renderSection)}
+      {layout?.filter((s: any) => s.type !== 'hero').map(renderSection)}
 
       {/* Default Features if no layout */}
-      {layout.length === 0 && (
+      {(!layout || layout.length === 0) && (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { icon: Truck, title: 'Fast Delivery', desc: 'Global shipping with real-time tracking for all orders.' },
@@ -397,13 +440,13 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 };
 
 const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ product, onAddToCart }) => {
-  const { config } = useBranding();
+  const { config: brandingConfig } = useBranding();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
 
   const buttonClass = `w-full flex items-center justify-center gap-2 py-4 bg-[var(--secondary-color)] text-white font-bold hover:bg-[var(--primary-color)] transition-all shadow-lg ${
-    config?.button_style === 'pill' ? 'rounded-full' : 
-    config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   }`;
 
   return (

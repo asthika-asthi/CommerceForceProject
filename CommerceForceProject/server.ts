@@ -13,8 +13,14 @@ import rfqRoutes from "./server/routes/rfq.routes";
 import emailRoutes from "./server/routes/email.routes";
 import couponRoutes from "./server/routes/coupon.routes";
 import stripeRoutes from "./server/routes/stripe.routes";
+import configRoutes from "./server/routes/config.routes";
 import { AdminService } from "./server/services/admin.service";
+import { ConfigService } from "./server/services/config.service";
 
+if (!import.meta.url) {
+  throw new Error('import.meta.url is undefined. Ensure you are running in ESM mode.');
+}
+console.log('Starting server with import.meta.url:', import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -38,10 +44,36 @@ export async function createApp() {
   app.use("/api/email", emailRoutes);
   app.use("/api/coupons", couponRoutes);
   app.use("/api/stripe", stripeRoutes);
+  app.use("/api/config", configRoutes);
 
   app.get("/api/branding", async (req, res) => {
     try {
-      const branding = await AdminService.getBranding();
+      const dbBranding = await AdminService.getBranding();
+      const client = (req.query.client as string) || 'default';
+      
+      const fileBranding = await ConfigService.getBrandingConfig(client);
+      const fileLanding = await ConfigService.getLandingConfig(client);
+      const filePayments = await ConfigService.getPaymentsConfig(client);
+      
+      // Merge: File configurations override database branding
+      const branding = {
+        ...dbBranding,
+        ...(fileBranding || {})
+      };
+
+      // Specifically override layout and payments if JSON files exist
+      if (fileLanding) {
+        const sections = Array.isArray(fileLanding) ? fileLanding : fileLanding.sections;
+        if (sections) {
+          branding.layout_config = JSON.stringify(sections);
+        }
+      }
+      
+      if (filePayments) {
+        const payments = Array.isArray(filePayments) ? filePayments : filePayments.methods || filePayments;
+        branding.payment_methods_config = JSON.stringify(payments);
+      }
+      
       res.json(branding);
     } catch (err: any) {
       res.status(500).json({ error: err.message });

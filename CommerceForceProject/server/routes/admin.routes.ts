@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AdminService } from "../services/admin.service";
+import { ConfigService } from "../services/config.service";
 import { isAuthenticated, isAdmin, isSuperAdmin } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
@@ -46,8 +47,52 @@ router.get("/branding", isSuperAdmin, async (req, res) => {
 });
 
 router.post("/branding", isSuperAdmin, async (req, res) => {
-  await AdminService.updateBranding(req.body);
-  res.json({ success: true });
+  try {
+    // 1. Update Database
+    await AdminService.updateBranding(req.body);
+
+    // 2. Sync to JSON Config (branding.json)
+    const brandingFields = [
+      'company_name', 'logo_url', 'favicon_url', 'primary_color', 'secondary_color',
+      'font_family', 'button_style', 'background_style', 'background_value',
+      'footer_text', 'footer_use_brand_color', 'contact_page_enabled', 'contact_email',
+      'contact_phone', 'contact_address', 'social_links'
+    ];
+    
+    const brandingJson: any = {};
+    brandingFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        brandingJson[field] = req.body[field];
+      }
+    });
+    
+    await ConfigService.saveBrandingConfig(brandingJson);
+
+    // 3. Sync to JSON Config (landing.json) if layout_config is present
+    if (req.body.layout_config) {
+      try {
+        const sections = JSON.parse(req.body.layout_config);
+        await ConfigService.saveLandingConfig({ sections });
+      } catch (e) {
+        console.error('Failed to parse layout_config for JSON sync:', e);
+      }
+    }
+
+    // 4. Sync to JSON Config (payments.json) if payment_methods_config is present
+    if (req.body.payment_methods_config) {
+      try {
+        const methods = JSON.parse(req.body.payment_methods_config);
+        await ConfigService.savePaymentsConfig(methods);
+      } catch (e) {
+        console.error('Failed to parse payment_methods_config for JSON sync:', e);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('Failed to update branding and sync config:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.get("/features", async (req, res) => {

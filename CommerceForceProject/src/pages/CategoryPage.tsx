@@ -6,10 +6,26 @@ import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight } from 'lucide-
 import { motion } from 'motion/react';
 
 export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, onBack: () => void }) => {
-  const { config } = useBranding();
+  const { config: brandingConfig } = useBranding();
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uiConfig, setUiConfig] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/config/category');
+        if (res.ok) {
+          const data = await res.json();
+          setUiConfig(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch category config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -40,34 +56,76 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
     );
   }
 
+  const renderLayoutItem = (item: any) => {
+    switch (item.type) {
+      case 'banner':
+        const bannerImage = item.image || products[0]?.image_url;
+        return (
+          <div key="banner" className="relative h-[300px] rounded-[40px] overflow-hidden mb-8">
+            {bannerImage ? (
+              <img 
+                src={bannerImage} 
+                alt={categoryName}
+                className="absolute inset-0 w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div 
+                className="absolute inset-0 bg-gradient-to-br from-[var(--primary-color)] to-black" 
+                style={item.backgroundColor ? { backgroundImage: `linear-gradient(to bottom right, ${item.backgroundColor}, black)` } : {}}
+              />
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <h1 className="text-5xl font-bold text-white tracking-tight capitalize">{categoryName}</h1>
+            </div>
+          </div>
+        );
+      case 'title':
+        return (
+          <div key="title" className="flex items-center gap-4 px-4 mb-8">
+            <button 
+              onClick={onBack}
+              className="p-3 hover:bg-black/5 rounded-full transition-all"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight capitalize">{categoryName}</h1>
+              <p className="text-black/40 font-medium">Showing {products.length} products</p>
+            </div>
+          </div>
+        );
+      case 'product_grid':
+        return (
+          <div key="grid">
+            {products.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-[40px] border border-black/5">
+                <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
+                <h3 className="text-xl font-bold">No products found</h3>
+                <p className="text-black/40">We couldn't find any products in this category.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product, 1)} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const layout = uiConfig?.layout || [
+    { type: 'title' },
+    { type: 'product_grid' }
+  ];
+
   return (
     <div className="space-y-12 pb-24">
-      <div className="flex items-center gap-4 px-4">
-        <button 
-          onClick={onBack}
-          className="p-3 hover:bg-black/5 rounded-full transition-all"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight capitalize">{categoryName}</h1>
-          <p className="text-black/40 font-medium">Showing {products.length} products</p>
-        </div>
-      </div>
-
-      {products.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-[40px] border border-black/5">
-          <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
-          <h3 className="text-xl font-bold">No products found</h3>
-          <p className="text-black/40">We couldn't find any products in this category.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product, 1)} />
-          ))}
-        </div>
-      )}
+      {layout.map(renderLayoutItem)}
     </div>
   );
 };
