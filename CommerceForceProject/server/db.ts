@@ -75,6 +75,12 @@ export async function initDb() {
         footer_use_brand_color INTEGER DEFAULT 0,
         social_links_enabled INTEGER DEFAULT 1,
         contact_page_enabled INTEGER DEFAULT 1,
+        base_font_size INTEGER DEFAULT 16,
+        hero_font_size INTEGER DEFAULT 48,
+        heading_font_size INTEGER DEFAULT 32,
+        content_font_size INTEGER DEFAULT 16,
+        carousel_enabled INTEGER DEFAULT 0,
+        carousel_images TEXT DEFAULT '[]',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

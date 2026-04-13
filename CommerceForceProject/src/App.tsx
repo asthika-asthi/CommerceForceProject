@@ -86,25 +86,28 @@ class ErrorBoundary extends Component<any, any> {
 function AppContent() {
   const { user, isLoading } = useAuth();
   const { config } = useBranding();
+  const [pathname, setPathname] = useState(window.location.pathname);
   const [activeTab, setActiveTab] = useState(() => {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category'].includes(rootPath)) {
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
       return rootPath;
     }
     
     const saved = localStorage.getItem('activeTab');
     if (saved) return saved;
-    return 'dashboard';
+    return 'landing'; // Default to landing for public access
   });
 
   // Handle browser back/forward and manual URL changes
   useEffect(() => {
     const handleLocationChange = () => {
-      const path = window.location.pathname.substring(1);
+      const currentPath = window.location.pathname;
+      setPathname(currentPath);
+      const path = currentPath.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category'].includes(rootPath)) {
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -165,12 +168,18 @@ function AppContent() {
     );
   }
 
-  if (!user) {
-    return <LoginPage />;
+  const publicTabs = ['landing', 'products', 'category', 'contact', 'cart', 'login', 'register'];
+  const isPublicTab = publicTabs.includes(activeTab);
+
+  if (!user && !isPublicTab) {
+    return <LoginPage initialRegister={activeTab === 'register'} />;
   }
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'login':
+      case 'register':
+        return <LoginPage initialRegister={activeTab === 'register'} />;
       case 'landing':
         return <LandingPage onShopNow={() => setActiveTab('products')} />;
       case 'dashboard':
@@ -200,8 +209,8 @@ function AppContent() {
       case 'contact':
         return <ContactUsPage />;
       case 'category':
-        const categoryName = window.location.pathname.split('/')[2] || 'general';
-        return <CategoryPage categoryName={categoryName} onBack={() => setActiveTab('landing')} />;
+        const catName = pathname.split('/')[2] || 'general';
+        return <CategoryPage categoryName={catName} onBack={() => setActiveTab('landing')} />;
       case 'checkout':
         return <Checkout onBack={() => setActiveTab('products')} />;
       case 'cart':

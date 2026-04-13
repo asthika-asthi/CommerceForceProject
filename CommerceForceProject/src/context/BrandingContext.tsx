@@ -44,6 +44,12 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       document.body.style.fontFamily = `"${config.font_family}", sans-serif`;
     }
 
+    // Apply Font Sizes
+    root.style.setProperty('--base-font-size', `${config.base_font_size || 16}px`);
+    root.style.setProperty('--hero-font-size', `${config.hero_font_size || 48}px`);
+    root.style.setProperty('--heading-font-size', `${config.heading_font_size || 32}px`);
+    root.style.setProperty('--content-font-size', `${config.content_font_size || 16}px`);
+
     // Apply Background
     document.body.style.backgroundColor = '';
     document.body.style.backgroundImage = '';

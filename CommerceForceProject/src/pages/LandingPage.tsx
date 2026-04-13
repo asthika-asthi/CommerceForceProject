@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
 import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { AIChat } from '../components/AIChat';
+import { Carousel } from '../components/Carousel';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const { config: brandingConfig } = useBranding();
@@ -300,7 +301,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                     {hasText && (
                       <div className={`flex-1 space-y-8 ${isStacked ? 'max-w-4xl' : ''}`}>
                         {item.title && <h2 className="text-5xl font-bold leading-tight tracking-tight group-hover/content:text-[var(--primary-color)] transition-colors">{item.title}</h2>}
-                        {item.body && <div className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium">{item.body}</div>}
+                        {item.body && <div className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium content-text">{item.body}</div>}
                       </div>
                     )}
                   </div>
@@ -409,6 +410,20 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
   return (
     <div className="space-y-12 pb-24">
+      {/* Carousel Section */}
+      {brandingConfig?.carousel_enabled && (
+        <Carousel 
+          images={(() => {
+            if (Array.isArray(brandingConfig.carousel_images)) return brandingConfig.carousel_images;
+            try {
+              return JSON.parse(brandingConfig.carousel_images || '[]');
+            } catch (e) {
+              return [];
+            }
+          })()} 
+        />
+      )}
+
       {/* Hero Section */}
       <section className="relative h-[600px] rounded-[40px] overflow-hidden group">
         {heroConfig.image ? (
@@ -436,7 +451,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight"
+            className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight hero-title"
           >
             {heroConfig.title}
           </motion.h1>

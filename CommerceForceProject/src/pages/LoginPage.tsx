@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export const LoginPage: React.FC = () => {
+export const LoginPage: React.FC<{ initialRegister?: boolean }> = ({ initialRegister = false }) => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(initialRegister);
   const [name, setName] = useState('');
+
+  useEffect(() => {
+    setIsRegistering(initialRegister);
+  }, [initialRegister]);
 
   const { register } = useAuth();
 

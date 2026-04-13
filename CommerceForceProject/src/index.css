@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+:root {
+  --base-font-size: 16px;
+  --hero-font-size: 48px;
+  --heading-font-size: 32px;
+  --content-font-size: 16px;
+}
+
+body {
+  font-size: var(--base-font-size);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: var(--heading-font-size);
+}
+
+.hero-title {
+  font-size: var(--hero-font-size) !important;
+}
+
+.content-text {
+  font-size: var(--content-font-size);
+}

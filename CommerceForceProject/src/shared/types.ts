@@ -28,6 +28,12 @@ export interface BrandingConfig {
   payment_methods_config?: string; // JSON string of PaymentMethodConfig[]
   currency_symbol?: string;
   currency_code?: string;
+  base_font_size?: number;
+  hero_font_size?: number;
+  heading_font_size?: number;
+  content_font_size?: number;
+  carousel_enabled?: boolean;
+  carousel_images?: string; // JSON string of image URLs
   created_at?: string;
 }
 

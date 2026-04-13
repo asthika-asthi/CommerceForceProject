@@ -3,7 +3,7 @@ import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared
 import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments';
+type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments' | 'carousel';
 
 export const Branding = () => {
   const [config, setConfig] = useState<BrandingConfig | null>(null);
@@ -175,6 +175,7 @@ export const Branding = () => {
         <TabButton id="sections" label="Sections" icon={Layers} />
         <TabButton id="footer" label="Footer" icon={Layout} />
         <TabButton id="payments" label="Payments" icon={Banknote} />
+        <TabButton id="carousel" label="Carousel" icon={Layers} />
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
@@ -247,6 +248,51 @@ export const Branding = () => {
                   onChange={e => setConfig({ ...config, currency_code: e.target.value })}
                   className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                 />
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-[#141414]/5">
+              <div className="flex items-center gap-2 mb-4">
+                <Type size={18} className="text-blue-600" />
+                <h3 className="font-bold text-lg uppercase tracking-tight">Font Sizes (px)</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Global Base</label>
+                  <input
+                    type="number"
+                    value={config.base_font_size || 16}
+                    onChange={e => setConfig({ ...config, base_font_size: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Hero Title</label>
+                  <input
+                    type="number"
+                    value={config.hero_font_size || 48}
+                    onChange={e => setConfig({ ...config, hero_font_size: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Headings</label>
+                  <input
+                    type="number"
+                    value={config.heading_font_size || 32}
+                    onChange={e => setConfig({ ...config, heading_font_size: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Content</label>
+                  <input
+                    type="number"
+                    value={config.content_font_size || 16}
+                    onChange={e => setConfig({ ...config, content_font_size: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1203,6 +1249,82 @@ export const Branding = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'carousel' && (
+          <div className="border border-[#141414] p-8 space-y-6 bg-white/50 rounded-3xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Layers size={18} className="text-blue-600" />
+                <h3 className="font-bold text-xl uppercase tracking-tight">Image Carousel</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-widest opacity-50">Enabled</span>
+                <button
+                  type="button"
+                  onClick={() => setConfig({ ...config, carousel_enabled: !config.carousel_enabled })}
+                  className={`w-12 h-6 rounded-full transition-all relative ${config.carousel_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.carousel_enabled ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50">Carousel Images</label>
+              {(() => {
+                let images: string[] = [];
+                if (Array.isArray(config.carousel_images)) {
+                  images = config.carousel_images;
+                } else {
+                  try {
+                    images = JSON.parse(config.carousel_images || '[]');
+                  } catch (e) {
+                    images = [];
+                  }
+                }
+                return (
+                  <div className="space-y-3">
+                    {images.map((url, i) => (
+                      <div key={i} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={url}
+                          onChange={e => {
+                            const newImages = [...images];
+                            newImages[i] = e.target.value;
+                            setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
+                          }}
+                          className="flex-1 bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                          placeholder="Image URL"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImages = images.filter((_, index) => index !== i);
+                            setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
+                          }}
+                          className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = [...images, ''];
+                        setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
+                      }}
+                      className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                    >
+                      + Add Carousel Image
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}

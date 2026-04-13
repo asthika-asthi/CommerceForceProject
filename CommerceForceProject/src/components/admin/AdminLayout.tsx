@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -41,6 +41,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
+  const [categories, setCategories] = useState<string[]>([]);
   const { user, logout, token } = useAuth();
   const { totalItems } = useCart();
   const { config } = useBranding();
@@ -75,6 +76,17 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           .then(data => setLoyaltyPoints(data.points || 0))
           .catch(err => console.error('Failed to fetch loyalty points:', err));
       }
+
+      // Fetch categories
+      fetch('/api/products')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const cats = Array.from(new Set(data.map((p: any) => p.category).filter(Boolean))) as string[];
+            setCategories(cats);
+          }
+        })
+        .catch(err => console.error('Failed to fetch categories:', err));
     }
   }, [token, user?.role]);
 
@@ -202,10 +214,83 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="h-20 border-b border-black/5 flex items-center justify-between px-10 bg-white/80 backdrop-blur-md z-10">
-          <h1 className="font-bold text-xl text-[#141414] tracking-tight">
-            {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
-          </h1>
+          <div className="flex items-center gap-8">
+            <h1 className="font-bold text-xl text-[#141414] tracking-tight">
+              {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
+            </h1>
+            
+            <nav className="hidden lg:flex items-center gap-6">
+              <div className="relative group">
+                <button className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] flex items-center gap-1">
+                  Categories <ChevronDown size={14} />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-black/5 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
+                  {categories.length > 0 ? (
+                    categories.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          window.history.pushState({}, '', `/category/${cat}`);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                          setActiveTab('category');
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-lg transition-colors capitalize"
+                      >
+                        {cat}
+                      </button>
+                    ))
+                  ) : (
+                    <span className="block px-4 py-2 text-xs text-[#141414]/40 italic">No categories</span>
+                  )}
+                </div>
+              </div>
+              <button 
+                onClick={() => setActiveTab('products')}
+                className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
+              >
+                Shop
+              </button>
+              <button 
+                onClick={() => setActiveTab('contact')}
+                className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
+              >
+                Support
+              </button>
+            </nav>
+          </div>
+
           <div className="flex items-center gap-6">
+            <div className="hidden sm:flex items-center gap-4 mr-4 border-r border-black/5 pr-6">
+              {user ? (
+                <button 
+                  onClick={logout}
+                  className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => {
+                      window.history.pushState({}, '', '/login');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => {
+                      window.history.pushState({}, '', '/register');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                  >
+                    Register
+                  </button>
+                </>
+              )}
+            </div>
             {user?.role === 'customer' && loyaltyEnabled && (
               <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm">
                 <Award size={16} />

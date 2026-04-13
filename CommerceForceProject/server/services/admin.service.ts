@@ -12,7 +12,8 @@ export class AdminService {
       ...branding,
       footer_use_brand_color: Boolean(branding.footer_use_brand_color),
       social_links_enabled: branding.social_links_enabled !== 0,
-      contact_page_enabled: Boolean(branding.contact_page_enabled)
+      contact_page_enabled: Boolean(branding.contact_page_enabled),
+      carousel_enabled: Boolean(branding.carousel_enabled)
     } as BrandingConfig;
   }
 
@@ -41,7 +42,13 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS footer_use_brand_color BOOLEAN DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS social_links_enabled BOOLEAN DEFAULT TRUE,
         ADD COLUMN IF NOT EXISTS contact_page_enabled BOOLEAN DEFAULT TRUE,
-        ADD COLUMN IF NOT EXISTS payment_methods_config TEXT
+        ADD COLUMN IF NOT EXISTS payment_methods_config TEXT,
+        ADD COLUMN IF NOT EXISTS base_font_size INTEGER DEFAULT 16,
+        ADD COLUMN IF NOT EXISTS hero_font_size INTEGER DEFAULT 48,
+        ADD COLUMN IF NOT EXISTS heading_font_size INTEGER DEFAULT 32,
+        ADD COLUMN IF NOT EXISTS content_font_size INTEGER DEFAULT 16,
+        ADD COLUMN IF NOT EXISTS carousel_enabled BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]'
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -60,7 +67,9 @@ export class AdminService {
             layout_config = ?, footer_config = ?, footer_email = ?, footer_address = ?,
             footer_phone = ?, footer_copyright = ?, footer_use_brand_color = ?, 
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
-            currency_symbol = ?, currency_code = ?
+            currency_symbol = ?, currency_code = ?,
+            base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
+            carousel_enabled = ?, carousel_images = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -90,6 +99,12 @@ export class AdminService {
         config.payment_methods_config !== undefined ? config.payment_methods_config : current.payment_methods_config,
         config.currency_symbol || current.currency_symbol || '£',
         config.currency_code || current.currency_code || 'GBP',
+        config.base_font_size || current.base_font_size || 16,
+        config.hero_font_size || current.hero_font_size || 48,
+        config.heading_font_size || current.heading_font_size || 32,
+        config.content_font_size || current.content_font_size || 16,
+        config.carousel_enabled !== undefined ? (config.carousel_enabled ? 1 : 0) : (current.carousel_enabled ? 1 : 0),
+        Array.isArray(config.carousel_images) ? JSON.stringify(config.carousel_images) : (config.carousel_images || current.carousel_images || '[]'),
         current.id
       ]);
     }

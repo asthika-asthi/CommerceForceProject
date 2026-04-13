@@ -56,7 +56,9 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
       'company_name', 'logo_url', 'favicon_url', 'primary_color', 'secondary_color',
       'font_family', 'button_style', 'background_style', 'background_value',
       'footer_text', 'footer_use_brand_color', 'contact_page_enabled', 'contact_email',
-      'contact_phone', 'contact_address', 'social_links', 'currency_symbol', 'currency_code'
+      'contact_phone', 'contact_address', 'social_links', 'currency_symbol', 'currency_code',
+      'base_font_size', 'hero_font_size', 'heading_font_size', 'content_font_size',
+      'carousel_enabled', 'carousel_images'
     ];
     
     const brandingJson: any = {};

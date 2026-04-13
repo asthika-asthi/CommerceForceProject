@@ -17,14 +17,14 @@
   },
   {
     "id": "stripe",
-    "name": "Credit Card (Stripe)",
-    "description": "Secure payment via Stripe",
+    "name": "Credit Card",
+    "description": "Pay by Credit Card",
     "enabled": true,
     "order": 2,
     "type": "stripe",
     "config": {
-      "publicKey": "",
-      "secretKey": ""
+      "publicKey": "pk_test_51TJZhqLacOGWJQOVs8dWTMg0zbmW79MLtxVuXHvADz7eIpgOFVCnpcMbV89p3rM5ERapUmhCqdUrHquRoymQa60r00xGPFTfzd",
+      "secretKey": "sk_test_51TJZhqLacOGWJQOV0CqRH60lqttQAgpW9h5MQB4MmufntE1PEz76oaZi1YaJyh3BCBb3s1ULPugfaIkqi6QRwPsk00sF1tWnDv"
     }
   },
   {
