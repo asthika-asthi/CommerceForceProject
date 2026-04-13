@@ -81,6 +81,7 @@ export async function initDb() {
         content_font_size INTEGER DEFAULT 16,
         carousel_enabled INTEGER DEFAULT 0,
         carousel_images TEXT DEFAULT '[]',
+        hero_enabled INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -131,6 +132,9 @@ export async function initDb() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='payment_methods_config') THEN
           ALTER TABLE branding_config ADD COLUMN payment_methods_config TEXT DEFAULT '[]';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='hero_enabled') THEN
+          ALTER TABLE branding_config ADD COLUMN hero_enabled INTEGER DEFAULT 1;
         END IF;
       END $$;
 

@@ -4,12 +4,12 @@ import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
-import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
 import { AIChat } from '../components/AIChat';
 import { Carousel } from '../components/Carousel';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
-  const { config: brandingConfig } = useBranding();
+  const { config: brandingConfig, isLoading: brandingLoading } = useBranding();
   const { token } = useAuth();
   const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -403,78 +403,109 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
           </section>
         );
 
+      case 'carousel':
+        return (
+          <section key={section.id} className="py-12">
+            <Carousel 
+              images={section.config.items || []} 
+              height={section.config.height || "h-[500px]"}
+              onNavigate={navigate}
+            />
+          </section>
+        );
+
       default:
         return null;
     }
   };
 
+  const showCarousel = brandingConfig?.carousel_enabled;
+  const showHero = !showCarousel && brandingConfig?.hero_enabled !== false;
+
+  if (brandingLoading || !brandingConfig) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary-color)]" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12 pb-24">
-      {/* Carousel Section */}
-      {brandingConfig?.carousel_enabled && (
+      {/* Top Section: Carousel OR Hero */}
+      {showCarousel && (
         <Carousel 
           images={(() => {
-            if (Array.isArray(brandingConfig.carousel_images)) return brandingConfig.carousel_images;
+            const val = brandingConfig.carousel_images;
+            if (Array.isArray(val)) return val;
+            if (!val) return [];
+            
             try {
-              return JSON.parse(brandingConfig.carousel_images || '[]');
+              if (val.trim().startsWith('[') || val.trim().startsWith('{')) {
+                return JSON.parse(val);
+              }
+              return val.split(',').map(url => url.trim()).filter(Boolean);
             } catch (e) {
-              return [];
+              console.error('Failed to parse carousel_images:', e);
+              return val.split(',').map(url => url.trim()).filter(Boolean);
             }
           })()} 
+          onNavigate={navigate}
         />
       )}
 
-      {/* Hero Section */}
-      <section className="relative h-[600px] rounded-[40px] overflow-hidden group">
-        {heroConfig.image ? (
-          heroConfig.image.endsWith('.mp4') ? (
-            <video autoPlay muted loop className="absolute inset-0 w-full h-full object-cover">
-              <source src={heroConfig.image} type="video/mp4" />
-            </video>
+      {showHero && (
+        <section className="relative h-[600px] rounded-[40px] overflow-hidden group">
+          {heroConfig.image ? (
+            heroConfig.image.endsWith('.mp4') ? (
+              <video autoPlay muted loop className="absolute inset-0 w-full h-full object-cover">
+                <source src={heroConfig.image} type="video/mp4" />
+              </video>
+            ) : (
+              <img 
+                src={heroConfig.image} 
+                alt="Hero" 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                referrerPolicy="no-referrer"
+              />
+            )
           ) : (
-            <img 
-              src={heroConfig.image} 
-              alt="Hero" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              referrerPolicy="no-referrer"
+            <div 
+              className="absolute inset-0 bg-gradient-to-br from-[var(--primary-color)] to-black" 
+              style={heroConfig.backgroundColor ? { backgroundImage: `linear-gradient(to bottom right, ${heroConfig.backgroundColor}, black)` } : {}}
             />
-          )
-        ) : (
-          <div 
-            className="absolute inset-0 bg-gradient-to-br from-[var(--primary-color)] to-black" 
-            style={heroConfig.backgroundColor ? { backgroundImage: `linear-gradient(to bottom right, ${heroConfig.backgroundColor}, black)` } : {}}
-          />
-        )}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-        
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight hero-title"
-          >
-            {heroConfig.title}
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl leading-relaxed"
-          >
-            {heroConfig.subtitle}
-          </motion.p>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => heroConfig.cta_link ? navigate(heroConfig.cta_link) : onShopNow()}
-            className={buttonClass}
-          >
-            {heroConfig.cta_text}
-            <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-          </motion.button>
-        </div>
-      </section>
+          )}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          
+          <div className="relative h-full flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight leading-tight hero-title"
+            >
+              {heroConfig.title}
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl leading-relaxed"
+            >
+              {heroConfig.subtitle}
+            </motion.p>
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              onClick={() => heroConfig.cta_link ? navigate(heroConfig.cta_link) : onShopNow()}
+              className={buttonClass}
+            >
+              {heroConfig.cta_text}
+              <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+            </motion.button>
+          </div>
+        </section>
+      )}
 
       {/* Dynamic Sections */}
       {layout?.filter((s: any) => s.type !== 'hero').map(renderSection)}

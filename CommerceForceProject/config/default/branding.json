@@ -17,5 +17,5 @@
   "heading_font_size": 32,
   "content_font_size": 16,
   "carousel_enabled": true,
-  "carousel_images": "[\"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_1.jpg\", \"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_2.jpg\",\"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_3.jpg\"]"
+  "carousel_images": "[{\"url\":\"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_1.jpg\",\"title\":\"Hello 1\",\"subtitle\":\"sub 1\"},{\"url\":\"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_2.jpg\",\"title\":\"hello 2\",\"subtitle\":\"sub 2\"},{\"url\":\"https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/carousel_3.jpg\",\"title\":\"hello 3\",\"subtitle\":\"sub 3\"}]"
 }

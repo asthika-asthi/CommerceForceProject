@@ -133,6 +133,7 @@ export const Branding = () => {
       case 'testimonials': return { title: 'Customer Testimonials', items: [{ name: 'Customer Name', text: 'Their feedback here' }] };
       case 'faq': return { title: 'Frequently Asked Questions', items: [{ q: 'Question?', a: 'Answer here.' }] };
       case 'cta': return { title: 'Ready to start?', buttonText: 'Get Started', link: '/products' };
+      case 'carousel': return { items: [{ url: 'https://picsum.photos/seed/carousel/1920/600', title: 'New Slide', subtitle: 'Slide description', cta_text: 'Shop Now', cta_link: '/products' }], height: 'h-[500px]' };
       default: return {};
     }
   };
@@ -395,9 +396,21 @@ export const Branding = () => {
 
         {activeTab === 'hero' && (
           <div className="border border-[#141414] p-8 space-y-6 bg-white/50 rounded-3xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex items-center gap-2 mb-2">
-              <ImageIcon size={18} className="text-blue-600" />
-              <h3 className="font-bold text-xl uppercase tracking-tight">Hero Section</h3>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <ImageIcon size={18} className="text-blue-600" />
+                <h3 className="font-bold text-xl uppercase tracking-tight">Hero Section</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-widest opacity-50">Enabled</span>
+                <button
+                  type="button"
+                  onClick={() => setConfig({ ...config, hero_enabled: config.hero_enabled === false ? true : false })}
+                  className={`w-12 h-6 rounded-full transition-all relative ${config.hero_enabled !== false ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.hero_enabled !== false ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -471,6 +484,7 @@ export const Branding = () => {
                 <button type="button" onClick={() => addSection('testimonials')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add Testimonials</button>
                 <button type="button" onClick={() => addSection('faq')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add FAQ</button>
                 <button type="button" onClick={() => addSection('cta')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add CTA</button>
+                <button type="button" onClick={() => addSection('carousel')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add Carousel</button>
               </div>
             </div>
 
@@ -501,6 +515,111 @@ export const Branding = () => {
                       </div>
                       <button type="button" onClick={() => removeSection(section.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"><Trash2 size={16} /></button>
                     </div>
+
+                    {section.type === 'carousel' && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-black/5 rounded-xl">
+                          <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Carousel Height</label>
+                          <input
+                            type="text"
+                            value={section.config.height || 'h-[500px]'}
+                            onChange={e => {
+                              const newLayout = [...layout];
+                              newLayout[index].config.height = e.target.value;
+                              setLayout(newLayout);
+                            }}
+                            className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                            placeholder="e.g. h-[500px] or h-screen"
+                          />
+                        </div>
+                        {(section.config.items || []).map((item: any, i: number) => (
+                          <div key={i} className="space-y-3 p-4 bg-black/5 rounded-xl relative group/item">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <input
+                                type="text"
+                                value={item.url || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].url = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                placeholder="Image URL"
+                              />
+                              <input
+                                type="text"
+                                value={item.title || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].title = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-bold"
+                                placeholder="Slide Title"
+                              />
+                              <input
+                                type="text"
+                                value={item.subtitle || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].subtitle = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                placeholder="Slide Subtitle"
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  value={item.cta_text || ''}
+                                  onChange={e => {
+                                    const newLayout = [...layout];
+                                    newLayout[index].config.items[i].cta_text = e.target.value;
+                                    setLayout(newLayout);
+                                  }}
+                                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                  placeholder="CTA Text"
+                                />
+                                <input
+                                  type="text"
+                                  value={item.cta_link || ''}
+                                  onChange={e => {
+                                    const newLayout = [...layout];
+                                    newLayout[index].config.items[i].cta_link = e.target.value;
+                                    setLayout(newLayout);
+                                  }}
+                                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                  placeholder="CTA Link"
+                                />
+                              </div>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const newLayout = [...layout];
+                                newLayout[index].config.items.splice(i, 1);
+                                setLayout(newLayout);
+                              }}
+                              className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLayout = [...layout];
+                            if (!newLayout[index].config.items) newLayout[index].config.items = [];
+                            newLayout[index].config.items.push({ url: '', title: '', subtitle: '', cta_text: '', cta_link: '' });
+                            setLayout(newLayout);
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                        >
+                          + Add Slide
+                        </button>
+                      </div>
+                    )}
 
                     {section.type === 'features' && (
                       <div className="space-y-4">
@@ -1273,54 +1392,121 @@ export const Branding = () => {
             </div>
 
             <div className="space-y-4">
-              <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50">Carousel Images</label>
+              <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50">Carousel Slides</label>
               {(() => {
-                let images: string[] = [];
+                let slides: any[] = [];
                 if (Array.isArray(config.carousel_images)) {
-                  images = config.carousel_images;
+                  slides = config.carousel_images;
                 } else {
                   try {
-                    images = JSON.parse(config.carousel_images || '[]');
+                    slides = JSON.parse(config.carousel_images || '[]');
                   } catch (e) {
-                    images = [];
+                    slides = [];
                   }
                 }
+                
+                // Normalize slides to objects if they are strings
+                slides = slides.map(s => typeof s === 'string' ? { url: s } : s);
+
                 return (
-                  <div className="space-y-3">
-                    {images.map((url, i) => (
-                      <div key={i} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={url}
-                          onChange={e => {
-                            const newImages = [...images];
-                            newImages[i] = e.target.value;
-                            setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
-                          }}
-                          className="flex-1 bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                          placeholder="Image URL"
-                        />
+                  <div className="space-y-6">
+                    {slides.map((slide, i) => (
+                      <div key={i} className="p-6 bg-black/5 rounded-2xl relative group/slide space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Image URL</label>
+                            <input
+                              type="text"
+                              value={slide.url || ''}
+                              onChange={e => {
+                                const newSlides = [...slides];
+                                newSlides[i] = { ...slide, url: e.target.value };
+                                setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                              placeholder="Image URL"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Slide Title</label>
+                            <input
+                              type="text"
+                              value={slide.title || ''}
+                              onChange={e => {
+                                const newSlides = [...slides];
+                                newSlides[i] = { ...slide, title: e.target.value };
+                                setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-bold"
+                              placeholder="Slide Title"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Subtitle</label>
+                            <input
+                              type="text"
+                              value={slide.subtitle || ''}
+                              onChange={e => {
+                                const newSlides = [...slides];
+                                newSlides[i] = { ...slide, subtitle: e.target.value };
+                                setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
+                              }}
+                              className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                              placeholder="Subtitle"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">CTA Text</label>
+                              <input
+                                type="text"
+                                value={slide.cta_text || ''}
+                                onChange={e => {
+                                  const newSlides = [...slides];
+                                  newSlides[i] = { ...slide, cta_text: e.target.value };
+                                  setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                placeholder="CTA Text"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">CTA Link</label>
+                              <input
+                                type="text"
+                                value={slide.cta_link || ''}
+                                onChange={e => {
+                                  const newSlides = [...slides];
+                                  newSlides[i] = { ...slide, cta_link: e.target.value };
+                                  setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
+                                placeholder="CTA Link"
+                              />
+                            </div>
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            const newImages = images.filter((_, index) => index !== i);
-                            setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
+                            const newSlides = slides.filter((_, index) => index !== i);
+                            setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
                           }}
-                          className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                          className="absolute -right-2 -top-2 bg-red-500 text-white p-2 rounded-full shadow-lg opacity-0 group-hover/slide:opacity-100 transition-all"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     ))}
                     <button
                       type="button"
                       onClick={() => {
-                        const newImages = [...images, ''];
-                        setConfig({ ...config, carousel_images: JSON.stringify(newImages) });
+                        const newSlides = [...slides, { url: '', title: '', subtitle: '', cta_text: '', cta_link: '' }];
+                        setConfig({ ...config, carousel_images: JSON.stringify(newSlides) });
                       }}
-                      className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                      className="w-full py-4 border-2 border-dashed border-black/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
                     >
-                      + Add Carousel Image
+                      + Add New Slide
                     </button>
                   </div>
                 );

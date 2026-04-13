@@ -33,8 +33,17 @@ export interface BrandingConfig {
   heading_font_size?: number;
   content_font_size?: number;
   carousel_enabled?: boolean;
-  carousel_images?: string; // JSON string of image URLs
+  hero_enabled?: boolean;
+  carousel_images?: string; // JSON string of CarouselImage[]
   created_at?: string;
+}
+
+export interface CarouselImage {
+  url: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  cta_link?: string;
 }
 
 export interface PaymentMethodConfig {
@@ -54,7 +63,7 @@ export interface PaymentMethodConfig {
 
 export interface LayoutSection {
   id: string;
-  type: 'hero' | 'features' | 'products' | 'promotions' | 'content' | 'testimonials' | 'faq' | 'cta';
+  type: 'hero' | 'features' | 'products' | 'promotions' | 'content' | 'testimonials' | 'faq' | 'cta' | 'carousel';
   enabled: boolean;
   config: any;
 }

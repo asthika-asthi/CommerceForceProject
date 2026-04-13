@@ -13,7 +13,8 @@ export class AdminService {
       footer_use_brand_color: Boolean(branding.footer_use_brand_color),
       social_links_enabled: branding.social_links_enabled !== 0,
       contact_page_enabled: Boolean(branding.contact_page_enabled),
-      carousel_enabled: Boolean(branding.carousel_enabled)
+      carousel_enabled: Boolean(branding.carousel_enabled),
+      hero_enabled: branding.hero_enabled !== 0
     } as BrandingConfig;
   }
 
@@ -48,7 +49,8 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS heading_font_size INTEGER DEFAULT 32,
         ADD COLUMN IF NOT EXISTS content_font_size INTEGER DEFAULT 16,
         ADD COLUMN IF NOT EXISTS carousel_enabled BOOLEAN DEFAULT FALSE,
-        ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]'
+        ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]',
+        ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -69,7 +71,7 @@ export class AdminService {
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
-            carousel_enabled = ?, carousel_images = ?
+            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -105,6 +107,7 @@ export class AdminService {
         config.content_font_size || current.content_font_size || 16,
         config.carousel_enabled !== undefined ? (config.carousel_enabled ? 1 : 0) : (current.carousel_enabled ? 1 : 0),
         Array.isArray(config.carousel_images) ? JSON.stringify(config.carousel_images) : (config.carousel_images || current.carousel_images || '[]'),
+        config.hero_enabled !== undefined ? (config.hero_enabled ? 1 : 0) : (current.hero_enabled !== false ? 1 : 0),
         current.id
       ]);
     }
