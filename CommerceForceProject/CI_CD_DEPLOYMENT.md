@@ -25,12 +25,16 @@ docker build -t commerceforce:latest .
 ### 2. Running with Volumes (The "Magic" Step)
 When deploying, you mount the configuration directory from the host machine into the container. This allows you to update the UI without restarting the container.
 
+**Important**: Always use absolute paths for the host volume. Use forward slashes `/` for the container path.
+
+**Linux / macOS / Git Bash:**
 ```bash
-docker run -d \
-  -p 3000:3000 \
-  -v /opt/commerceforce/config:/app/config \
-  -e NODE_ENV=production \
-  commerceforce:latest
+docker run -d -p 3000:3000 -v $(pwd)/config:/app/config -e NODE_ENV=production commerceforce:latest
+```
+
+**Windows PowerShell:**
+```powershell
+docker run -d -p 3000:3000 -v ${PWD}/config:/app/config -e NODE_ENV=production commerceforce:latest
 ```
 
 ---

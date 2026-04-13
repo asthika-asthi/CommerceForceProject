@@ -1,10 +1,13 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
+import { useBranding } from '../context/BrandingContext';
 import { ShoppingBag, X, Trash2, Plus, Minus, ArrowRight, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const CartModal = ({ isOpen, onClose, onCheckout, onViewCart }: { isOpen: boolean; onClose: () => void; onCheckout: () => void; onViewCart: () => void }) => {
   const { items, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
 
   if (!isOpen) return null;
 
@@ -78,7 +81,7 @@ export const CartModal = ({ isOpen, onClose, onCheckout, onViewCart }: { isOpen:
                         <Trash2 size={14} />
                       </button>
                     </div>
-                    <p className="text-xs text-[#141414]/40 font-mono mt-1">£{item.product.base_price.toFixed(2)}</p>
+                    <p className="text-xs text-[#141414]/40 font-mono mt-1">{currency}{item.product.base_price.toFixed(2)}</p>
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
@@ -98,7 +101,7 @@ export const CartModal = ({ isOpen, onClose, onCheckout, onViewCart }: { isOpen:
                       </button>
                     </div>
                     <span className="text-sm font-bold font-mono">
-                      £{(item.product.base_price * item.quantity).toFixed(2)}
+                      {currency}{(item.product.base_price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -111,7 +114,7 @@ export const CartModal = ({ isOpen, onClose, onCheckout, onViewCart }: { isOpen:
           <div className="p-6 bg-[#f5f5f5] rounded-t-[32px] space-y-3">
             <div className="flex justify-between items-center px-2">
               <span className="text-sm font-medium text-[#141414]/60">Total Amount</span>
-              <span className="text-xl font-bold font-mono">£{totalPrice.toFixed(2)}</span>
+              <span className="text-xl font-bold font-mono">{currency}{totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex flex-col gap-2">
               <button 

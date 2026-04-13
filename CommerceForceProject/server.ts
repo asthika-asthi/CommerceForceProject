@@ -105,8 +105,46 @@ export async function createApp() {
 if (process.env.NODE_ENV !== 'test') {
   createApp().then(app => {
     const PORT = 3000;
-    app.listen(PORT, "0.0.0.0", () => {
+    app.listen(PORT, "0.0.0.0", async () => {
       console.log(`CommerceForce server running on http://0.0.0.0:${PORT}`);
+      
+      // Startup Sync
+      try {
+        await AdminService.ensureSchema();
+        
+        const client = 'default';
+        const brandingJson = await ConfigService.getBrandingConfig(client);
+        const landingJson = await ConfigService.getLandingConfig(client);
+        const paymentsJson = await ConfigService.getPaymentsConfig(client);
+
+        if (brandingJson || landingJson || paymentsJson) {
+          console.log('Syncing configurations from JSON files to database...');
+          
+          const currentBranding = await AdminService.getBranding();
+          const updatedBranding: any = { ...currentBranding };
+
+          if (brandingJson) {
+            Object.assign(updatedBranding, brandingJson);
+          }
+
+          if (landingJson) {
+            const sections = Array.isArray(landingJson) ? landingJson : landingJson.sections;
+            if (sections) {
+              updatedBranding.layout_config = JSON.stringify(sections);
+            }
+          }
+
+          if (paymentsJson) {
+            const payments = Array.isArray(paymentsJson) ? paymentsJson : paymentsJson.methods || paymentsJson;
+            updatedBranding.payment_methods_config = JSON.stringify(payments);
+          }
+
+          await AdminService.updateBranding(updatedBranding);
+          console.log('Configuration sync completed successfully.');
+        }
+      } catch (err) {
+        console.error('Failed to sync configurations on startup:', err);
+      }
     });
   }).catch((err) => {
     console.error("Failed to start server:", err);

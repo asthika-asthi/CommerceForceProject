@@ -1,10 +1,13 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
+import { useBranding } from '../context/BrandingContext';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: () => void }) => {
   const { items, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
 
   if (items.length === 0) {
     return (
@@ -104,15 +107,15 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
                       <div className="text-xs text-[#141414]/40 font-mono mb-1">
                         {item.product.sale_percentage && item.product.sale_percentage > 0 ? (
                           <div className="flex flex-col items-end">
-                            <span className="line-through text-[8px] opacity-30">£{(Number(item.product.base_price) || 0).toFixed(2)}</span>
-                            <span className="text-rose-600 font-bold">£{((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)).toFixed(2)} each</span>
+                            <span className="line-through text-[8px] opacity-30">{currency}{(Number(item.product.base_price) || 0).toFixed(2)}</span>
+                            <span className="text-rose-600 font-bold">{currency}{((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)).toFixed(2)} each</span>
                           </div>
                         ) : (
-                          `£${(Number(item.product.base_price) || 0).toFixed(2)} each`
+                          `${currency}${(Number(item.product.base_price) || 0).toFixed(2)} each`
                         )}
                       </div>
                       <div className="text-xl font-bold font-mono">
-                        £{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? ((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)) : (Number(item.product.base_price) || 0)) * item.quantity).toFixed(2)}
+                        {currency}{(((item.product.sale_percentage && item.product.sale_percentage > 0) ? ((Number(item.product.base_price) || 0) * (1 - (Number(item.product.sale_percentage) || 0) / 100)) : (Number(item.product.base_price) || 0)) * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -129,7 +132,7 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
             <div className="space-y-4 mb-8">
               <div className="flex justify-between text-[#141414]/60">
                 <span>Subtotal</span>
-                <span className="font-mono">£{totalPrice.toFixed(2)}</span>
+                <span className="font-mono">{currency}{totalPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[#141414]/60">
                 <span>Shipping</span>
@@ -137,7 +140,7 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
               </div>
               <div className="pt-6 border-t border-[#141414]/5 flex justify-between items-center">
                 <span className="text-lg font-bold text-[#141414]">Total</span>
-                <span className="text-3xl font-bold font-mono">£{totalPrice.toFixed(2)}</span>
+                <span className="text-3xl font-bold font-mono">{currency}{totalPrice.toFixed(2)}</span>
               </div>
             </div>
 

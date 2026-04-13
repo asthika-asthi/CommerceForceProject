@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useBranding } from '../context/BrandingContext';
-import { ShoppingBag, ArrowLeft, CreditCard, Truck, CheckCircle2, Loader2, AlertCircle, DollarSign, Settings } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, CreditCard, Truck, CheckCircle2, Loader2, AlertCircle, Banknote, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FeatureFlag, PaymentMethodConfig } from '../shared/types';
 import { loadStripe } from '@stripe/stripe-js';
@@ -13,6 +13,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
   const { items, totalPrice, clearCart } = useCart();
   const { token, user } = useAuth();
   const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [error, setError] = useState('');
@@ -250,7 +251,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                 >
                   <div className="flex items-center gap-3 mb-1">
                     <div className="p-2 bg-black/5 rounded-lg">
-                      {method.type === 'cash' && <DollarSign size={18} />}
+                      {method.type === 'cash' && <Banknote size={18} />}
                       {method.type === 'credit_limit' && <Settings size={18} />}
                       {method.type === 'stripe' && <CreditCard size={18} />}
                       {method.type === 'paypal' && <CreditCard size={18} />}
@@ -260,7 +261,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                   </div>
                   <div className="text-xs text-[#141414]/60">
                     {method.type === 'credit_limit' 
-                      ? `Charge to your account credit (£${Number(user?.available_credit || 0).toFixed(2)} available)`
+                      ? `Charge to your account credit (${currency}${Number(user?.available_credit || 0).toFixed(2)} available)`
                       : method.description}
                   </div>
                 </button>
@@ -344,11 +345,11 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                     <div className="flex-1">
                       <div className="font-medium text-sm">{item.product.name}</div>
                       <div className="text-xs text-[#141414]/40 font-mono">
-                        {item.quantity} x £{price.toFixed(2)}
+                        {item.quantity} x {currency}{price.toFixed(2)}
                       </div>
                     </div>
                     <div className="font-mono text-sm">
-                      £{(price * (item.quantity || 0)).toFixed(2)}
+                      {currency}{(price * (item.quantity || 0)).toFixed(2)}
                     </div>
                   </div>
                 );
@@ -358,7 +359,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             <div className="space-y-3 pt-6 border-t border-[#141414]/5">
               <div className="flex justify-between text-[#141414]/60 text-sm">
                 <span>Subtotal</span>
-                <span className="font-mono">£{Number(totalPrice || 0).toFixed(2)}</span>
+                <span className="font-mono">{currency}{Number(totalPrice || 0).toFixed(2)}</span>
               </div>
               
               {/* Coupon Section */}
@@ -386,7 +387,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                 {couponError && <p className="text-[10px] text-rose-600 mt-1 ml-1">{couponError}</p>}
                 {couponDiscount > 0 && (
                   <p className="text-[10px] text-emerald-600 mt-1 ml-1 font-medium flex items-center gap-1">
-                    <CheckCircle2 size={10} /> Coupon applied: -£{couponDiscount.toFixed(2)}
+                    <CheckCircle2 size={10} /> Coupon applied: -{currency}{couponDiscount.toFixed(2)}
                   </p>
                 )}
               </div>
@@ -394,7 +395,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
               {couponDiscount > 0 && (
                 <div className="flex justify-between text-emerald-600 text-sm font-medium">
                   <span>Discount</span>
-                  <span className="font-mono">-£{couponDiscount.toFixed(2)}</span>
+                  <span className="font-mono">-{currency}{couponDiscount.toFixed(2)}</span>
                 </div>
               )}
 
@@ -404,7 +405,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
               </div>
               <div className="flex justify-between text-[#141414] text-lg font-bold pt-2">
                 <span>Total</span>
-                <span className="font-mono text-xl">£{(totalPrice - couponDiscount).toFixed(2)}</span>
+                <span className="font-mono text-xl">{currency}{(totalPrice - couponDiscount).toFixed(2)}</span>
               </div>
             </div>
           </div>

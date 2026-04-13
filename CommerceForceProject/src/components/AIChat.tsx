@@ -64,7 +64,7 @@ export const AIChat = () => {
         name: p.name,
         description: p.description,
         category: p.category,
-        price: `£${p.base_price.toFixed(2)}`,
+        price: `${config?.currency_symbol || '£'}${p.base_price.toFixed(2)}`,
         attributes: p.attributes
       }))
     };

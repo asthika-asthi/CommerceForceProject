@@ -26,6 +26,8 @@ export interface BrandingConfig {
   social_links_enabled?: boolean;
   contact_page_enabled?: boolean;
   payment_methods_config?: string; // JSON string of PaymentMethodConfig[]
+  currency_symbol?: string;
+  currency_code?: string;
   created_at?: string;
 }
 

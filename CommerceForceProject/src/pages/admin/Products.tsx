@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Product, FeatureFlag } from '../../shared/types';
+import { useBranding } from '../../context/BrandingContext';
 import { Search, Plus, MoreHorizontal, Filter, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void, onQuote: () => void, rfqEnabled: boolean }> = ({ product, onAddToCart, onQuote, rfqEnabled }) => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
 
@@ -54,7 +57,7 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
           </h3>
           <div className="flex flex-col items-end">
             <span className="font-mono font-bold text-[var(--primary-color)]">
-              £{product.base_price.toFixed(2)}
+              {currency}{product.base_price.toFixed(2)}
             </span>
             {product.sale_percentage ? (
               <span className="text-[10px] text-rose-600 font-bold">-{product.sale_percentage}%</span>
@@ -101,6 +104,8 @@ export const Products = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { token, user } = useAuth();
   const { addToCart } = useCart();
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'client';
 
   const [formData, setFormData] = useState({
@@ -356,11 +361,11 @@ export const Products = () => {
                     {product.base_price !== undefined && product.base_price !== null ? (
                       product.sale_percentage && product.sale_percentage > 0 ? (
                         <div className="flex flex-col">
-                          <span className="line-through text-[10px] opacity-40">£{(Number(product.base_price) || 0).toFixed(2)}</span>
-                          <span className="text-rose-600">£{((Number(product.base_price) || 0) * (1 - (Number(product.sale_percentage) || 0) / 100)).toFixed(2)}</span>
+                          <span className="line-through text-[10px] opacity-40">{currency}{(Number(product.base_price) || 0).toFixed(2)}</span>
+                          <span className="text-rose-600">{currency}{((Number(product.base_price) || 0) * (1 - (Number(product.sale_percentage) || 0) / 100)).toFixed(2)}</span>
                         </div>
                       ) : (
-                        `£${(Number(product.base_price) || 0).toFixed(2)}`
+                        `${currency}${(Number(product.base_price) || 0).toFixed(2)}`
                       )
                     ) : '-'}
                   </td>
@@ -466,7 +471,7 @@ export const Products = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Base Price (£)</label>
+                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Base Price ({currency})</label>
                     <input
                       type="number"
                       step="0.01"

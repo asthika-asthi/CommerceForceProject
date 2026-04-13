@@ -115,6 +115,20 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const renderSection = (section: LayoutSection) => {
     if (!section.enabled) return null;
 
+    // Helper for flexible mapping
+    const getConfig = (keys: string[]) => {
+      for (const key of keys) {
+        if (section.config[key] !== undefined) return section.config[key];
+      }
+      return undefined;
+    };
+
+    const title = getConfig(['title']);
+    const body = getConfig(['body', 'text', 'desc', 'subtitle']);
+    const imageUrl = getConfig(['imageUrl', 'image']);
+    const buttonText = getConfig(['buttonText', 'button_text', 'cta_text']);
+    const link = getConfig(['link', 'button_link', 'cta_link']);
+
     switch (section.type) {
       case 'features':
         return (
@@ -125,7 +139,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                   <Star size={28} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-sm text-black/50 leading-relaxed">{feature.desc}</p>
+                <p className="text-sm text-black/50 leading-relaxed">{feature.desc || feature.text || feature.body}</p>
               </div>
             ))}
           </section>
@@ -135,24 +149,24 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
         return (
           <section key={section.id} className="py-12">
             <div className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${section.config.variant === 'dark' ? 'bg-[var(--secondary-color)] text-white' : 'bg-white border border-black/5 shadow-sm'}`}>
-              {section.config.image && (
+              {imageUrl && (
                 <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
-                  <img src={section.config.image} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img src={imageUrl} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </div>
               )}
               <div className="flex-1 space-y-6 text-center md:text-left">
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-50">{section.config.tag || 'Special Offer'}</span>
-                <h2 className="text-4xl font-bold leading-tight">{section.config.title}</h2>
-                <p className="text-lg opacity-60">{section.config.subtitle}</p>
-                {section.config.buttonText && (
+                <h2 className="text-4xl font-bold leading-tight">{title}</h2>
+                <p className="text-lg opacity-60">{body}</p>
+                {buttonText && (
                   <button 
-                    onClick={() => navigate(section.config.link || '#')}
+                    onClick={() => navigate(link || '#')}
                     className={`px-8 py-4 font-bold transition-all ${
                       brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
                       brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
                     } ${section.config.variant === 'dark' ? 'bg-white text-black hover:bg-[var(--primary-color)] hover:text-white' : 'bg-[var(--primary-color)] text-white hover:opacity-90'}`}
                   >
-                    {section.config.buttonText}
+                    {buttonText}
                   </button>
                 )}
               </div>
@@ -165,7 +179,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
           <section key={section.id} className="space-y-12 py-12">
             <div className="flex items-end justify-between px-4">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">{section.config.title || 'Featured Products'}</h2>
+                <h2 className="text-3xl font-bold tracking-tight">{title || 'Featured Products'}</h2>
                 <p className="text-black/40 font-medium">Handpicked selections just for you</p>
               </div>
               <button onClick={onShopNow} className="text-sm font-bold text-[var(--primary-color)] hover:underline flex items-center gap-2">
@@ -180,8 +194,41 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
           </section>
         );
 
+      case 'category_grid' as any:
+        return (
+          <section key={section.id} className="py-12 space-y-8">
+            {title && (
+              <div className="px-4">
+                <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+              {(section.config.items || []).map((item: any, i: number) => (
+                <div 
+                  key={i} 
+                  onClick={() => item.link && navigate(item.link)}
+                  className="group relative aspect-square rounded-[32px] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all"
+                >
+                  <img 
+                    src={item.image || item.imageUrl} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                    <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                    <div className="flex items-center gap-2 text-white/70 text-sm font-bold group-hover:text-white transition-colors">
+                      Shop Now <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+
       case 'content':
-        const items = section.config.items || [{ title: section.config.title, body: section.config.body, alignment: 'center' }];
+        const items = section.config.items || [{ title: title, body: body, imageUrl: imageUrl, alignment: section.config.layout === 'right-image' ? 'right' : section.config.layout === 'left-image' ? 'left' : 'center' }];
         const isGrid = section.config.layoutType === 'grid';
         const gridItems = items.filter((item: any) => item.includeInGrid);
         const hasGridItems = gridItems.length > 0;
@@ -493,7 +540,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
             {product.name}
           </h3>
           <span className="font-mono font-bold text-[var(--primary-color)]">
-            £{product.base_price.toFixed(2)}
+            {brandingConfig?.currency_symbol || '£'}{product.base_price.toFixed(2)}
           </span>
         </div>
         

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Loader2 } from 'lucide-react';
+import { useBranding } from '../context/BrandingContext';
 
 interface StripePaymentFormProps {
   onSuccess: () => void;
@@ -11,6 +12,8 @@ interface StripePaymentFormProps {
 export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ onSuccess, onError, amount }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +46,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({ onSuccess,
         disabled={isProcessing || !stripe || !elements}
         className="w-full bg-[#141414] text-white py-4 rounded-[20px] font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
       >
-        {isProcessing ? <Loader2 className="animate-spin" size={24} /> : `Pay £${amount.toFixed(2)}`}
+        {isProcessing ? <Loader2 className="animate-spin" size={24} /> : `Pay ${currency}${amount.toFixed(2)}`}
       </button>
     </form>
   );

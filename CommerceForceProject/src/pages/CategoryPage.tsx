@@ -184,7 +184,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
             {product.name}
           </h3>
           <span className="font-mono font-bold text-[var(--primary-color)] whitespace-nowrap">
-            £{product.base_price.toFixed(2)}
+            {config?.currency_symbol || '£'}{product.base_price.toFixed(2)}
           </span>
         </div>
         

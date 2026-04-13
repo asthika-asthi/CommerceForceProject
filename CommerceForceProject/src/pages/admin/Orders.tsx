@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Order, OrderStatus } from '../../shared/types';
+import { useBranding } from '../../context/BrandingContext';
 import { Search, MoreHorizontal, Filter, Loader2, Package, User, Calendar, MapPin, ChevronRight, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const Orders = () => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -143,7 +146,7 @@ export const Orders = () => {
                 <td className="p-4 text-xs text-[#141414]/60">
                   {new Date(order.created_at).toLocaleDateString()}
                 </td>
-                <td className="p-4 text-sm font-mono font-bold">£{order.total_amount.toFixed(2)}</td>
+                <td className="p-4 text-sm font-mono font-bold">{currency}{order.total_amount.toFixed(2)}</td>
                 <td className="p-4">
                   <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded ${getStatusColor(order.status)}`}>
                     {order.status}
@@ -282,15 +285,15 @@ export const Orders = () => {
                               </div>
                             </td>
                             <td className="p-3 text-center font-mono">{item.quantity}</td>
-                            <td className="p-3 text-right font-mono">£{item.unit_price.toFixed(2)}</td>
-                            <td className="p-3 text-right font-mono font-bold">£{item.total_price.toFixed(2)}</td>
+                            <td className="p-3 text-right font-mono">{currency}{item.unit_price.toFixed(2)}</td>
+                            <td className="p-3 text-right font-mono font-bold">{currency}{item.total_price.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
                         <tr className="bg-[#f5f5f5] font-bold">
                           <td colSpan={3} className="p-3 text-right text-[10px] font-mono uppercase tracking-widest">Grand Total</td>
-                          <td className="p-3 text-right font-mono text-lg">£{selectedOrder.total_amount.toFixed(2)}</td>
+                          <td className="p-3 text-right font-mono text-lg">{currency}{selectedOrder.total_amount.toFixed(2)}</td>
                         </tr>
                       </tfoot>
                     </table>

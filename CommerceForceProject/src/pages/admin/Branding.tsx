@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared/types';
-import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, DollarSign, Settings } from 'lucide-react';
+import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments';
@@ -174,7 +174,7 @@ export const Branding = () => {
         <TabButton id="hero" label="Hero" icon={ImageIcon} />
         <TabButton id="sections" label="Sections" icon={Layers} />
         <TabButton id="footer" label="Footer" icon={Layout} />
-        <TabButton id="payments" label="Payments" icon={DollarSign} />
+        <TabButton id="payments" label="Payments" icon={Banknote} />
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
@@ -227,6 +227,26 @@ export const Branding = () => {
                     className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Currency Symbol</label>
+                <input
+                  type="text"
+                  placeholder="e.g. £, $, €"
+                  value={config.currency_symbol || '£'}
+                  onChange={e => setConfig({ ...config, currency_symbol: e.target.value })}
+                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Currency Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g. GBP, USD, EUR"
+                  value={config.currency_code || 'GBP'}
+                  onChange={e => setConfig({ ...config, currency_code: e.target.value })}
+                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
               </div>
             </div>
           </div>
@@ -1082,7 +1102,7 @@ export const Branding = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="p-3 bg-black/5 rounded-xl">
-                          {method.type === 'cash' && <DollarSign size={20} />}
+                          {method.type === 'cash' && <Banknote size={20} />}
                           {method.type === 'credit_limit' && <Settings size={20} />}
                           {method.type === 'stripe' && <CreditCard size={20} />}
                           {method.type === 'paypal' && <CreditCard size={20} />}

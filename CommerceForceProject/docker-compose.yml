@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://postgres:password@db:5432/commerce
-      - JWT_SECRET=ZrwNW914we-soMtyyr7SdhkJtS9p9WC_t1aGRBUa3r4oKnFL4QPWDMfNqLyAgY8GprxpU8zeZQpEC_MWxdZlEw
+      - JWT_SECRET=your_jwt_secret_here
     depends_on:
       db:
         condition: service_healthy

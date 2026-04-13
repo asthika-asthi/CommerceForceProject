@@ -16,6 +16,38 @@ export class AdminService {
     } as BrandingConfig;
   }
 
+  static async ensureSchema(): Promise<void> {
+    try {
+      // Add currency columns if they don't exist
+      await db.query(`
+        ALTER TABLE branding_config 
+        ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '£',
+        ADD COLUMN IF NOT EXISTS currency_code VARCHAR(10) DEFAULT 'GBP',
+        ADD COLUMN IF NOT EXISTS button_style VARCHAR(20) DEFAULT 'rounded',
+        ADD COLUMN IF NOT EXISTS background_style VARCHAR(20) DEFAULT 'solid',
+        ADD COLUMN IF NOT EXISTS background_value TEXT,
+        ADD COLUMN IF NOT EXISTS hero_title TEXT,
+        ADD COLUMN IF NOT EXISTS hero_subtitle TEXT,
+        ADD COLUMN IF NOT EXISTS hero_image_url TEXT,
+        ADD COLUMN IF NOT EXISTS hero_cta_text TEXT,
+        ADD COLUMN IF NOT EXISTS hero_cta_link TEXT,
+        ADD COLUMN IF NOT EXISTS featured_products TEXT,
+        ADD COLUMN IF NOT EXISTS layout_config TEXT,
+        ADD COLUMN IF NOT EXISTS footer_config TEXT,
+        ADD COLUMN IF NOT EXISTS footer_email TEXT,
+        ADD COLUMN IF NOT EXISTS footer_address TEXT,
+        ADD COLUMN IF NOT EXISTS footer_phone TEXT,
+        ADD COLUMN IF NOT EXISTS footer_copyright TEXT,
+        ADD COLUMN IF NOT EXISTS footer_use_brand_color BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS social_links_enabled BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS contact_page_enabled BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS payment_methods_config TEXT
+      `);
+    } catch (err) {
+      console.error('Failed to ensure schema:', err);
+    }
+  }
+
   static async updateBranding(config: Partial<BrandingConfig>): Promise<void> {
     const current = await this.getBranding();
     if (current) {
@@ -27,7 +59,8 @@ export class AdminService {
             hero_cta_text = ?, hero_cta_link = ?, featured_products = ?, 
             layout_config = ?, footer_config = ?, footer_email = ?, footer_address = ?,
             footer_phone = ?, footer_copyright = ?, footer_use_brand_color = ?, 
-            social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?
+            social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
+            currency_symbol = ?, currency_code = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -55,6 +88,8 @@ export class AdminService {
         config.social_links_enabled !== undefined ? (config.social_links_enabled ? 1 : 0) : (current.social_links_enabled ? 1 : 0),
         config.contact_page_enabled !== undefined ? (config.contact_page_enabled ? 1 : 0) : (current.contact_page_enabled ? 1 : 0),
         config.payment_methods_config !== undefined ? config.payment_methods_config : current.payment_methods_config,
+        config.currency_symbol || current.currency_symbol || '£',
+        config.currency_code || current.currency_code || 'GBP',
         current.id
       ]);
     }
