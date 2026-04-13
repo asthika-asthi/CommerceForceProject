@@ -1,0 +1,7 @@
+{
+  "layout": [
+    { "type": "banner", "field": "category.image" },
+    { "type": "title", "field": "category.name" },
+    { "type": "product_grid", "source": "products" }
+  ]
+}
