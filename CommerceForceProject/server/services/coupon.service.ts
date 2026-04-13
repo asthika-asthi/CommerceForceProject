@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import db from '../db';
 import { Coupon } from '../../src/shared/types';
+import { AdminService } from './admin.service';
 
 export class CouponService {
   static async getAll(): Promise<Coupon[]> {
@@ -111,7 +112,9 @@ export class CouponService {
     }
 
     if (orderAmount < coupon.min_order_amount) {
-      return { isValid: false, discount: 0, error: `Minimum order amount of $${coupon.min_order_amount} required` };
+      const branding = await AdminService.getBranding();
+      const currency = branding?.currency_symbol || '£';
+      return { isValid: false, discount: 0, error: `Minimum order amount of ${currency}${coupon.min_order_amount} required` };
     }
 
     const minQty = Number(coupon.min_quantity || 0);

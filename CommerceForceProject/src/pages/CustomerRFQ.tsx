@@ -4,7 +4,11 @@ import { Search, Plus, Loader2, FileText, CheckCircle2, XCircle, Clock, ArrowRig
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { useBranding } from '../context/BrandingContext';
+
 export const CustomerRFQ = () => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [rfqs, setRfqs] = useState<RFQ[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -142,7 +146,7 @@ export const CustomerRFQ = () => {
         <div className="flex items-center gap-6">
           <div className="text-right">
             <p className="text-[10px] font-mono uppercase opacity-40">Available Credit</p>
-            <p className="text-lg font-bold text-emerald-600">${user?.available_credit?.toLocaleString()}</p>
+            <p className="text-lg font-bold text-emerald-600">{currency}{user?.available_credit?.toLocaleString()}</p>
           </div>
           <button 
             onClick={() => setIsCreateModalOpen(true)}
@@ -174,7 +178,7 @@ export const CustomerRFQ = () => {
                 {rfq.total_quoted_amount && (
                   <div className="text-right">
                     <p className="text-[10px] font-mono uppercase opacity-40">Quoted Total</p>
-                    <p className="text-xl font-bold">${rfq.total_quoted_amount.toLocaleString()}</p>
+                    <p className="text-xl font-bold">{currency}{rfq.total_quoted_amount.toLocaleString()}</p>
                   </div>
                 )}
                 
@@ -271,7 +275,7 @@ export const CustomerRFQ = () => {
                   </div>
                   {discountInfo && (
                     <div className={`mt-2 text-[10px] font-mono uppercase ${discountInfo.isValid ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {discountInfo.isValid ? `Discount Applied: -$${discountInfo.discount.toLocaleString()}` : discountInfo.error}
+                      {discountInfo.isValid ? `Discount Applied: -${currency}${discountInfo.discount.toLocaleString()}` : discountInfo.error}
                     </div>
                   )}
                 </div>

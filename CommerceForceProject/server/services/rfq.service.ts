@@ -6,6 +6,7 @@ import { EmailService } from './email.service';
 import { AuthService } from './auth.service';
 import { CouponService } from './coupon.service';
 import { WarehouseService } from './warehouse.service';
+import { AdminService } from './admin.service';
 
 export class RFQService {
   static async getAll(): Promise<RFQ[]> {
@@ -133,10 +134,12 @@ export class RFQService {
     // Send quote notification email
     try {
       const user = await AuthService.getUserById(rfq!.user_id);
+      const brandingConfig = await AdminService.getBranding();
+      const currency = brandingConfig?.currency_symbol || '£';
       await EmailService.sendEmail(
         user.email,
         `Quote Ready - RFQ #${rfq!.id.substring(0, 8)}`,
-        `Hi ${user.name},\n\nYour quote for RFQ #${rfq!.id.substring(0, 8)} is ready for review. Total quoted amount: $${rfq!.total_quoted_amount?.toLocaleString()}.`
+        `Hi ${user.name},\n\nYour quote for RFQ #${rfq!.id.substring(0, 8)} is ready for review. Total quoted amount: ${currency}${rfq!.total_quoted_amount?.toLocaleString()}.`
       );
     } catch (err) {
       console.error('Failed to send quote notification email:', err);

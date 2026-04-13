@@ -4,7 +4,11 @@ import { Search, Plus, Loader2, Ticket, Calendar, Percent, DollarSign, Trash2, R
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { useBranding } from '../../context/BrandingContext';
+
 export const CouponsAdmin = () => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -177,11 +181,11 @@ export const CouponsAdmin = () => {
                 </td>
                 <td className="p-4">
                   <span className="text-sm font-medium">
-                    {coupon.type === 'percentage' ? `${coupon.value}%` : `$${coupon.value}`}
+                    {coupon.type === 'percentage' ? `${coupon.value}%` : `${currency}${coupon.value}`}
                   </span>
                 </td>
                 <td className="p-4">
-                  <span className="text-sm font-medium">${coupon.min_order_amount}</span>
+                  <span className="text-sm font-medium">{currency}{coupon.min_order_amount}</span>
                 </td>
                 <td className="p-4">
                   <span className="text-sm font-medium">{coupon.min_quantity || 0}</span>
@@ -284,14 +288,14 @@ export const CouponsAdmin = () => {
                       className="w-full bg-[#f9f9f9] border border-[#f0f0f0] px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#141414]"
                     >
                       <option value="percentage">Percentage (%)</option>
-                      <option value="fixed">Fixed Amount ($)</option>
+                      <option value="fixed">Fixed Amount ({currency})</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-[10px] font-mono uppercase opacity-40 mb-1">Value</label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30">
-                        {newCoupon.type === 'percentage' ? <Percent size={14} /> : <DollarSign size={14} />}
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30 flex items-center justify-center w-4 h-4">
+                        {newCoupon.type === 'percentage' ? <Percent size={14} /> : <span className="text-sm font-bold">{currency}</span>}
                       </div>
                       <input
                         required

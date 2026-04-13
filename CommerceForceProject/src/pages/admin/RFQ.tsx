@@ -4,7 +4,11 @@ import { Search, Plus, MoreHorizontal, Filter, Loader2, FileText, CheckCircle2, 
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { useBranding } from '../../context/BrandingContext';
+
 export const RFQAdmin = () => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [rfqs, setRfqs] = useState<RFQ[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRfq, setSelectedRfq] = useState<RFQ | null>(null);
@@ -122,7 +126,7 @@ export const RFQAdmin = () => {
                   </div>
                 </td>
                 <td className="p-4 text-right font-mono">
-                  {rfq.total_quoted_amount ? `$${rfq.total_quoted_amount.toLocaleString()}` : '-'}
+                  {rfq.total_quoted_amount ? `${currency}${rfq.total_quoted_amount.toLocaleString()}` : '-'}
                 </td>
                 <td className="p-4 text-[10px] font-mono opacity-40">
                   {new Date(rfq.created_at).toLocaleDateString()}
@@ -177,13 +181,13 @@ export const RFQAdmin = () => {
                         <p className="text-sm font-medium">{item.product?.name}</p>
                         <p className="text-[10px] font-mono opacity-50">SKU: {item.product?.sku} | Qty: {item.quantity}</p>
                         {item.target_price && (
-                          <p className="text-[10px] text-indigo-600 font-mono mt-1">Target Price: ${item.target_price}</p>
+                          <p className="text-[10px] text-indigo-600 font-mono mt-1">Target Price: {currency}{item.target_price}</p>
                         )}
                       </div>
                       <div className="w-32">
                         <label className="block text-[10px] font-mono uppercase opacity-50 mb-1">Quote Price</label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-50">$</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-50">{currency}</span>
                           <input 
                             type="number" 
                             step="0.01"

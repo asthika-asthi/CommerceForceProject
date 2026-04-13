@@ -4,7 +4,11 @@ import { Search, Loader2, User as UserIcon, CreditCard, Shield, Mail, RefreshCw,
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'motion/react';
 
+import { useBranding } from '../../context/BrandingContext';
+
 export const UsersAdmin = () => {
+  const { config: brandingConfig } = useBranding();
+  const currency = brandingConfig?.currency_symbol || '£';
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -182,12 +186,12 @@ export const UsersAdmin = () => {
                       </button>
                     </div>
                   ) : (
-                    <span className="text-sm font-mono">${user.credit_limit?.toLocaleString()}</span>
+                    <span className="text-sm font-mono">{currency}{user.credit_limit?.toLocaleString()}</span>
                   )}
                 </td>
                 <td className="p-4">
                   <span className={`text-sm font-mono ${user.available_credit! < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                    ${user.available_credit?.toLocaleString()}
+                    {currency}{user.available_credit?.toLocaleString()}
                   </span>
                 </td>
                 <td className="p-4 text-right">

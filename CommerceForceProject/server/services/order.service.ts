@@ -177,10 +177,12 @@ export class OrderService {
     // Send order confirmation email
     try {
       const user = await AuthService.getUserById(userId);
+      const brandingConfig = await AdminService.getBranding();
+      const currency = brandingConfig?.currency_symbol || '£';
       await EmailService.sendEmail(
         user.email,
         `Order Confirmation - #${order!.id.substring(0, 8)}`,
-        `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for $${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethodId?.toUpperCase()}`
+        `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for ${currency}${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethodId?.toUpperCase()}`
       );
     } catch (err) {
       console.error('Failed to send order confirmation email:', err);

@@ -568,53 +568,6 @@ export const Products = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Main Image URL</label>
-                  <input
-                    type="text"
-                    value={formData.image_url}
-                    onChange={e => setFormData({...formData, image_url: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5 ml-1">
-                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider">Gallery Images (Min 4 recommended)</label>
-                    <button 
-                      type="button"
-                      onClick={handleAddImageUrl}
-                      className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-widest"
-                    >
-                      + Add Image
-                    </button>
-                  </div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto p-1">
-                    {formData.images.map((url, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={url}
-                          onChange={e => handleUpdateImageUrl(index, e.target.value)}
-                          className="flex-1 px-4 py-2 rounded-xl border border-[#e5e5e5] text-sm focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
-                          placeholder={`Gallery Image ${index + 1}`}
-                        />
-                        <button 
-                          type="button"
-                          onClick={() => handleRemoveImageUrl(index)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                    {formData.images.length === 0 && (
-                      <p className="text-[10px] text-center opacity-40 italic py-2">No gallery images added yet.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
                   <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Description</label>
                   <textarea
                     value={formData.description}
