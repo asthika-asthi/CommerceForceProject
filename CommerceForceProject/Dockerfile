@@ -29,6 +29,8 @@ COPY --from=build /app/server ./server
 COPY --from=build /app/server.ts ./server.ts
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/config ./config  
+COPY --from=build /app/.env* ./
+
 # Expose port 3000
 EXPOSE 3000
 

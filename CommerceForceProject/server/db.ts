@@ -82,6 +82,7 @@ export async function initDb() {
         carousel_enabled INTEGER DEFAULT 0,
         carousel_images TEXT DEFAULT '[]',
         hero_enabled INTEGER DEFAULT 1,
+        admin_email TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -135,6 +136,9 @@ export async function initDb() {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='hero_enabled') THEN
           ALTER TABLE branding_config ADD COLUMN hero_enabled INTEGER DEFAULT 1;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='admin_email') THEN
+          ALTER TABLE branding_config ADD COLUMN admin_email TEXT;
         END IF;
       END $$;
 

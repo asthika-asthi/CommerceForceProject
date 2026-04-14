@@ -78,13 +78,13 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   }, [brandingConfig?.featured_products, uiConfig]);
 
   const heroSection = layout.find((s: any) => s.type === 'hero');
-  const heroConfig = heroSection?.config || {
-    title: brandingConfig?.hero_title || 'Welcome to Our Premium Store',
-    subtitle: brandingConfig?.hero_subtitle || 'Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.',
-    image: brandingConfig?.hero_image_url,
-    cta_text: brandingConfig?.hero_cta_text || 'Explore Collection',
-    cta_link: brandingConfig?.hero_cta_link,
-    backgroundColor: brandingConfig?.primary_color
+  const heroConfig = {
+    title: brandingConfig?.hero_title || heroSection?.config?.title || 'Welcome to Our Premium Store',
+    subtitle: brandingConfig?.hero_subtitle || heroSection?.config?.subtitle || 'Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.',
+    image: brandingConfig?.hero_image_url || heroSection?.config?.image,
+    cta_text: brandingConfig?.hero_cta_text || heroSection?.config?.cta_text || 'Explore Collection',
+    cta_link: brandingConfig?.hero_cta_link || heroSection?.config?.cta_link,
+    backgroundColor: heroSection?.config?.backgroundColor || brandingConfig?.primary_color
   };
 
   const buttonClass = `group flex items-center justify-center gap-3 px-10 py-5 font-bold transition-all shadow-xl ${

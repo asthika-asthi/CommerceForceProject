@@ -250,6 +250,17 @@ export const Branding = () => {
                   className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                 />
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Admin Notification Email</label>
+                <input
+                  type="email"
+                  placeholder="Email to receive new RFQ/Order alerts"
+                  value={config.admin_email || ''}
+                  onChange={e => setConfig({ ...config, admin_email: e.target.value })}
+                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+                <p className="mt-1 text-[10px] text-gray-400">This email will receive notifications whenever a new RFQ or Order is submitted.</p>
+              </div>
             </div>
 
             <div className="pt-6 border-t border-[#141414]/5">

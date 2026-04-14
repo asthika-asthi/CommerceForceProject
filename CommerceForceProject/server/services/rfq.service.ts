@@ -101,6 +101,22 @@ export class RFQService {
     }
 
     const rfq = await this.getById(rfqId);
+
+    // Send admin notification email
+    try {
+      const brandingConfig = await AdminService.getBranding();
+      if (brandingConfig?.admin_email) {
+        const user = await AuthService.getUserById(userId);
+        await EmailService.sendEmail(
+          brandingConfig.admin_email,
+          `New RFQ Received - #${rfqId.substring(0, 8)}`,
+          `A new RFQ has been submitted by ${user.name} (${user.email}).\n\nRFQ ID: ${rfqId}\nNotes: ${data.notes || 'None'}`
+        );
+      }
+    } catch (err) {
+      console.error('Failed to send admin RFQ notification email:', err);
+    }
+
     return rfq!;
   }
 

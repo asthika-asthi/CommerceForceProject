@@ -173,11 +173,26 @@ export class OrderService {
     }
 
     const order = await this.getById(orderId);
+    const brandingConfig = await AdminService.getBranding();
+
+    // Send admin notification email
+    try {
+      if (brandingConfig?.admin_email) {
+        const user = await AuthService.getUserById(userId);
+        const currency = brandingConfig?.currency_symbol || '£';
+        await EmailService.sendEmail(
+          brandingConfig.admin_email,
+          `New Order Received - #${orderId.substring(0, 8)}`,
+          `A new order has been placed by ${user.name} (${user.email}).\n\nOrder ID: ${orderId}\nTotal Amount: ${currency}${order!.total_amount.toLocaleString()}\nPayment Method: ${paymentMethodId?.toUpperCase()}`
+        );
+      }
+    } catch (err) {
+      console.error('Failed to send admin order notification email:', err);
+    }
 
     // Send order confirmation email
     try {
       const user = await AuthService.getUserById(userId);
-      const brandingConfig = await AdminService.getBranding();
       const currency = brandingConfig?.currency_symbol || '£';
       await EmailService.sendEmail(
         user.email,

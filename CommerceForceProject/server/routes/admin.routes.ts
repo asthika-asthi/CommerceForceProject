@@ -58,11 +58,12 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
     const brandingFields = [
       'company_name', 'logo_url', 'favicon_url', 'primary_color', 'secondary_color',
       'font_family', 'button_style', 'background_style', 'background_value',
-      'footer_text', 'footer_use_brand_color', 'contact_page_enabled', 'contact_email',
-      'contact_phone', 'contact_address', 'social_links', 'currency_symbol', 'currency_code',
+      'footer_copyright', 'footer_use_brand_color', 'contact_page_enabled', 'footer_email',
+      'footer_phone', 'footer_address', 'social_links_enabled', 'currency_symbol', 'currency_code',
       'base_font_size', 'hero_font_size', 'heading_font_size', 'content_font_size',
       'carousel_enabled', 'carousel_images', 'hero_enabled',
-      'hero_title', 'hero_subtitle', 'hero_image_url', 'hero_cta_text', 'hero_cta_link'
+      'hero_title', 'hero_subtitle', 'hero_image_url', 'hero_cta_text', 'hero_cta_link',
+      'admin_email'
     ];
     
     brandingFields.forEach(field => {

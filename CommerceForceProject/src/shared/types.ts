@@ -35,6 +35,7 @@ export interface BrandingConfig {
   carousel_enabled?: boolean;
   hero_enabled?: boolean;
   carousel_images?: string; // JSON string of CarouselImage[]
+  admin_email?: string;
   created_at?: string;
 }
 

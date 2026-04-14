@@ -50,7 +50,8 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS content_font_size INTEGER DEFAULT 16,
         ADD COLUMN IF NOT EXISTS carousel_enabled BOOLEAN DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]',
-        ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE
+        ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS admin_email TEXT
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -71,26 +72,26 @@ export class AdminService {
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
-            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?
+            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, admin_email = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
         config.primary_color || current.primary_color,
         config.secondary_color || current.secondary_color,
         config.font_family || current.font_family,
-        config.logo_url || current.logo_url,
-        config.favicon_url || current.favicon_url,
+        config.logo_url !== undefined ? config.logo_url : current.logo_url,
+        config.favicon_url !== undefined ? config.favicon_url : current.favicon_url,
         config.button_style || current.button_style,
         config.background_style || current.background_style,
-        config.background_value || current.background_value,
-        config.hero_title || current.hero_title,
-        config.hero_subtitle || current.hero_subtitle,
-        config.hero_image_url || current.hero_image_url,
-        config.hero_cta_text || current.hero_cta_text,
-        config.hero_cta_link || current.hero_cta_link,
-        config.featured_products || current.featured_products,
-        config.layout_config || current.layout_config,
-        config.footer_config || current.footer_config,
+        config.background_value !== undefined ? config.background_value : current.background_value,
+        config.hero_title !== undefined ? config.hero_title : current.hero_title,
+        config.hero_subtitle !== undefined ? config.hero_subtitle : current.hero_subtitle,
+        config.hero_image_url !== undefined ? config.hero_image_url : current.hero_image_url,
+        config.hero_cta_text !== undefined ? config.hero_cta_text : current.hero_cta_text,
+        config.hero_cta_link !== undefined ? config.hero_cta_link : current.hero_cta_link,
+        config.featured_products !== undefined ? config.featured_products : current.featured_products,
+        config.layout_config !== undefined ? config.layout_config : current.layout_config,
+        config.footer_config !== undefined ? config.footer_config : current.footer_config,
         config.footer_email !== undefined ? config.footer_email : current.footer_email,
         config.footer_address !== undefined ? config.footer_address : current.footer_address,
         config.footer_phone !== undefined ? config.footer_phone : current.footer_phone,
@@ -106,8 +107,9 @@ export class AdminService {
         config.heading_font_size || current.heading_font_size || 32,
         config.content_font_size || current.content_font_size || 16,
         config.carousel_enabled !== undefined ? (config.carousel_enabled ? 1 : 0) : (current.carousel_enabled ? 1 : 0),
-        Array.isArray(config.carousel_images) ? JSON.stringify(config.carousel_images) : (config.carousel_images || current.carousel_images || '[]'),
+        Array.isArray(config.carousel_images) ? JSON.stringify(config.carousel_images) : (config.carousel_images !== undefined ? config.carousel_images : current.carousel_images),
         config.hero_enabled !== undefined ? (config.hero_enabled ? 1 : 0) : (current.hero_enabled !== false ? 1 : 0),
+        config.admin_email !== undefined ? config.admin_email : current.admin_email,
         current.id
       ]);
     }

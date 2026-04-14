@@ -1,21 +1,28 @@
+import { config as dotenvConfig } from 'dotenv';
+const dotenvResult = dotenvConfig();
+console.log('Dotenv Load Result:', { 
+  error: dotenvResult.error ? dotenvResult.error.message : 'None',
+  parsed: dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : 'None'
+});
+
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import { initDb } from "./server/db";
-import adminRoutes from "./server/routes/admin.routes";
-import authRoutes from "./server/routes/auth.routes";
-import productRoutes from "./server/routes/product.routes";
-import orderRoutes from "./server/routes/order.routes";
-import warehouseRoutes from "./server/routes/warehouse.routes";
-import loyaltyRoutes from "./server/routes/loyalty.routes";
-import rfqRoutes from "./server/routes/rfq.routes";
-import emailRoutes from "./server/routes/email.routes";
-import couponRoutes from "./server/routes/coupon.routes";
-import stripeRoutes from "./server/routes/stripe.routes";
-import configRoutes from "./server/routes/config.routes";
-import { AdminService } from "./server/services/admin.service";
-import { ConfigService } from "./server/services/config.service";
+import { initDb } from "./server/db.ts";
+import adminRoutes from "./server/routes/admin.routes.ts";
+import authRoutes from "./server/routes/auth.routes.ts";
+import productRoutes from "./server/routes/product.routes.ts";
+import orderRoutes from "./server/routes/order.routes.ts";
+import warehouseRoutes from "./server/routes/warehouse.routes.ts";
+import loyaltyRoutes from "./server/routes/loyalty.routes.ts";
+import rfqRoutes from "./server/routes/rfq.routes.ts";
+import emailRoutes from "./server/routes/email.routes.ts";
+import couponRoutes from "./server/routes/coupon.routes.ts";
+import stripeRoutes from "./server/routes/stripe.routes.ts";
+import configRoutes from "./server/routes/config.routes.ts";
+import { AdminService } from "./server/services/admin.service.ts";
+import { ConfigService } from "./server/services/config.service.ts";
 
 if (!import.meta.url) {
   throw new Error('import.meta.url is undefined. Ensure you are running in ESM mode.');
@@ -55,21 +62,27 @@ export async function createApp() {
       const fileLanding = await ConfigService.getLandingConfig(client);
       const filePayments = await ConfigService.getPaymentsConfig(client);
       
-      // Merge: File configurations override database branding
+      // Database is the source of truth, files are synced to DB on startup
+      // We only merge files here if the DB is missing critical info (fallback)
       const branding = {
-        ...dbBranding,
-        ...(fileBranding || {})
+        ...dbBranding
       };
 
-      // Specifically override layout and payments if JSON files exist
-      if (fileLanding) {
+      // If DB is empty or missing company name, use file as fallback
+      if (!branding.company_name && fileBranding) {
+        Object.assign(branding, fileBranding);
+      }
+      
+      // If DB layout is empty, use file as fallback
+      if ((!branding.layout_config || branding.layout_config === '[]') && fileLanding) {
         const sections = Array.isArray(fileLanding) ? fileLanding : fileLanding.sections;
         if (sections) {
           branding.layout_config = JSON.stringify(sections);
         }
       }
       
-      if (filePayments) {
+      // If DB payments is empty, use file as fallback
+      if ((!branding.payment_methods_config || branding.payment_methods_config === '[]') && filePayments) {
         const payments = Array.isArray(filePayments) ? filePayments : filePayments.methods || filePayments;
         branding.payment_methods_config = JSON.stringify(payments);
       }
@@ -108,6 +121,14 @@ if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, "0.0.0.0", async () => {
       console.log(`CommerceForce server running on http://0.0.0.0:${PORT}`);
       
+      // Environment Check
+      console.log('Environment Check:', {
+        NODE_ENV: process.env.NODE_ENV,
+        SMTP_HOST: (process.env.SMTP_HOST || process.env.EMAIL_HOST) ? 'Configured' : 'Missing',
+        SMTP_USER: (process.env.SMTP_USER || process.env.EMAIL_USER) ? 'Configured' : 'Missing',
+        SMTP_PASS: (process.env.SMTP_PASS || process.env.EMAIL_PASS) ? 'Configured' : 'Missing'
+      });
+
       // Startup Sync
       try {
         await AdminService.ensureSchema();
@@ -118,29 +139,43 @@ if (process.env.NODE_ENV !== 'test') {
         const paymentsJson = await ConfigService.getPaymentsConfig(client);
 
         if (brandingJson || landingJson || paymentsJson) {
-          console.log('Syncing configurations from JSON files to database...');
+          console.log('Checking for configuration sync from JSON files to database...');
           
           const currentBranding = await AdminService.getBranding();
           const updatedBranding: any = { ...currentBranding };
+          let needsUpdate = false;
 
-          if (brandingJson) {
+          // Only sync branding if DB is using default company name or is empty
+          if (brandingJson && (!currentBranding.company_name || currentBranding.company_name === 'TechParts Pro')) {
+            console.log('Syncing branding.json to database...');
             Object.assign(updatedBranding, brandingJson);
+            needsUpdate = true;
           }
 
-          if (landingJson) {
+          // Only sync layout if DB layout is empty or default
+          if (landingJson && (!currentBranding.layout_config || currentBranding.layout_config === '[]')) {
             const sections = Array.isArray(landingJson) ? landingJson : landingJson.sections;
             if (sections) {
+              console.log('Syncing landing.json to database...');
               updatedBranding.layout_config = JSON.stringify(sections);
+              needsUpdate = true;
             }
           }
 
-          if (paymentsJson) {
+          // Only sync payments if DB payments is empty or default
+          if (paymentsJson && (!currentBranding.payment_methods_config || currentBranding.payment_methods_config === '[]')) {
             const payments = Array.isArray(paymentsJson) ? paymentsJson : paymentsJson.methods || paymentsJson;
+            console.log('Syncing payments.json to database...');
             updatedBranding.payment_methods_config = JSON.stringify(payments);
+            needsUpdate = true;
           }
 
-          await AdminService.updateBranding(updatedBranding);
-          console.log('Configuration sync completed successfully.');
+          if (needsUpdate) {
+            await AdminService.updateBranding(updatedBranding);
+            console.log('Configuration sync completed successfully.');
+          } else {
+            console.log('Database already has custom configuration. Skipping JSON sync.');
+          }
         }
       } catch (err) {
         console.error('Failed to sync configurations on startup:', err);

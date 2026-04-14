@@ -1,20 +1,39 @@
+import 'dotenv/config';
 import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
 import db from '../db';
 import { EmailLog } from '../../src/shared/types';
 
 export class EmailService {
-  private static transporter = (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) 
-    ? nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_PORT === '465',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      })
-    : null;
+  private static getTransporter() {
+    const host = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
+    const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+    const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+    if (!host || !user || !pass) {
+      const allKeys = Object.keys(process.env);
+      console.warn('[Email Service] Missing SMTP configuration. Debug Info:', {
+        host: host ? 'PRESENT' : 'MISSING',
+        user: user ? 'PRESENT' : 'MISSING',
+        pass: pass ? 'PRESENT' : 'MISSING',
+        envKeysCount: allKeys.length,
+        allKeys: allKeys, // Log all keys to see what's available
+        cwd: process.cwd()
+      });
+      return null;
+    }
+
+    const port = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587');
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { 
+        user: user.trim(), 
+        pass: pass.trim() 
+      },
+    });
+  }
 
   /**
    * Sends an email and logs it to the database.
@@ -23,10 +42,11 @@ export class EmailService {
   static async sendEmail(recipient: string, subject: string, body: string): Promise<EmailLog> {
     const id = uuidv4();
     let status: 'sent' | 'failed' = 'sent';
+    const transporter = this.getTransporter();
 
     try {
-      if (this.transporter) {
-        await this.transporter.sendMail({
+      if (transporter) {
+        await transporter.sendMail({
           from: `"${process.env.SMTP_FROM_NAME || 'Commerce App'}" <${process.env.SMTP_FROM_EMAIL || 'noreply@example.com'}>`,
           to: recipient,
           subject: subject,
