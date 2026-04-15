@@ -6,16 +6,25 @@
       "enabled": true,
       "config": {
         "title": "",
-        "layoutType": "standard",
+        "layoutType": "grid",
         "rows": 1,
-        "columns": 3,
+        "columns": 2,
         "items": [
           {
             "title": "Family Owned Business",
             "body": "We are a family-owned business dedicated to providing top quality products at affordable prices. Purchase your tarpaulin, dust sheets and accessories today or contact us for more information.",
+            "imageUrl": "",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "",
+            "displayMode": "side-by-side"
+          },
+          {
+            "title": "",
+            "body": "",
             "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/PaintNRollers.png",
             "alignment": "center",
-            "includeInGrid": false,
+            "includeInGrid": true,
             "link": ""
           }
         ]

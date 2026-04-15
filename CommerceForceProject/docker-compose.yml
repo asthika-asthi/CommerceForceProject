@@ -15,8 +15,6 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
-    env_file:
-      - .env      
     depends_on:
       db:
         condition: service_healthy

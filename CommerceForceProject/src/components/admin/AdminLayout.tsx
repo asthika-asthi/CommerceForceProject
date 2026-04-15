@@ -213,117 +213,119 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-20 border-b border-black/5 flex items-center justify-between px-10 bg-white/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-8">
-            <h1 className="font-bold text-xl text-[#141414] tracking-tight">
-              {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
-            </h1>
-            
-            <nav className="hidden lg:flex items-center gap-6">
-              <div className="relative group">
-                <button className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] flex items-center gap-1">
-                  Categories <ChevronDown size={14} />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-black/5 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
-                  {categories.length > 0 ? (
-                    categories.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          window.history.pushState({}, '', `/category/${cat}`);
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                          setActiveTab('category');
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-lg transition-colors capitalize"
-                      >
-                        {cat}
-                      </button>
-                    ))
-                  ) : (
-                    <span className="block px-4 py-2 text-xs text-[#141414]/40 italic">No categories</span>
-                  )}
+        <header className="h-20 border-b border-black/5 bg-white/80 backdrop-blur-md z-10">
+          <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <h1 className="font-bold text-xl text-[#141414] tracking-tight">
+                {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
+              </h1>
+              
+              <nav className="hidden lg:flex items-center gap-6">
+                <div className="relative group">
+                  <button className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] flex items-center gap-1">
+                    Categories <ChevronDown size={14} />
+                  </button>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-black/5 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
+                    {categories.length > 0 ? (
+                      categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => {
+                            window.history.pushState({}, '', `/category/${cat}`);
+                            window.dispatchEvent(new PopStateEvent('popstate'));
+                            setActiveTab('category');
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-lg transition-colors capitalize"
+                        >
+                          {cat}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="block px-4 py-2 text-xs text-[#141414]/40 italic">No categories</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <button 
-                onClick={() => setActiveTab('products')}
-                className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
-              >
-                Shop
-              </button>
-              <button 
-                onClick={() => setActiveTab('contact')}
-                className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
-              >
-                Support
-              </button>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="hidden sm:flex items-center gap-4 mr-4 border-r border-black/5 pr-6">
-              {user ? (
                 <button 
-                  onClick={logout}
-                  className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-red-600 transition-colors"
+                  onClick={() => setActiveTab('products')}
+                  className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
                 >
-                  Logout
+                  Shop
                 </button>
-              ) : (
-                <>
-                  <button 
-                    onClick={() => {
-                      window.history.pushState({}, '', '/login');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => {
-                      window.history.pushState({}, '', '/register');
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
-                  >
-                    Register
-                  </button>
-                </>
-              )}
+                <button 
+                  onClick={() => setActiveTab('contact')}
+                  className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
+                >
+                  Support
+                </button>
+              </nav>
             </div>
-            {user?.role === 'customer' && loyaltyEnabled && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm">
-                <Award size={16} />
-                <span className="text-xs font-bold font-mono">{loyaltyPoints} pts</span>
-              </div>
-            )}
-            {user?.role === 'customer' && (
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="relative p-3 bg-white border border-black/5 rounded-2xl transition-all hover:shadow-lg group"
-              >
-                <ShoppingBag size={20} className="text-[#141414]" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-6 h-6 bg-[var(--primary-color)] text-white text-[10px] font-bold rounded-lg flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
-                    {totalItems}
-                  </span>
+
+            <div className="flex items-center gap-6">
+              <div className="hidden sm:flex items-center gap-4 mr-4 border-r border-black/5 pr-6">
+                {user ? (
+                  <button 
+                    onClick={logout}
+                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-red-600 transition-colors"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => {
+                        window.history.pushState({}, '', '/login');
+                        window.dispatchEvent(new PopStateEvent('popstate'));
+                      }}
+                      className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                    >
+                      Login
+                    </button>
+                    <button 
+                      onClick={() => {
+                        window.history.pushState({}, '', '/register');
+                        window.dispatchEvent(new PopStateEvent('popstate'));
+                      }}
+                      className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                    >
+                      Register
+                    </button>
+                  </>
                 )}
-              </button>
-            )}
-            <div className="hidden md:flex flex-col items-end">
-              <span className="text-[10px] font-mono uppercase tracking-widest opacity-30 font-bold">
-                Platform Status
-              </span>
-              <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
-                v2.6.0-enterprise
-              </span>
+              </div>
+              {user?.role === 'customer' && loyaltyEnabled && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm">
+                  <Award size={16} />
+                  <span className="text-xs font-bold font-mono">{loyaltyPoints} pts</span>
+                </div>
+              )}
+              {user?.role === 'customer' && (
+                <button 
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative p-3 bg-white border border-black/5 rounded-2xl transition-all hover:shadow-lg group"
+                >
+                  <ShoppingBag size={20} className="text-[#141414]" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 w-6 h-6 bg-[var(--primary-color)] text-white text-[10px] font-bold rounded-lg flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
+                      {totalItems}
+                    </span>
+                  )}
+                </button>
+              )}
+              <div className="hidden md:flex flex-col items-end">
+                <span className="text-[10px] font-mono uppercase tracking-widest opacity-30 font-bold">
+                  Platform Status
+                </span>
+                <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
+                  v2.6.0-enterprise
+                </span>
+              </div>
             </div>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">
           <div className="min-h-full flex flex-col">
-            <div className="flex-1 p-10 max-w-[1600px] w-full mx-auto">
+            <div className="flex-1 p-6 md:p-10 max-w-[1600px] w-full mx-auto">
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 20 }}

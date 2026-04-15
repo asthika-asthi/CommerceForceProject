@@ -1034,6 +1034,33 @@ export const Branding = () => {
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
+                                      <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Display Mode</label>
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newLayout = [...layout];
+                                            newLayout[index].config.items[i].displayMode = 'side-by-side';
+                                            setLayout(newLayout);
+                                          }}
+                                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${item.displayMode !== 'stacked' ? 'bg-black text-white' : 'bg-white border border-black/10'}`}
+                                        >
+                                          Side-by-Side
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const newLayout = [...layout];
+                                            newLayout[index].config.items[i].displayMode = 'stacked';
+                                            setLayout(newLayout);
+                                          }}
+                                          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition-all ${item.displayMode === 'stacked' ? 'bg-black text-white' : 'bg-white border border-black/10'}`}
+                                        >
+                                          Stacked
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div>
                                       <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Alignment</label>
                                       <div className="flex gap-1">
                                         {[

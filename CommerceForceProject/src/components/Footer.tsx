@@ -16,7 +16,7 @@ export const Footer = () => {
 
   return (
     <footer style={footerStyle} className="mt-20 border-t border-black/5">
-      <div className="max-w-7xl mx-auto px-6 py-20">
+      <div className="max-w-[1600px] mx-auto px-10 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div className="space-y-6">
             <div className="flex items-center gap-3">

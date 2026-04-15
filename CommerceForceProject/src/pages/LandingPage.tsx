@@ -133,7 +133,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
     switch (section.type) {
       case 'features':
         return (
-          <section key={section.id} className="grid grid-cols-1 md:grid-cols-3 gap-8 py-12">
+          <section key={section.id} className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8">
             {(section.config.items || []).map((feature: any, i: number) => (
               <div key={i} className="p-10 bg-white rounded-[32px] border border-black/5 shadow-sm hover:shadow-xl transition-all group">
                 <div className="w-14 h-14 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -148,7 +148,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'promotions':
         return (
-          <section key={section.id} className="py-12">
+          <section key={section.id} className="py-8">
             <div className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${section.config.variant === 'dark' ? 'bg-[var(--secondary-color)] text-white' : 'bg-white border border-black/5 shadow-sm'}`}>
               {imageUrl && (
                 <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
@@ -177,7 +177,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'products':
         return (
-          <section key={section.id} className="space-y-12 py-12">
+          <section key={section.id} className="space-y-12 py-8">
             <div className="flex items-end justify-between px-4">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">{title || 'Featured Products'}</h2>
@@ -197,13 +197,13 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'category_grid' as any:
         return (
-          <section key={section.id} className="py-12 space-y-8">
+          <section key={section.id} className="py-8 space-y-8">
             {title && (
               <div className="px-4">
                 <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {(section.config.items || []).map((item: any, i: number) => (
                 <div 
                   key={i} 
@@ -235,12 +235,12 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
         const hasGridItems = gridItems.length > 0;
 
         return (
-          <section key={section.id} className="py-20 space-y-16">
+          <section key={section.id} className="py-6 space-y-8">
             {section.config.title && (
-               <h2 className="text-4xl font-bold text-center mb-12">{section.config.title}</h2>
+               <h2 className="text-4xl font-bold text-center mb-4">{section.config.title}</h2>
             )}
             
-            <div className="space-y-24">
+            <div className="space-y-12">
               {items.map((item: any, i: number) => {
                 const hasImage = !!item.imageUrl;
                 const hasText = !!(item.title || item.body);
@@ -251,7 +251,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                    if (i !== firstGridIndex) return null;
 
                    return (
-                     <div key={`grid-${i}`} className="grid gap-8 max-w-7xl mx-auto px-4" style={{ 
+                     <div key={`grid-${i}`} className="grid gap-8 w-full" style={{ 
                        gridTemplateColumns: `repeat(${section.config.columns || 3}, minmax(0, 1fr))`,
                      }}>
                        {gridItems.map((gItem: any, gi: number) => (
@@ -270,7 +270,10 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                                <img src={gItem.imageUrl} alt={gItem.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                              </div>
                            )}
-                           <div className="space-y-3 flex-1">
+                           <div className={`space-y-3 flex-1 w-full ${
+                             gItem.alignment === 'left' ? 'text-left' :
+                             gItem.alignment === 'right' ? 'text-right' : 'text-center'
+                           }`}>
                              {gItem.title && <h3 className="text-2xl font-bold">{gItem.title}</h3>}
                              {gItem.body && <p className="text-black/60 leading-relaxed whitespace-pre-wrap">{gItem.body}</p>}
                            </div>
@@ -280,28 +283,28 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                    );
                 }
 
-                const isStacked = alignment === 'center' || !hasImage || !hasText;
+                const isStacked = item.displayMode === 'stacked' || alignment === 'center' || !hasImage || !hasText;
                 
                 return (
                   <div 
                     key={i} 
                     onClick={() => item.link && navigate(item.link)}
-                    className={`flex flex-col ${isStacked ? 'items-center text-center' : 'md:flex-row items-center gap-16'} max-w-7xl mx-auto px-6 transition-all ${
+                    className={`flex flex-col ${isStacked ? 'items-center text-center' : 'md:flex-row items-center gap-16'} w-full transition-all ${
                       item.link ? 'cursor-pointer hover:opacity-90 group/content' : ''
                     } ${
                       !isStacked && alignment === 'right' ? 'md:flex-row-reverse text-right' : 
                       !isStacked && alignment === 'left' ? 'text-left' : ''
                     }`}
                   >
-                    {hasImage && (
-                      <div className={`w-full ${hasText && !isStacked ? 'md:w-1/2' : 'max-w-5xl'} aspect-video rounded-[48px] overflow-hidden shadow-2xl transition-transform ${item.link ? 'group-hover/content:scale-[1.02]' : 'hover:scale-[1.02]'} duration-500`}>
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                      </div>
-                    )}
                     {hasText && (
-                      <div className={`flex-1 space-y-8 ${isStacked ? 'max-w-4xl' : ''}`}>
+                      <div className={`flex-1 space-y-8 ${isStacked ? 'w-full' : ''}`}>
                         {item.title && <h2 className="text-5xl font-bold leading-tight tracking-tight group-hover/content:text-[var(--primary-color)] transition-colors">{item.title}</h2>}
                         {item.body && <div className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium content-text">{item.body}</div>}
+                      </div>
+                    )}
+                    {hasImage && (
+                      <div className={`w-full ${hasText && !isStacked ? 'md:w-1/2' : 'w-full'} aspect-video rounded-[48px] overflow-hidden shadow-2xl transition-transform ${item.link ? 'group-hover/content:scale-[1.02]' : 'hover:scale-[1.02]'} duration-500`}>
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </div>
                     )}
                   </div>
@@ -313,7 +316,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'testimonials':
         return (
-          <section key={section.id} className="py-20 space-y-12 max-w-7xl mx-auto px-4">
+          <section key={section.id} className="py-8 space-y-12 w-full">
             {section.config.title && (
               <h2 className="text-3xl font-bold text-center">{section.config.title}</h2>
             )}
@@ -343,7 +346,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'faq':
         return (
-          <section key={section.id} className="py-20 max-w-7xl mx-auto px-4 space-y-12">
+          <section key={section.id} className="py-8 w-full space-y-12">
             <div className="text-center space-y-4">
               <h2 className="text-4xl font-bold tracking-tight">{section.config.title || 'Frequently Asked Questions'}</h2>
               <p className="text-black/40 max-w-2xl mx-auto">Find quick answers to common questions or chat with our AI assistant for personalized help.</p>
@@ -405,7 +408,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
 
       case 'carousel':
         return (
-          <section key={section.id} className="py-12">
+          <section key={section.id} className="py-8">
             <Carousel 
               images={section.config.items || []} 
               height={section.config.height || "h-[500px]"}
@@ -431,7 +434,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   }
 
   return (
-    <div className="space-y-12 pb-24">
+    <div className="space-y-6 pb-24">
       {/* Top Section: Carousel OR Hero */}
       {showCarousel && (
         <Carousel 
