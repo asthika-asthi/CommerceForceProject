@@ -78,6 +78,11 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       link.href = config.favicon_url;
     }
+
+    // Dynamic Title
+    if (config.company_name) {
+      document.title = config.company_name;
+    }
   };
 
   useEffect(() => {
