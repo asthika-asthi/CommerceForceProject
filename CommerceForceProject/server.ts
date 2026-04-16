@@ -21,8 +21,10 @@ import emailRoutes from "./server/routes/email.routes.ts";
 import couponRoutes from "./server/routes/coupon.routes.ts";
 import stripeRoutes from "./server/routes/stripe.routes.ts";
 import configRoutes from "./server/routes/config.routes.ts";
+import importRoutes from "./server/routes/import.routes.ts";
 import { AdminService } from "./server/services/admin.service.ts";
 import { ConfigService } from "./server/services/config.service.ts";
+import { StorageService } from "./server/services/storage.service.ts";
 
 if (!import.meta.url) {
   throw new Error('import.meta.url is undefined. Ensure you are running in ESM mode.');
@@ -36,6 +38,7 @@ export async function createApp() {
 
   // Initialize Database
   await initDb();
+  StorageService.init();
 
   app.use(express.json());
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -52,6 +55,7 @@ export async function createApp() {
   app.use("/api/coupons", couponRoutes);
   app.use("/api/stripe", stripeRoutes);
   app.use("/api/config", configRoutes);
+  app.use("/api/admin/import", importRoutes);
 
   app.get("/api/branding", async (req, res) => {
     try {

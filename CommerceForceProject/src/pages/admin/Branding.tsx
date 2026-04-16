@@ -1263,12 +1263,12 @@ export const Branding = () => {
               </div>
 
               <div className="space-y-6">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Contact Page Settings</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Support Center Settings</h4>
                 <div className="p-6 bg-black/5 rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-sm">Enable Contact Us Page</p>
-                      <p className="text-[10px] opacity-50">Adds a dedicated contact form page to your site</p>
+                      <p className="font-bold text-sm">Enable Support Center</p>
+                      <p className="text-[10px] opacity-50">Adds a dedicated support ticket system page to your site</p>
                     </div>
                     <button
                       type="button"

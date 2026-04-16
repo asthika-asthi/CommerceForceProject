@@ -17,11 +17,12 @@ import { EmailLogs } from './pages/admin/EmailLogs';
 import { UsersAdmin } from './pages/admin/Users';
 import { CouponsAdmin } from './pages/admin/Coupons';
 import { InventoryAlerts } from './pages/admin/InventoryAlerts';
+import { SystemTools } from './pages/admin/SystemTools';
 import { CustomerRFQ } from './pages/CustomerRFQ';
 import { Checkout } from './pages/Checkout';
 import { Cart } from './pages/Cart';
 import { LandingPage } from './pages/LandingPage';
-import { ContactUsPage } from './pages/ContactUsPage';
+import { SupportPage } from './pages/SupportPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { BrandingProvider, useBranding } from './context/BrandingContext';
@@ -145,6 +146,7 @@ function AppContent() {
         { id: 'coupons', roles: ['admin', 'superadmin', 'client'] },
         { id: 'email', roles: ['superadmin'] },
         { id: 'users', roles: ['superadmin'] },
+        { id: 'system-tools', roles: ['superadmin'] },
         { id: 'customer-rfq', roles: ['customer', 'admin', 'superadmin', 'client'] },
         { id: 'contact', roles: ['customer', 'admin', 'superadmin', 'client'] },
       ];
@@ -207,7 +209,7 @@ function AppContent() {
       case 'customer-rfq':
         return <CustomerRFQ />;
       case 'contact':
-        return <ContactUsPage />;
+        return <SupportPage />;
       case 'category':
         const catName = pathname.split('/')[2] || 'general';
         return <CategoryPage categoryName={catName} onBack={() => setActiveTab('landing')} />;
@@ -217,6 +219,8 @@ function AppContent() {
         return <Cart onCheckout={() => setActiveTab('checkout')} onBack={() => setActiveTab('products')} />;
       case 'users':
         return <UsersAdmin />;
+      case 'system-tools':
+        return <SystemTools />;
       default:
         return <Dashboard />;
     }

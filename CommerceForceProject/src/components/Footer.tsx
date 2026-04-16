@@ -45,7 +45,7 @@ export const Footer = () => {
               <li><a href="/" className="hover:opacity-100 transition-opacity">Home</a></li>
               <li><a href="/products" className="hover:opacity-100 transition-opacity">Products</a></li>
               {config.contact_page_enabled && (
-                <li><a href="/contact" className="hover:opacity-100 transition-opacity">Contact Us</a></li>
+                <li><a href="/contact" className="hover:opacity-100 transition-opacity">Support Center</a></li>
               )}
               {config.catalogue_url && (
                 <li><a href={config.catalogue_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">Download Catalogue</a></li>

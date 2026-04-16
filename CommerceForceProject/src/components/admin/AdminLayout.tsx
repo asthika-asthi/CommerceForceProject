@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -90,40 +90,79 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
     }
   }, [token, user?.role]);
 
-  const navItems = [
-    { id: 'landing', label: 'Home', icon: ShoppingBag, roles: ['customer', 'admin', 'superadmin', 'client'] },
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'superadmin', 'client'] },
-    { id: 'branding', label: 'Branding', icon: Settings, roles: ['superadmin'] },
-    { id: 'features', label: 'Feature Flags', icon: Flag, roles: ['superadmin'] },
-    { id: 'products', label: 'Products', icon: Package, roles: ['admin', 'superadmin', 'client', 'customer'] },
-    { id: 'inventory', label: 'Inventory', icon: WarehouseIcon, roles: ['admin', 'superadmin', 'client'], feature: 'b2b_enabled' },
-    { id: 'inventory-alerts', label: 'Inventory Alerts', icon: AlertTriangle, roles: ['admin', 'superadmin', 'client'], feature: 'b2b_enabled' },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'superadmin', 'client'] },
-    { id: 'rfq', label: 'RFQs', icon: FileText, roles: ['admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
-    { id: 'loyalty', label: 'Loyalty', icon: Award, roles: ['admin', 'superadmin', 'client'], feature: 'loyalty_program' },
-    { id: 'coupons', label: 'Promotions', icon: Ticket, roles: ['admin', 'superadmin', 'client'] },
-    { id: 'email', label: 'Email Logs', icon: Mail, roles: ['superadmin'] },
-    { id: 'users', label: 'Users', icon: Users, roles: ['superadmin'] },
+  const navSections = [
+    {
+      title: 'Overview',
+      items: [
+        { id: 'landing', label: 'Home', icon: ShoppingBag, roles: ['customer', 'admin', 'superadmin', 'client'] },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'superadmin', 'client'] },
+      ]
+    },
+    {
+      title: 'Store Management',
+      items: [
+        { id: 'products', label: 'Products', icon: Package, roles: ['admin', 'superadmin', 'client', 'customer'] },
+        { id: 'orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'superadmin', 'client'] },
+        { id: 'coupons', label: 'Promotions', icon: Ticket, roles: ['admin', 'superadmin', 'client'] },
+        { id: 'rfq', label: 'RFQs', icon: FileText, roles: ['admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
+      ]
+    },
+    {
+      title: 'Inventory',
+      feature: 'b2b_enabled',
+      items: [
+        { id: 'inventory', label: 'Stock Levels', icon: WarehouseIcon, roles: ['admin', 'superadmin', 'client'], feature: 'b2b_enabled' },
+        { id: 'inventory-alerts', label: 'Alerts', icon: AlertTriangle, roles: ['admin', 'superadmin', 'client'], feature: 'b2b_enabled' },
+      ]
+    },
+    {
+      title: 'Engagement',
+      feature: 'loyalty_program',
+      items: [
+        { id: 'loyalty', label: 'Loyalty Program', icon: Award, roles: ['admin', 'superadmin', 'client'], feature: 'loyalty_program' },
+      ]
+    },
+    {
+      title: 'System Admin',
+      roles: ['superadmin'],
+      items: [
+        { id: 'branding', label: 'Branding', icon: Settings, roles: ['superadmin'] },
+        { id: 'features', label: 'Feature Flags', icon: Flag, roles: ['superadmin'] },
+        { id: 'users', label: 'Users', icon: Users, roles: ['superadmin'] },
+        { id: 'email', label: 'Email Logs', icon: Mail, roles: ['superadmin'] },
+        { id: 'system-tools', label: 'System Tools', icon: Database, roles: ['superadmin'] },
+      ]
+    },
+    {
+      title: 'Support',
+      items: [
+        { id: 'customer-rfq', label: 'My RFQs', icon: FileText, roles: ['customer', 'admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
+        { id: 'contact', label: 'Support Center', icon: MessageSquare, roles: ['customer', 'admin', 'superadmin', 'client'], enabled: config?.contact_page_enabled },
+      ]
+    }
   ];
 
-  const customerNavItems = [
-    { id: 'customer-rfq', label: 'My RFQs', icon: FileText, path: '/rfq', roles: ['customer', 'admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
-    { id: 'contact', label: 'Contact Us', icon: MessageSquare, roles: ['customer', 'admin', 'superadmin', 'client'], enabled: config?.contact_page_enabled },
-  ];
+  const filteredSections = navSections.filter(section => {
+    // Check if section has required roles
+    if (section.roles && !section.roles.includes(user?.role || '')) return false;
+    
+    // Check if section feature is enabled
+    if (section.feature) {
+      const featureFlag = features.find(f => f.feature_key === section.feature);
+      if (!(featureFlag?.enabled ?? true)) return false;
+    }
 
-  const filteredNavItems = navItems.filter(item => {
-    const hasRole = item.roles.includes(user?.role || '');
-    const featureFlag = features.find(f => f.feature_key === item.feature);
-    const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
-    return hasRole && isFeatureEnabled;
-  });
+    // Filter items within section
+    const filteredItems = section.items.filter(item => {
+      const hasRole = item.roles.includes(user?.role || '');
+      const featureFlag = features.find(f => f.feature_key === item.feature);
+      const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
+      const isExplicitlyEnabled = (item as any).enabled !== undefined ? (item as any).enabled : true;
+      return hasRole && isFeatureEnabled && isExplicitlyEnabled;
+    });
 
-  const filteredCustomerNavItems = customerNavItems.filter(item => {
-    const hasRole = item.roles.includes(user?.role || '');
-    const featureFlag = features.find(f => f.feature_key === item.feature);
-    const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
-    const isExplicitlyEnabled = item.enabled !== undefined ? item.enabled : true;
-    return hasRole && isFeatureEnabled && isExplicitlyEnabled;
+    section.items = filteredItems;
+    return filteredItems.length > 0;
   });
 
   return (
@@ -157,31 +196,24 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
-          {filteredNavItems.map((item) => (
-            <NavItem
-              key={item.id}
-              icon={item.icon}
-              label={isSidebarOpen ? item.label : ''}
-              active={activeTab === item.id}
-              onClick={() => setActiveTab(item.id)}
-            />
-          ))}
-
-          {isSidebarOpen && filteredCustomerNavItems.length > 0 && (
-            <div className="mt-10 mb-4 px-4">
-              <p className="text-[10px] font-mono uppercase opacity-40 tracking-widest font-bold">Customer Portal</p>
+        <nav className="flex-1 px-4 py-4 space-y-8 overflow-y-auto">
+          {filteredSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              {isSidebarOpen && (
+                <p className="px-4 text-[10px] font-mono uppercase opacity-40 tracking-widest font-bold mb-2">
+                  {section.title}
+                </p>
+              )}
+              {section.items.map((item) => (
+                <NavItem
+                  key={item.id}
+                  icon={item.icon}
+                  label={isSidebarOpen ? item.label : ''}
+                  active={activeTab === item.id}
+                  onClick={() => setActiveTab(item.id)}
+                />
+              ))}
             </div>
-          )}
-          
-          {filteredCustomerNavItems.map((item) => (
-            <NavItem
-              key={item.id}
-              icon={item.icon}
-              label={isSidebarOpen ? item.label : ''}
-              active={activeTab === item.id}
-              onClick={() => setActiveTab(item.id)}
-            />
           ))}
         </nav>
 
@@ -217,7 +249,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between">
             <div className="flex items-center gap-8">
               <h1 className="font-bold text-xl text-[#141414] tracking-tight">
-                {[...navItems, ...customerNavItems].find(i => i.id === activeTab)?.label}
+                {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label}
               </h1>
               
               <nav className="hidden lg:flex items-center gap-6">
