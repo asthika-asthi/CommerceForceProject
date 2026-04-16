@@ -10,11 +10,24 @@ import { Carousel } from '../components/Carousel';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const { config: brandingConfig, isLoading: brandingLoading } = useBranding();
-  const { token } = useAuth();
+  const { user, setPendingAction } = useAuth();
   const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [uiConfig, setUiConfig] = useState<any>(null);
+
+  const requireAuth = (product: Product) => {
+    if (!user) {
+      setPendingAction({
+        type: 'ADD_TO_CART',
+        data: { product, quantity: 1 },
+        redirectTo: window.location.pathname
+      });
+      navigate('/login');
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -97,7 +110,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       const parts = path.split('/');
       const tab = parts[1];
       
-      if (['products', 'contact', 'landing', 'cart', 'checkout', 'category'].includes(tab)) {
+      if (['products', 'contact', 'contact-us', 'landing', 'cart', 'checkout', 'category'].includes(tab)) {
         window.history.pushState({}, '', path);
         window.dispatchEvent(new PopStateEvent('popstate'));
         
@@ -189,7 +202,15 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product, 1)} />
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={() => {
+                    if (requireAuth(product)) {
+                      addToCart(product, 1);
+                    }
+                  }} 
+                />
               ))}
             </div>
           </section>

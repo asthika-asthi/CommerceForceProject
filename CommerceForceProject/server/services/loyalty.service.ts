@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import db from '../db';
 import { LoyaltyPoints, LoyaltyTransaction } from '../../src/shared/types';
+import { AdminService } from './admin.service';
 
 export class LoyaltyService {
   static async getBalance(userId: string): Promise<number> {
@@ -58,10 +59,18 @@ export class LoyaltyService {
   }
 
   static async earnFromOrder(userId: string, orderId: string, totalAmount: number, client?: any): Promise<void> {
-    // Rule: 1 point for every $1 spent
-    const points = Math.floor(totalAmount);
+    // Rule: Dynamic points based on branding config
+    const branding = await AdminService.getBranding();
+    const multiplier = branding.loyalty_points_per_currency || 1;
+    console.log(`EarnFromOrder: UserId=${userId}, OrderId=${orderId}, Total=${totalAmount}, Multiplier=${multiplier}`);
+    const points = Math.floor(totalAmount * multiplier);
+    const programName = branding.loyalty_program_name || 'Loyalty Points';
+    
     if (points > 0) {
-      await this.addPoints(userId, points, 'earn', `Points earned from order #${orderId.substring(0, 8)}`, orderId, client);
+      console.log(`EarnFromOrder: Awarding ${points} points to ${userId}`);
+      await this.addPoints(userId, points, 'earn', `${programName} earned from order #${orderId.substring(0, 8)}`, orderId, client);
+    } else {
+      console.log(`EarnFromOrder: 0 points calculated for Order #${orderId}`);
     }
   }
 

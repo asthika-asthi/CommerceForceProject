@@ -61,8 +61,8 @@ export const EmailLogs = () => {
         </div>
       </div>
 
-      <div className="border border-[#141414] overflow-hidden">
-        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+      <div className="border border-[#141414] overflow-hidden min-h-[400px] flex flex-col">
+        <div className="flex-1 max-h-[600px] overflow-y-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
@@ -78,8 +78,8 @@ export const EmailLogs = () => {
                 <tr key={log.id} className="hover:bg-white transition-colors group">
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <User size={14} className="opacity-30" />
-                      <span className="text-sm font-medium">{log.recipient}</span>
+                       <User size={14} className="opacity-30" />
+                       <span className="text-sm font-medium">{log.recipient}</span>
                     </div>
                   </td>
                   <td className="p-4">
@@ -107,12 +107,16 @@ export const EmailLogs = () => {
               ))}
             </tbody>
           </table>
+          {filteredLogs.length === 0 && !isLoading && (
+            <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <Mail size={32} className="opacity-20" />
+              </div>
+              <p className="text-[#141414]/40 italic font-serif text-lg">No email logs found.</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest opacity-30 mt-2">Activity will appear here as notifications are sent</p>
+            </div>
+          )}
         </div>
-        {filteredLogs.length === 0 && !isLoading && (
-          <div className="p-12 text-center text-[#141414]/40 italic font-serif">
-            No email logs found.
-          </div>
-        )}
       </div>
 
       {/* Log Detail Modal */}

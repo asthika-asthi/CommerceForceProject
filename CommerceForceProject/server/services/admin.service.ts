@@ -15,12 +15,63 @@ export class AdminService {
       contact_page_enabled: Boolean(branding.contact_page_enabled),
       carousel_enabled: Boolean(branding.carousel_enabled),
       hero_enabled: branding.hero_enabled !== 0,
-      footer_tagline: branding.footer_tagline
+      footer_tagline: branding.footer_tagline,
+      loyalty_points_per_currency: branding.loyalty_points_per_currency || 1,
+      loyalty_redemption_value: branding.loyalty_redemption_value || 100,
+      loyalty_program_name: branding.loyalty_program_name || 'Loyalty Points',
+      loyalty_banner_image: branding.loyalty_banner_image
     } as BrandingConfig;
   }
 
   static async ensureSchema(): Promise<void> {
-    if (db.isSqlite()) return;
+    if (db.isSqlite()) {
+      const columns = [
+        { name: 'currency_symbol', type: 'TEXT DEFAULT "£"' },
+        { name: 'currency_code', type: 'TEXT DEFAULT "GBP"' },
+        { name: 'button_style', type: 'TEXT DEFAULT "rounded"' },
+        { name: 'background_style', type: 'TEXT DEFAULT "solid"' },
+        { name: 'background_value', type: 'TEXT' },
+        { name: 'hero_title', type: 'TEXT' },
+        { name: 'hero_subtitle', type: 'TEXT' },
+        { name: 'hero_image_url', type: 'TEXT' },
+        { name: 'hero_cta_text', type: 'TEXT' },
+        { name: 'hero_cta_link', type: 'TEXT' },
+        { name: 'featured_products', type: 'TEXT' },
+        { name: 'layout_config', type: 'TEXT' },
+        { name: 'footer_config', type: 'TEXT' },
+        { name: 'footer_email', type: 'TEXT' },
+        { name: 'footer_address', type: 'TEXT' },
+        { name: 'footer_phone', type: 'TEXT' },
+        { name: 'footer_copyright', type: 'TEXT' },
+        { name: 'footer_use_brand_color', type: 'BOOLEAN DEFAULT FALSE' },
+        { name: 'social_links_enabled', type: 'BOOLEAN DEFAULT TRUE' },
+        { name: 'contact_page_enabled', type: 'BOOLEAN DEFAULT TRUE' },
+        { name: 'payment_methods_config', type: 'TEXT' },
+        { name: 'base_font_size', type: 'INTEGER DEFAULT 16' },
+        { name: 'hero_font_size', type: 'INTEGER DEFAULT 48' },
+        { name: 'heading_font_size', type: 'INTEGER DEFAULT 32' },
+        { name: 'content_font_size', type: 'INTEGER DEFAULT 16' },
+        { name: 'carousel_enabled', type: 'BOOLEAN DEFAULT FALSE' },
+        { name: 'carousel_images', type: 'TEXT DEFAULT "[]"' },
+        { name: 'hero_enabled', type: 'BOOLEAN DEFAULT TRUE' },
+        { name: 'catalogue_url', type: 'TEXT' },
+        { name: 'admin_email', type: 'TEXT' },
+        { name: 'footer_tagline', type: 'TEXT' },
+        { name: 'loyalty_points_per_currency', type: 'REAL DEFAULT 1' },
+        { name: 'loyalty_redemption_value', type: 'REAL DEFAULT 100' },
+        { name: 'loyalty_program_name', type: 'TEXT DEFAULT "Loyalty Points"' },
+        { name: 'loyalty_banner_image', type: 'TEXT' }
+      ];
+
+      for (const col of columns) {
+        try {
+          await db.query(`ALTER TABLE branding_config ADD COLUMN ${col.name} ${col.type}`);
+        } catch (err) {
+          // Ignore "duplicate column name" errors
+        }
+      }
+      return;
+    }
     try {
       // Add currency columns if they don't exist
       await db.query(`
@@ -55,7 +106,11 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE,
         ADD COLUMN IF NOT EXISTS catalogue_url TEXT,
         ADD COLUMN IF NOT EXISTS admin_email TEXT,
-        ADD COLUMN IF NOT EXISTS footer_tagline TEXT
+        ADD COLUMN IF NOT EXISTS footer_tagline TEXT,
+        ADD COLUMN IF NOT EXISTS loyalty_points_per_currency NUMERIC(10,2) DEFAULT 1,
+        ADD COLUMN IF NOT EXISTS loyalty_redemption_value NUMERIC(10,2) DEFAULT 100,
+        ADD COLUMN IF NOT EXISTS loyalty_program_name TEXT DEFAULT 'Loyalty Points',
+        ADD COLUMN IF NOT EXISTS loyalty_banner_image TEXT
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -76,7 +131,8 @@ export class AdminService {
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
-            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?, footer_tagline = ?
+            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?, footer_tagline = ?,
+            loyalty_points_per_currency = ?, loyalty_redemption_value = ?, loyalty_program_name = ?, loyalty_banner_image = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -116,6 +172,10 @@ export class AdminService {
         config.catalogue_url !== undefined ? config.catalogue_url : current.catalogue_url,
         config.admin_email !== undefined ? config.admin_email : current.admin_email,
         config.footer_tagline !== undefined ? config.footer_tagline : current.footer_tagline,
+        config.loyalty_points_per_currency !== undefined ? config.loyalty_points_per_currency : current.loyalty_points_per_currency,
+        config.loyalty_redemption_value !== undefined ? config.loyalty_redemption_value : current.loyalty_redemption_value,
+        config.loyalty_program_name !== undefined ? config.loyalty_program_name : current.loyalty_program_name,
+        config.loyalty_banner_image !== undefined ? config.loyalty_banner_image : current.loyalty_banner_image,
         current.id
       ]);
     }

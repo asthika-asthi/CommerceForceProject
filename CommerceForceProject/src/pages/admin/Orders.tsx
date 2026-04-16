@@ -115,7 +115,7 @@ export const Orders = () => {
         </div>
       </div>
 
-      <div className="border border-[#141414] overflow-hidden">
+      <div className="border border-[#141414] overflow-hidden min-h-[400px] flex flex-col">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
@@ -160,8 +160,12 @@ export const Orders = () => {
           </tbody>
         </table>
         {!isLoading && filteredOrders.length === 0 && (
-          <div className="p-12 text-center text-[#141414]/40 italic font-serif">
-            No orders found.
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <Package size={32} className="opacity-20" />
+            </div>
+            <p className="text-[#141414]/40 italic font-serif text-lg">No orders found.</p>
+            <p className="text-[10px] font-mono uppercase tracking-widest opacity-30 mt-2">Try adjusting your search or filters</p>
           </div>
         )}
       </div>

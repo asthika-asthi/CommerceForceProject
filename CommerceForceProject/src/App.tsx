@@ -25,7 +25,7 @@ import { LandingPage } from './pages/LandingPage';
 import { SupportPage } from './pages/SupportPage';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
+import { CartProvider, useCart } from './context/CartContext';
 import { BrandingProvider, useBranding } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
 import { CategoryPage } from './pages/CategoryPage';
@@ -86,8 +86,10 @@ class ErrorBoundary extends Component<any, any> {
 }
 
 function AppContent() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, pendingAction, setPendingAction } = useAuth();
+  const { addToCart } = useCart();
   const { config } = useBranding();
+
   const [pathname, setPathname] = useState(window.location.pathname);
   const [activeTab, setActiveTab] = useState(() => {
     // Check URL path first
@@ -101,6 +103,27 @@ function AppContent() {
     if (saved) return saved;
     return 'landing'; // Default to landing for public access
   });
+
+  // Resume pending action after login
+  useEffect(() => {
+    if (!isLoading && user && pendingAction) {
+      console.log('Resuming pending action:', pendingAction);
+      
+      if (pendingAction.type === 'ADD_TO_CART' && pendingAction.data.product) {
+        addToCart(pendingAction.data.product, pendingAction.data.quantity || 1);
+      }
+      
+      if (pendingAction.redirectTo) {
+        const path = pendingAction.redirectTo.substring(1);
+        const rootPath = path.split('/')[0];
+        if (rootPath) {
+          setActiveTab(rootPath);
+        }
+      }
+      
+      setPendingAction(null);
+    }
+  }, [user, isLoading, pendingAction, addToCart, setPendingAction]);
 
   // Handle browser back/forward and manual URL changes
   useEffect(() => {

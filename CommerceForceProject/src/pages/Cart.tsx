@@ -1,13 +1,29 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranding } from '../context/BrandingContext';
+import { useAuth } from '../context/AuthContext';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: () => void }) => {
   const { items, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
   const { config: brandingConfig } = useBranding();
+  const { user, setPendingAction } = useAuth();
   const currency = brandingConfig?.currency_symbol || '£';
+
+  const handleCheckout = () => {
+    if (!user) {
+      setPendingAction({
+        type: 'CHECKOUT',
+        data: {},
+        redirectTo: '/checkout'
+      });
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
+    }
+    onCheckout();
+  };
 
   if (items.length === 0) {
     return (
@@ -145,7 +161,7 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
             </div>
 
             <button 
-              onClick={onCheckout}
+              onClick={handleCheckout}
               className="w-full bg-[#141414] text-white py-5 rounded-[24px] font-bold text-lg flex items-center justify-center gap-3 hover:bg-black transition-all group"
             >
               Proceed to Checkout

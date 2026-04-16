@@ -1,27 +1,22 @@
-at friendly bunch"
-          },
-          {
-            "name": "Mary",
-            "text": "Great service!"
-          },
-          {
-            "name": "Anita",
-            "text": "Great Bargains!"
-          }
-        ]
+{
+  "sections": [
+    {
+      "type": "hero",
+      "config": {
+        "title": "Welcome to Our Premium Store",
+        "subtitle": "Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.",
+        "backgroundColor": "#1e3a8a",
+        "cta_text": "Explore Collection",
+        "cta_link": "/products"
       }
     },
     {
-      "id": "yjqketenp",
-      "type": "faq",
-      "enabled": true,
+      "type": "features",
       "config": {
-        "title": "Frequently Asked Questions",
         "items": [
-          {
-            "q": "Question1?",
-            "a": "My Answer here."
-          }
+          { "title": "Fast Delivery", "desc": "Global shipping with real-time tracking for all orders." },
+          { "title": "Secure Payments", "desc": "Enterprise-grade security for all your transactions." },
+          { "title": "Premium Quality", "desc": "Only the finest products sourced from trusted manufacturers." }
         ]
       }
     }

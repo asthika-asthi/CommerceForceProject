@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared/types';
-import { Save, Globe, Palette, Type, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
+import { Save, Globe, Palette, Type, Award, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments' | 'carousel';
+type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments' | 'carousel' | 'loyalty';
 
 export const Branding = () => {
   const [config, setConfig] = useState<BrandingConfig | null>(null);
@@ -177,6 +177,7 @@ export const Branding = () => {
         <TabButton id="footer" label="Footer" icon={Layout} />
         <TabButton id="payments" label="Payments" icon={Banknote} />
         <TabButton id="carousel" label="Carousel" icon={Layers} />
+        <TabButton id="loyalty" label="Loyalty" icon={Award} />
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
@@ -1574,6 +1575,76 @@ export const Branding = () => {
           </div>
         )}
 
+        {activeTab === 'loyalty' && (
+          <div className="border border-[#141414] p-8 space-y-8 bg-white/50 rounded-3xl shadow-sm animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Award size={18} className="text-blue-600" />
+              <h3 className="font-bold text-xl uppercase tracking-tight">Loyalty Program Configuration</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Earning & Redemption Rules</h4>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Program Name</label>
+                  <input
+                    type="text"
+                    value={config.loyalty_program_name || ''}
+                    onChange={e => setConfig({ ...config, loyalty_program_name: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="e.g. BronzeRewards, TechPoints"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Points Earned per {config.currency_symbol || 'Unit'}</label>
+                  <input
+                    type="number"
+                    value={config.loyalty_points_per_currency || 1}
+                    onChange={e => setConfig({ ...config, loyalty_points_per_currency: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <p className="mt-1 text-[10px] text-gray-400">Number of points awarded for every {config.currency_symbol || '1'} spent.</p>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Points for {config.currency_symbol || '1'} Discount</label>
+                  <input
+                    type="number"
+                    value={config.loyalty_redemption_value || 100}
+                    onChange={e => setConfig({ ...config, loyalty_redemption_value: parseInt(e.target.value) })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <p className="mt-1 text-[10px] text-gray-400">How many points equal {config.currency_symbol || '1'} in value for coupons/rewards.</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Visuals & Branding</h4>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Loyalty Banner Image URL</label>
+                  <input
+                    type="text"
+                    value={config.loyalty_banner_image || ''}
+                    onChange={e => setConfig({ ...config, loyalty_banner_image: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4">
+                  <div className="p-2 bg-blue-100 rounded-lg h-fit">
+                    <HelpCircle size={16} className="text-blue-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-blue-900">Program Tip</p>
+                    <p className="text-[10px] text-blue-800/70 leading-relaxed">
+                      Higher points/unit rewards customer loyalty faster. Standard practice is 1 point per currency unit and 100 points for a 5% discount equivalent.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end sticky bottom-8 z-10">
           <button
             type="submit"
@@ -1581,7 +1652,7 @@ export const Branding = () => {
             className="flex items-center gap-3 px-10 py-4 bg-[#141414] text-[#E4E3E0] rounded-2xl font-bold hover:bg-black transition-all shadow-2xl disabled:opacity-50"
           >
             {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            {saving ? 'Saving Changes...' : 'Publish Branding'}
+            {saving ? 'Saving Changes...' : 'Save Configuration'}
           </button>
         </div>
       </form>

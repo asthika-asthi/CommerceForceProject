@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { LoyaltyPoints, LoyaltyTransaction } from '../../shared/types';
-import { Search, Plus, MoreHorizontal, Filter, Loader2, Award, TrendingUp, History, User, ArrowUpRight, ArrowDownRight, Settings2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Filter, Loader2, Award, TrendingUp, History, User, ArrowUpRight, ArrowDownRight, Settings2, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useBranding } from '../../context/BrandingContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const LoyaltyAdmin = () => {
+  const { config: brandingConfig } = useBranding();
   const [stats, setStats] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -109,6 +111,31 @@ export const LoyaltyAdmin = () => {
 
   return (
     <div className="space-y-6">
+      {/* Configuration Summary Notice */}
+      <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex gap-4 items-start">
+        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+          <Info size={18} />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-blue-900">Program Rules (Active)</p>
+          <p className="text-xs text-blue-800/70 mt-1">
+            Currently awarding <span className="font-bold">{brandingConfig?.loyalty_points_per_currency || 1} points</span> for every {brandingConfig?.currency_symbol || '1'} spent.
+            Redemption value is set to <span className="font-bold font-mono">{brandingConfig?.loyalty_redemption_value || 100} points = {brandingConfig?.currency_symbol || '1'}</span>.
+            <button 
+              onClick={() => {
+                // We'll need a way to navigate to Branding > Loyalty tab
+                // For now, redirecting to branding
+                window.history.pushState({}, '', '/branding');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              className="ml-2 font-bold underline hover:text-blue-900 transition-colors"
+            >
+              Configure Program
+            </button>
+          </p>
+        </div>
+      </div>
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-[24px] border border-[#141414] shadow-sm">

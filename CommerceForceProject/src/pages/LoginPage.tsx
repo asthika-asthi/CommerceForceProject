@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 import { LogIn, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const LoginPage: React.FC<{ initialRegister?: boolean }> = ({ initialRegister = false }) => {
-  const { login } = useAuth();
+  const { login, register, pendingAction } = useAuth();
+  const { config: brandingConfig } = useBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistering, setIsRegistering] = useState(initialRegister);
   const [name, setName] = useState('');
+
+  const companyName = brandingConfig?.company_name || 'CommerceForce';
+
+  const message = pendingAction ? `Please sign in to ${
+    pendingAction.type === 'ADD_TO_CART' ? 'add this item to your cart' :
+    pendingAction.type === 'BUY_NOW' ? 'complete your purchase' :
+    pendingAction.type === 'REQUEST_QUOTE' ? 'request a quote' :
+    pendingAction.type === 'CHECKOUT' ? 'proceed to checkout' : 'continue'
+  }.` : null;
 
   useEffect(() => {
     setIsRegistering(initialRegister);
@@ -44,16 +55,27 @@ export const LoginPage: React.FC<{ initialRegister?: boolean }> = ({ initialRegi
         className="w-full max-w-md bg-white rounded-[24px] shadow-sm p-8"
       >
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#141414] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <LogIn className="text-white" size={24} />
+          <div className="w-12 h-12 bg-[#141414] rounded-xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+            {brandingConfig?.logo_url ? (
+              <img src={brandingConfig.logo_url} alt={companyName} className="w-full h-full object-contain" />
+            ) : (
+              <LogIn className="text-white" size={24} />
+            )}
           </div>
           <h1 className="text-2xl font-semibold text-[#141414]">
-            {isRegistering ? 'Create an account' : 'Welcome back'}
+            {isRegistering ? `Join ${companyName}` : `Welcome to ${companyName}`}
           </h1>
           <p className="text-[#9e9e9e] mt-2">
-            {isRegistering ? 'Join the CommerceForce platform' : 'Sign in to your account'}
+            {isRegistering ? `Create your account at ${companyName}` : 'Sign in to your account'}
           </p>
         </div>
+
+        {message && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3 text-blue-600 text-sm">
+            <AlertCircle size={18} />
+            {message}
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm">

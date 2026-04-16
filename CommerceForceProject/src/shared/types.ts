@@ -38,6 +38,10 @@ export interface BrandingConfig {
   catalogue_url?: string;
   admin_email?: string;
   footer_tagline?: string;
+  loyalty_points_per_currency?: number;
+  loyalty_redemption_value?: number;
+  loyalty_program_name?: string;
+  loyalty_banner_image?: string;
   created_at?: string;
 }
 
@@ -241,4 +245,10 @@ export interface RegisterData extends LoginCredentials {
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export interface PendingAction {
+  type: 'ADD_TO_CART' | 'BUY_NOW' | 'REQUEST_QUOTE' | 'CHECKOUT';
+  data: any;
+  redirectTo?: string;
 }

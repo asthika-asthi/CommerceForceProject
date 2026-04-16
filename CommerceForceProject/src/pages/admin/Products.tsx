@@ -102,11 +102,14 @@ export const Products = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const { token, user } = useAuth();
+  const { token, user, setPendingAction } = useAuth();
   const { addToCart } = useCart();
   const { config: brandingConfig } = useBranding();
   const currency = brandingConfig?.currency_symbol || '£';
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'client';
+
+  const rfqEnabled = Boolean(features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true);
+  const b2bEnabled = Boolean(features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true);
 
   const [formData, setFormData] = useState({
     sku: '',
@@ -120,8 +123,21 @@ export const Products = () => {
     allow_direct_buy: true
   });
 
-  const rfqEnabled = Boolean(features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true);
-  const b2bEnabled = Boolean(features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true);
+  const requireAuth = (action: 'ADD_TO_CART' | 'BUY_NOW' | 'REQUEST_QUOTE', product: Product) => {
+    if (!user) {
+      setPendingAction({
+        type: action,
+        data: { product, quantity: 1 },
+        redirectTo: window.location.pathname
+      });
+      // App.tsx handles the actual tab switch if we update the location or notify App
+      // Since App.tsx uses setPathname and window.location.pathname, we can push state
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return false;
+    }
+    return true;
+  };
 
   const fetchProducts = () => {
     setIsLoading(true);
@@ -409,8 +425,16 @@ export const Products = () => {
             <CustomerProductCard 
               key={product.id} 
               product={product} 
-              onAddToCart={() => addToCart(product, 1)}
-              onQuote={() => handleRequestQuote(product)}
+              onAddToCart={() => {
+                if (requireAuth('ADD_TO_CART', product)) {
+                  addToCart(product, 1);
+                }
+              }}
+              onQuote={() => {
+                if (requireAuth('REQUEST_QUOTE', product)) {
+                  handleRequestQuote(product);
+                }
+              }}
               rfqEnabled={rfqEnabled}
             />
           ))}

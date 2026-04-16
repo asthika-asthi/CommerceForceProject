@@ -34,14 +34,21 @@ export class ImportService {
       const row = rows[i];
       try {
         const productData: Partial<Product> = {
+          sku: row.sku || undefined,
           name: row.name,
           description: row.description,
           category: row.category,
           base_price: parseFloat(row.base_price) || 0,
           sale_percentage: parseFloat(row.sale_percentage) || 0,
           image_url: row.image_url,
-          allow_direct_buy: row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes'
+          is_active: row.is_active === 'true' || row.is_active === '1' || row.is_active === 'yes' || row.is_active === undefined,
+          allow_direct_buy: row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes' || row.allow_direct_buy === undefined
         };
+
+        // Handle multiple images (comma separated)
+        if (row.images) {
+          productData.images = row.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
+        }
 
         if (row.id) {
           await ProductService.update(row.id, productData);

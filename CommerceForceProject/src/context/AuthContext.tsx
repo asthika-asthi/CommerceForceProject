@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, LoginCredentials, RegisterData, AuthResponse } from '../shared/types';
+import { User, LoginCredentials, RegisterData, AuthResponse, PendingAction } from '../shared/types';
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +8,8 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  pendingAction: PendingAction | null;
+  setPendingAction: (action: PendingAction | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,6 +18,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+
+  useEffect(() => {
+    // Attempt to recover pendingAction from session storage to survive refreshes
+    const savedAction = sessionStorage.getItem('pending_auth_action');
+    if (savedAction) {
+      try {
+        setPendingAction(JSON.parse(savedAction));
+      } catch (e) {
+        sessionStorage.removeItem('pending_auth_action');
+      }
+    }
+  }, []);
+
+  const handleSetPendingAction = (action: PendingAction | null) => {
+    if (action) {
+      sessionStorage.setItem('pending_auth_action', JSON.stringify(action));
+    } else {
+      sessionStorage.removeItem('pending_auth_action');
+    }
+    setPendingAction(action);
+  };
 
   useEffect(() => {
     const initAuth = async () => {
@@ -87,7 +111,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      register, 
+      logout, 
+      isLoading, 
+      pendingAction, 
+      setPendingAction: handleSetPendingAction 
+    }}>
       {children}
     </AuthContext.Provider>
   );

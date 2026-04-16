@@ -82,12 +82,52 @@ export const SystemTools = () => {
     }
   };
 
-  const downloadTemplate = () => {
-    window.open('/api/admin/import/products/template', '_blank');
+  const downloadTemplate = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/admin/import/products/template', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'product_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        setError('Failed to download CSV template');
+      }
+    } catch (err) {
+      setError('Network error downloading CSV template');
+    }
   };
 
-  const exportConfig = () => {
-    window.open('/api/admin/import/config/export', '_blank');
+  const exportConfig = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/admin/import/config/export', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'master_config.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        setError('Failed to export configuration');
+      }
+    } catch (err) {
+      setError('Network error exporting configuration');
+    }
   };
 
   return (
@@ -130,6 +170,36 @@ export const SystemTools = () => {
             >
               <Download size={14} />
               Download CSV Template
+            </button>
+
+            <button 
+              onClick={async () => {
+                if (!token) return;
+                try {
+                  const res = await fetch('/api/admin/import/products/export', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'master_products.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                  } else {
+                    setError('Failed to export products');
+                  }
+                } catch (err) {
+                  setError('Network error exporting products');
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 border border-[#141414] rounded-xl text-xs font-mono uppercase tracking-widest hover:bg-black hover:text-white transition-all"
+            >
+              <FileSpreadsheet size={14} />
+              Download Master CSV
             </button>
 
             <div className="relative group">

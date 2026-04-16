@@ -1,16 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { Product } from '../shared/types';
 import { useBranding } from '../context/BrandingContext';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, onBack: () => void }) => {
   const { config: brandingConfig } = useBranding();
+  const { user, setPendingAction } = useAuth();
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [uiConfig, setUiConfig] = useState<any>(null);
+
+  const requireAuth = (product: Product) => {
+    if (!user) {
+      setPendingAction({
+        type: 'ADD_TO_CART',
+        data: { product, quantity: 1 },
+        redirectTo: window.location.pathname
+      });
+      // Trigger navigation to login
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -107,7 +124,15 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} onAddToCart={() => addToCart(product, 1)} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={() => {
+                      if (requireAuth(product)) {
+                        addToCart(product, 1);
+                      }
+                    }} 
+                  />
                 ))}
               </div>
             )}

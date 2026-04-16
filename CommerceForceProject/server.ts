@@ -149,8 +149,11 @@ if (process.env.NODE_ENV !== 'test') {
           const updatedBranding: any = { ...currentBranding };
           let needsUpdate = false;
 
-          // Only sync branding if DB is using default company name or is empty
-          if (brandingJson && (!currentBranding.company_name || currentBranding.company_name === 'TechParts Pro')) {
+          // Only sync branding if DB is using default company name or is empty or "B2B Portal"
+          if (brandingJson && (!currentBranding.company_name || 
+                               currentBranding.company_name === 'TechParts Pro' || 
+                               currentBranding.company_name === 'B2B Portal' ||
+                               currentBranding.company_name === 'CommerceForce')) {
             console.log('Syncing branding.json to database...');
             Object.assign(updatedBranding, brandingJson);
             needsUpdate = true;

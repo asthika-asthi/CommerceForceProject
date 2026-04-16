@@ -134,7 +134,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       ]
     },
     {
-      title: 'Store Management',
+      title: 'Store',
       items: [
         { id: 'products', label: 'Products', icon: Package, roles: ['admin', 'superadmin', 'client', 'customer'] },
         { id: 'orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'superadmin', 'client'] },
@@ -315,7 +315,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between">
             <div className="flex items-center gap-8">
               <h1 className="font-bold text-xl text-[#141414] tracking-tight">
-                {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || 'B2B Portal'}
+                {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || config?.company_name || 'CommerceForce'}
               </h1>
               
               <nav className="hidden lg:flex items-center gap-8">
@@ -397,9 +397,10 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 )}
               </div>
               {user?.role === 'customer' && loyaltyEnabled && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm">
+                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm" title={config?.loyalty_program_name || 'Loyalty Points'}>
                   <Award size={16} />
-                  <span className="text-xs font-bold font-mono">{loyaltyPoints} pts</span>
+                  <span className="text-xs font-bold font-mono">{loyaltyPoints} {config?.loyalty_program_name ? '' : 'pts'}</span>
+                  {config?.loyalty_program_name && <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-1">{config.loyalty_program_name}</span>}
                 </div>
               )}
               {user?.role === 'customer' && (

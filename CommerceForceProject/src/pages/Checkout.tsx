@@ -146,6 +146,8 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
 
       setOrderComplete(true);
       clearCart();
+      // Refresh loyalty points
+      window.dispatchEvent(new CustomEvent('refreshPoints'));
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -323,8 +323,8 @@ async function initPostgresSchema(client: any) {
         ('customer', 'Standard retail buyer')
       ON CONFLICT (name) DO NOTHING;
 
-      INSERT INTO branding_config (company_name, domain, primary_color) VALUES
-        ('TechParts Pro', 'techpartspro.com', '#141414')
+      INSERT INTO branding_config (company_name, domain, primary_color, loyalty_points_per_currency, loyalty_redemption_value, loyalty_program_name) VALUES
+        ('TechParts Pro', 'techpartspro.com', '#141414', 1, 100, 'Loyalty Points')
       ON CONFLICT (domain) DO NOTHING;
 
       INSERT INTO feature_flags (feature_key, enabled, description) VALUES
@@ -407,6 +407,11 @@ function initSqliteSchema() {
           hero_enabled INTEGER DEFAULT 1,
           catalogue_url TEXT,
           admin_email TEXT,
+          footer_tagline TEXT,
+          loyalty_points_per_currency REAL DEFAULT 1,
+          loyalty_redemption_value REAL DEFAULT 100,
+          loyalty_program_name TEXT DEFAULT 'Loyalty Points',
+          loyalty_banner_image TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
@@ -604,7 +609,7 @@ function initSqliteSchema() {
       sqliteDb.prepare("INSERT OR IGNORE INTO roles (name, description) VALUES ('client', 'Client administrator (Alias)')").run();
       sqliteDb.prepare("INSERT OR IGNORE INTO roles (name, description) VALUES ('customer', 'Standard retail buyer')").run();
 
-      sqliteDb.prepare("INSERT OR IGNORE INTO branding_config (company_name, domain, primary_color) VALUES ('TechParts Pro', 'techpartspro.com', '#141414')").run();
+      sqliteDb.prepare("INSERT OR IGNORE INTO branding_config (company_name, domain, primary_color, loyalty_points_per_currency, loyalty_redemption_value, loyalty_program_name) VALUES ('TechParts Pro', 'techpartspro.com', '#141414', 1, 100, 'Loyalty Points')").run();
 
       sqliteDb.prepare("INSERT OR IGNORE INTO feature_flags (feature_key, enabled, description) VALUES ('b2b_enabled', 1, 'Enable B2B specific features')").run();
       sqliteDb.prepare("INSERT OR IGNORE INTO feature_flags (feature_key, enabled, description) VALUES ('rfq_enabled', 1, 'Enable Request for Quote system')").run();

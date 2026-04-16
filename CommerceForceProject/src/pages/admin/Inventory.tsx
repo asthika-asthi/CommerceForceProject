@@ -270,80 +270,86 @@ export const InventoryPage = () => {
           </div>
 
           {/* Inventory Table */}
-          <div className="border border-[#141414] overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
-                  <th className="p-4 font-medium">SKU</th>
-                  <th className="p-4 font-medium">Product Name</th>
-                  <th className="p-4 font-medium">Quantity</th>
-                  <th className="p-4 font-medium">Min Level</th>
-                  <th className="p-4 font-medium">Status</th>
-                  <th className="p-4 font-medium">Last Updated</th>
-                  <th className="p-4 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#141414]">
-                {filteredInventory.map((item) => (
-                  <tr key={item.id} className="hover:bg-white transition-colors group">
-                    <td className="p-4 text-xs font-mono text-[#141414]/60">{item.product?.sku}</td>
-                    <td className="p-4 text-sm font-medium">{item.product?.name}</td>
-                    <td className="p-4 text-sm font-mono font-bold">
-                      <span className={item.quantity <= item.min_stock_level ? 'text-red-600' : ''}>
-                        {item.quantity}
-                      </span>
-                    </td>
-                    <td className="p-4 text-xs font-mono opacity-50">{item.min_stock_level}</td>
-                    <td className="p-4">
-                      {item.quantity <= item.min_stock_level ? (
-                        <span className="flex items-center gap-1 text-[10px] font-mono uppercase text-red-600 bg-red-50 px-2 py-1 rounded">
-                          <AlertTriangle size={10} />
-                          Low Stock
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-mono uppercase text-green-600 bg-green-50 px-2 py-1 rounded">
-                          Healthy
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-[10px] font-mono opacity-40">
-                      {new Date(item.updated_at).toLocaleString()}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        {!isAdmin && item.product?.allow_direct_buy && (
-                          <button 
-                            onClick={() => {
-                              if (item.product) {
-                                addToCart(item.product, 1);
-                              }
-                            }}
-                            className="bg-[#141414] text-white px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
-                          >
-                            <ShoppingCart size={12} />
-                            Buy
-                          </button>
-                        )}
-                        {!isAdmin && rfqEnabled && (
-                          <button 
-                            onClick={() => item.product && handleRequestQuote(item.product)}
-                            className="border border-[#141414] text-[#141414] px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-white transition-all flex items-center gap-2"
-                          >
-                            <FileText size={12} />
-                            Quote
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <div className="border border-[#141414] overflow-hidden min-h-[400px] flex flex-col">
+            <div className="flex-1 overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
+                    <th className="p-4 font-medium">SKU</th>
+                    <th className="p-4 font-medium">Product Name</th>
+                    <th className="p-4 font-medium">Quantity</th>
+                    <th className="p-4 font-medium">Min Level</th>
+                    <th className="p-4 font-medium">Status</th>
+                    <th className="p-4 font-medium">Last Updated</th>
+                    <th className="p-4 font-medium"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredInventory.length === 0 && (
-              <div className="p-12 text-center text-[#141414]/40 italic font-serif">
-                No inventory items found in this warehouse.
-              </div>
-            )}
+                </thead>
+                <tbody className="divide-y divide-[#141414]">
+                  {filteredInventory.map((item) => (
+                    <tr key={item.id} className="hover:bg-white transition-colors group">
+                      <td className="p-4 text-xs font-mono text-[#141414]/60">{item.product?.sku}</td>
+                      <td className="p-4 text-sm font-medium">{item.product?.name}</td>
+                      <td className="p-4 text-sm font-mono font-bold">
+                        <span className={item.quantity <= item.min_stock_level ? 'text-red-600' : ''}>
+                          {item.quantity}
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs font-mono opacity-50">{item.min_stock_level}</td>
+                      <td className="p-4">
+                        {item.quantity <= item.min_stock_level ? (
+                          <span className="flex items-center gap-1 text-[10px] font-mono uppercase text-red-600 bg-red-50 px-2 py-1 rounded">
+                            <AlertTriangle size={10} />
+                            Low Stock
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono uppercase text-green-600 bg-green-50 px-2 py-1 rounded">
+                            Healthy
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-[10px] font-mono opacity-40">
+                        {new Date(item.updated_at).toLocaleString()}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          {!isAdmin && item.product?.allow_direct_buy && (
+                            <button 
+                              onClick={() => {
+                                if (item.product) {
+                                  addToCart(item.product, 1);
+                                }
+                              }}
+                              className="bg-[#141414] text-white px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
+                            >
+                              <ShoppingCart size={12} />
+                              Buy
+                            </button>
+                          )}
+                          {!isAdmin && rfqEnabled && (
+                            <button 
+                              onClick={() => item.product && handleRequestQuote(item.product)}
+                              className="border border-[#141414] text-[#141414] px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-white transition-all flex items-center gap-2"
+                            >
+                              <FileText size={12} />
+                              Quote
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredInventory.length === 0 && (
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    <WarehouseIcon size={32} className="opacity-20" />
+                  </div>
+                  <p className="text-[#141414]/40 italic font-serif text-lg">No inventory items found.</p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest opacity-30 mt-2">Products added to this warehouse will appear here</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
