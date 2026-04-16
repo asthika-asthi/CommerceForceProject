@@ -249,7 +249,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   onClick={() => setActiveTab('products')}
                   className="text-sm font-medium text-[#141414]/60 hover:text-[#141414]"
                 >
-                  Shop
+                  Products
                 </button>
                 <button 
                   onClick={() => setActiveTab('contact')}
@@ -257,6 +257,17 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 >
                   Support
                 </button>
+                {config?.catalogue_url && (
+                  <a 
+                    href={config.catalogue_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] flex items-center gap-1"
+                  >
+                    <FileText size={14} />
+                    Catalogue
+                  </a>
+                )}
               </nav>
             </div>
 

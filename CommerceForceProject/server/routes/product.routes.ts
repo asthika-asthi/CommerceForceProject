@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ProductService } from '../services/product.service';
+import { AdminService } from '../services/admin.service';
 import { isAuthenticated, isAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -30,6 +31,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const product = await ProductService.create(req.body);
+    await AdminService.logActivity((req as any).user?.id, 'Product Created', `Product: ${product.name} (SKU: ${product.sku})`);
     res.status(201).json(product);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -39,6 +41,7 @@ router.post('/', isAuthenticated, isAdmin, async (req, res) => {
 router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const product = await ProductService.update(req.params.id, req.body);
+    await AdminService.logActivity((req as any).user?.id, 'Product Updated', `Product: ${product.name} (SKU: ${product.sku})`);
     res.json(product);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -47,7 +50,11 @@ router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
 
 router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
   try {
+    const product = await ProductService.getById(req.params.id);
     await ProductService.delete(req.params.id);
+    if (product) {
+      await AdminService.logActivity((req as any).user?.id, 'Product Deleted', `Product: ${product.name} (SKU: ${product.sku})`);
+    }
     res.status(204).end();
   } catch (error: any) {
     res.status(500).json({ error: error.message });

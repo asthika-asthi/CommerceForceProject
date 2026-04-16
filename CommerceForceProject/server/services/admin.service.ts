@@ -19,6 +19,7 @@ export class AdminService {
   }
 
   static async ensureSchema(): Promise<void> {
+    if (db.isSqlite()) return;
     try {
       // Add currency columns if they don't exist
       await db.query(`
@@ -51,6 +52,7 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS carousel_enabled BOOLEAN DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]',
         ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS catalogue_url TEXT,
         ADD COLUMN IF NOT EXISTS admin_email TEXT
       `);
     } catch (err) {
@@ -72,7 +74,7 @@ export class AdminService {
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
-            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, admin_email = ?
+            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -109,6 +111,7 @@ export class AdminService {
         config.carousel_enabled !== undefined ? (config.carousel_enabled ? 1 : 0) : (current.carousel_enabled ? 1 : 0),
         Array.isArray(config.carousel_images) ? JSON.stringify(config.carousel_images) : (config.carousel_images !== undefined ? config.carousel_images : current.carousel_images),
         config.hero_enabled !== undefined ? (config.hero_enabled ? 1 : 0) : (current.hero_enabled !== false ? 1 : 0),
+        config.catalogue_url !== undefined ? config.catalogue_url : current.catalogue_url,
         config.admin_email !== undefined ? config.admin_email : current.admin_email,
         current.id
       ]);
@@ -143,12 +146,34 @@ export class AdminService {
     const activeWarehouses = (await db.query("SELECT COUNT(*) as count FROM warehouses WHERE is_active = 1")).rows[0].count;
     const enabledFeatures = (await db.query("SELECT COUNT(*) as count FROM feature_flags WHERE enabled = 1")).rows[0].count;
 
+    const recentActivity = await this.getActivityLogs(10);
+
     return {
       totalProducts: Number(totalProducts),
       activeUsers: Number(activeUsers),
       activeWarehouses: Number(activeWarehouses),
-      enabledFeatures: Number(enabledFeatures)
+      enabledFeatures: Number(enabledFeatures),
+      recentActivity
     };
+  }
+
+  static async getActivityLogs(limit: number = 20): Promise<any[]> {
+    const result = await db.query(`
+      SELECT l.*, u.name as user_name
+      FROM activity_logs l
+      LEFT JOIN users u ON l.user_id = u.id
+      ORDER BY l.created_at DESC
+      LIMIT ?
+    `, [limit]);
+    return result.rows;
+  }
+
+  static async logActivity(userId: string | null, action: string, details?: string): Promise<void> {
+    const id = `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    await db.query(`
+      INSERT INTO activity_logs (id, user_id, action, details, created_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `, [id, userId, action, details]);
   }
 
   static async getUsers(): Promise<any[]> {

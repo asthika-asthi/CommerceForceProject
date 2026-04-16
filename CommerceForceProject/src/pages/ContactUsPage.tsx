@@ -84,7 +84,7 @@ export const ContactUsPage = () => {
               </div>
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-widest opacity-40 mb-1">Call us</p>
-                <p className="text-xl font-bold">+1 (555) 000-0000</p>
+                <p className="text-xl font-bold">{config?.footer_phone || '+1 (555) 000-0000'}</p>
               </div>
             </div>
           </div>

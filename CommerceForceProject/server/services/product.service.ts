@@ -26,10 +26,16 @@ export class ProductService {
 
   static async create(data: Partial<Product>): Promise<Product> {
     const id = uuidv4();
-    const { sku, name, description, category, base_price, sale_percentage = 0, image_url, images = [], is_active = 1, allow_direct_buy = 1 } = data;
+    let { sku, name, description, category, base_price, sale_percentage = 0, image_url, images = [], is_active = 1, allow_direct_buy = 1 } = data;
 
-    if (!sku || !name || base_price === undefined) {
-      throw new Error('Missing required product fields: sku, name, base_price');
+    if (!name || base_price === undefined) {
+      throw new Error('Missing required product fields: name, base_price');
+    }
+
+    if (!sku) {
+      const prefix = (category || 'PROD').substring(0, 3).toUpperCase();
+      const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+      sku = `${prefix}-${random}`;
     }
 
     await db.query(`

@@ -35,6 +35,7 @@ export interface BrandingConfig {
   carousel_enabled?: boolean;
   hero_enabled?: boolean;
   carousel_images?: string; // JSON string of CarouselImage[]
+  catalogue_url?: string;
   admin_email?: string;
   created_at?: string;
 }
@@ -201,11 +202,21 @@ export interface Coupon {
   created_at: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  user_name?: string;
+  action: string;
+  details?: string;
+  created_at: string;
+}
+
 export interface DashboardStats {
   totalProducts: number;
   activeUsers: number;
   activeWarehouses: number;
   enabledFeatures: number;
+  recentActivity?: ActivityLog[];
 }
 
 export interface User {

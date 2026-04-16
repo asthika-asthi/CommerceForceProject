@@ -50,6 +50,7 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
   try {
     // 1. Update Database
     await AdminService.updateBranding(req.body);
+    await AdminService.logActivity((req as any).user?.id, 'Branding Updated', 'System branding and configuration updated');
 
     // 2. Sync to JSON Config (branding.json)
     const currentBranding = await ConfigService.getBrandingConfig();
@@ -63,7 +64,7 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
       'base_font_size', 'hero_font_size', 'heading_font_size', 'content_font_size',
       'carousel_enabled', 'carousel_images', 'hero_enabled',
       'hero_title', 'hero_subtitle', 'hero_image_url', 'hero_cta_text', 'hero_cta_link',
-      'admin_email'
+      'admin_email', 'catalogue_url'
     ];
     
     brandingFields.forEach(field => {
@@ -108,6 +109,7 @@ router.get("/features", async (req, res) => {
 router.post("/features/toggle", isSuperAdmin, async (req, res) => {
   const { key, enabled } = req.body;
   await AdminService.toggleFeatureFlag(key, enabled);
+  await AdminService.logActivity((req as any).user?.id, 'Feature Toggled', `Feature ${key} set to ${enabled ? 'enabled' : 'disabled'}`);
   res.json({ success: true });
 });
 
@@ -132,6 +134,7 @@ router.post("/users/:id/credit-limit", isSuperAdmin, async (req, res) => {
   const { creditLimit } = req.body;
   try {
     await AdminService.updateUserCreditLimit(req.params.id, creditLimit);
+    await AdminService.logActivity((req as any).user?.id, 'Credit Limit Updated', `User ID ${req.params.id} credit limit set to ${creditLimit}`);
     res.json({ success: true });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
@@ -142,6 +145,7 @@ router.post("/users/:id/role", isSuperAdmin, async (req, res) => {
   const { role } = req.body;
   try {
     await AdminService.updateUserRole(req.params.id, role);
+    await AdminService.logActivity((req as any).user?.id, 'User Role Updated', `User ID ${req.params.id} role set to ${role}`);
     res.json({ success: true });
   } catch (err: any) {
     res.status(400).json({ error: err.message });

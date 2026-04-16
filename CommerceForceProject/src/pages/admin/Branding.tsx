@@ -261,6 +261,17 @@ export const Branding = () => {
                 />
                 <p className="mt-1 text-[10px] text-gray-400">This email will receive notifications whenever a new RFQ or Order is submitted.</p>
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Product Catalogue (PDF URL)</label>
+                <input
+                  type="text"
+                  placeholder="URL to your PDF catalogue"
+                  value={config.catalogue_url || ''}
+                  onChange={e => setConfig({ ...config, catalogue_url: e.target.value })}
+                  className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+                <p className="mt-1 text-[10px] text-gray-400">Provide a link to a PDF file that customers can download to view your full product range.</p>
+              </div>
             </div>
 
             <div className="pt-6 border-t border-[#141414]/5">

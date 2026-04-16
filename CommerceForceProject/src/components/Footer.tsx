@@ -47,6 +47,9 @@ export const Footer = () => {
               {config.contact_page_enabled && (
                 <li><a href="/contact" className="hover:opacity-100 transition-opacity">Contact Us</a></li>
               )}
+              {config.catalogue_url && (
+                <li><a href={config.catalogue_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 transition-opacity">Download Catalogue</a></li>
+              )}
               <li><a href="/about" className="hover:opacity-100 transition-opacity">About Us</a></li>
             </ul>
           </div>
