@@ -1,4 +1,15 @@
 {
-  "company_name": "Test Company Updated",
-  "primary_color": "#FF0000"
+  "company_name": "Tristar Ltd",
+  "logo_url": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Logo.png",
+  "favicon_url": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Feviiocn.png",
+  "primary_color": "#1A56DB",
+  "secondary_color": "#4B5563",
+  "font_family": null,
+  "button_style": "rounded",
+  "background_style": "image",
+  "background_value": "#F7F6F2",
+  "footer_use_brand_color": true,
+  "contact_page_enabled": true,
+  "currency_symbol": "£",
+  "currency_code": "GBP"
 }
