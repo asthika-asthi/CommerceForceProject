@@ -23,6 +23,7 @@ import { Checkout } from './pages/Checkout';
 import { Cart } from './pages/Cart';
 import { LandingPage } from './pages/LandingPage';
 import { SupportPage } from './pages/SupportPage';
+import { ContactUsPage } from './pages/ContactUsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { BrandingProvider, useBranding } from './context/BrandingContext';
@@ -92,7 +93,7 @@ function AppContent() {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
       return rootPath;
     }
     
@@ -108,7 +109,7 @@ function AppContent() {
       setPathname(currentPath);
       const path = currentPath.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -149,6 +150,7 @@ function AppContent() {
         { id: 'system-tools', roles: ['superadmin'] },
         { id: 'customer-rfq', roles: ['customer', 'admin', 'superadmin', 'client'] },
         { id: 'contact', roles: ['customer', 'admin', 'superadmin', 'client'] },
+        { id: 'contact-us', roles: ['customer', 'admin', 'superadmin', 'client'] },
       ];
 
       const saved = localStorage.getItem('activeTab');
@@ -170,7 +172,7 @@ function AppContent() {
     );
   }
 
-  const publicTabs = ['landing', 'products', 'category', 'contact', 'cart', 'login', 'register'];
+  const publicTabs = ['landing', 'products', 'category', 'contact', 'contact-us', 'cart', 'login', 'register'];
   const isPublicTab = publicTabs.includes(activeTab);
 
   if (!user && !isPublicTab) {
@@ -210,6 +212,8 @@ function AppContent() {
         return <CustomerRFQ />;
       case 'contact':
         return <SupportPage />;
+      case 'contact-us':
+        return <ContactUsPage />;
       case 'category':
         const catName = pathname.split('/')[2] || 'general';
         return <CategoryPage categoryName={catName} onBack={() => setActiveTab('landing')} />;

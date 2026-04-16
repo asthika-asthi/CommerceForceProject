@@ -1212,6 +1212,16 @@ export const Branding = () => {
               <div className="space-y-6">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-black/40">Footer Details</h4>
                 <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Footer Tagline</label>
+                  <textarea
+                    value={config.footer_tagline || ''}
+                    onChange={e => setConfig({ ...config, footer_tagline: e.target.value })}
+                    className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[80px]"
+                    placeholder="Brief description for the footer (falls back to Hero tagline if empty)"
+                  />
+                  <p className="mt-1 text-[10px] text-gray-400">If left empty, the Hero tagline will be used as a fallback.</p>
+                </div>
+                <div>
                   <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Support Email</label>
                   <input
                     type="email"

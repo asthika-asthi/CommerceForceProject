@@ -80,9 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.clear();
     setToken(null);
     setUser(null);
+    window.location.replace('/login');
   };
 
   return (

@@ -14,7 +14,8 @@ export class AdminService {
       social_links_enabled: branding.social_links_enabled !== 0,
       contact_page_enabled: Boolean(branding.contact_page_enabled),
       carousel_enabled: Boolean(branding.carousel_enabled),
-      hero_enabled: branding.hero_enabled !== 0
+      hero_enabled: branding.hero_enabled !== 0,
+      footer_tagline: branding.footer_tagline
     } as BrandingConfig;
   }
 
@@ -53,7 +54,8 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS carousel_images TEXT DEFAULT '[]',
         ADD COLUMN IF NOT EXISTS hero_enabled BOOLEAN DEFAULT TRUE,
         ADD COLUMN IF NOT EXISTS catalogue_url TEXT,
-        ADD COLUMN IF NOT EXISTS admin_email TEXT
+        ADD COLUMN IF NOT EXISTS admin_email TEXT,
+        ADD COLUMN IF NOT EXISTS footer_tagline TEXT
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -74,7 +76,7 @@ export class AdminService {
             social_links_enabled = ?, contact_page_enabled = ?, payment_methods_config = ?,
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
-            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?
+            carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?, footer_tagline = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -113,6 +115,7 @@ export class AdminService {
         config.hero_enabled !== undefined ? (config.hero_enabled ? 1 : 0) : (current.hero_enabled !== false ? 1 : 0),
         config.catalogue_url !== undefined ? config.catalogue_url : current.catalogue_url,
         config.admin_email !== undefined ? config.admin_email : current.admin_email,
+        config.footer_tagline !== undefined ? config.footer_tagline : current.footer_tagline,
         current.id
       ]);
     }

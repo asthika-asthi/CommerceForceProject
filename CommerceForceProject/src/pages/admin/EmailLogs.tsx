@@ -62,50 +62,52 @@ export const EmailLogs = () => {
       </div>
 
       <div className="border border-[#141414] overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
-              <th className="p-4 font-medium">Recipient</th>
-              <th className="p-4 font-medium">Subject</th>
-              <th className="p-4 font-medium">Status</th>
-              <th className="p-4 font-medium">Sent At</th>
-              <th className="p-4 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#141414]">
-            {filteredLogs.map((log) => (
-              <tr key={log.id} className="hover:bg-white transition-colors group">
-                <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <User size={14} className="opacity-30" />
-                    <span className="text-sm font-medium">{log.recipient}</span>
-                  </div>
-                </td>
-                <td className="p-4">
-                  <span className="text-sm">{log.subject}</span>
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-500" />
-                    <span className="text-[10px] font-mono uppercase">{log.status}</span>
-                  </div>
-                </td>
-                <td className="p-4 text-[10px] font-mono opacity-40">
-                  {new Date(log.sent_at).toLocaleString()}
-                </td>
-                <td className="p-4 text-right">
-                  <button 
-                    onClick={() => setSelectedLog(log)}
-                    className="p-2 hover:bg-[#f5f5f5] rounded-full transition-colors"
-                    title="View Content"
-                  >
-                    <Eye size={16} />
-                  </button>
-                </td>
+        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
+                <th className="p-4 font-medium">Recipient</th>
+                <th className="p-4 font-medium">Subject</th>
+                <th className="p-4 font-medium">Status</th>
+                <th className="p-4 font-medium">Sent At</th>
+                <th className="p-4 font-medium text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[#141414]">
+              {filteredLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-white transition-colors group">
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <User size={14} className="opacity-30" />
+                      <span className="text-sm font-medium">{log.recipient}</span>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="text-sm">{log.subject}</span>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-emerald-500" />
+                      <span className="text-[10px] font-mono uppercase">{log.status}</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-[10px] font-mono opacity-40">
+                    {new Date(log.sent_at).toLocaleString()}
+                  </td>
+                  <td className="p-4 text-right">
+                    <button 
+                      onClick={() => setSelectedLog(log)}
+                      className="p-2 hover:bg-[#f5f5f5] rounded-full transition-colors"
+                      title="View Content"
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {filteredLogs.length === 0 && !isLoading && (
           <div className="p-12 text-center text-[#141414]/40 italic font-serif">
             No email logs found.
@@ -125,7 +127,7 @@ export const EmailLogs = () => {
                   <RefreshCw className="rotate-45" size={20} />
                 </button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 <div>
                   <label className="block text-[10px] font-mono uppercase opacity-40 mb-1">Recipient</label>
                   <p className="text-sm font-medium">{selectedLog.recipient}</p>

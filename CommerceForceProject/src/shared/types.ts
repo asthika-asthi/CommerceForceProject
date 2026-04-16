@@ -37,6 +37,7 @@ export interface BrandingConfig {
   carousel_images?: string; // JSON string of CarouselImage[]
   catalogue_url?: string;
   admin_email?: string;
+  footer_tagline?: string;
   created_at?: string;
 }
 

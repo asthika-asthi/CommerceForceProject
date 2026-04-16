@@ -55,13 +55,13 @@ export const SupportPage = () => {
 
           <div className="space-y-8">
             <div className="p-8 bg-black/5 rounded-[32px] border border-black/5">
-              <h3 className="text-lg font-bold mb-4">Quick Support Channels</h3>
+              <h3 className="text-lg font-bold mb-4">Support Channels</h3>
               <div className="space-y-6">
                 {config?.footer_email && (
                   <div className="flex items-center gap-4">
                     <Mail size={20} className="text-black/40" />
                     <div>
-                      <p className="text-xs opacity-40 uppercase tracking-widest font-bold">Email Support</p>
+                      <p className="text-xs opacity-40 uppercase tracking-widest font-bold">Priority Support</p>
                       <p className="font-bold">{config.footer_email}</p>
                     </div>
                   </div>
@@ -70,20 +70,10 @@ export const SupportPage = () => {
                 <div className="flex items-center gap-4">
                   <Phone size={20} className="text-black/40" />
                   <div>
-                    <p className="text-xs opacity-40 uppercase tracking-widest font-bold">Phone Support</p>
+                    <p className="text-xs opacity-40 uppercase tracking-widest font-bold">Technical Assistance</p>
                     <p className="font-bold">{config?.footer_phone || '+1 (555) 000-0000'}</p>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="p-8 bg-[var(--primary-color)]/5 rounded-[32px] border border-[var(--primary-color)]/10">
-              <h3 className="text-lg font-bold mb-2">Helpful Links</h3>
-              <p className="text-sm opacity-60 mb-4">Check our documentation or track your existing orders.</p>
-              <div className="flex flex-wrap gap-3">
-                <button className="px-4 py-2 bg-white rounded-xl text-xs font-bold shadow-sm">Product Guides</button>
-                <button className="px-4 py-2 bg-white rounded-xl text-xs font-bold shadow-sm">Order Tracking</button>
-                <button className="px-4 py-2 bg-white rounded-xl text-xs font-bold shadow-sm">B2B Portal FAQ</button>
               </div>
             </div>
           </div>
