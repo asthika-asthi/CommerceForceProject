@@ -312,6 +312,22 @@ export const InventoryPage = () => {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
+                          {isAdmin && (
+                            <button 
+                              onClick={() => {
+                                setStockForm({
+                                  productId: item.product_id,
+                                  quantity: item.quantity.toString(),
+                                  minStockLevel: item.min_stock_level.toString()
+                                });
+                                setIsStockModalOpen(true);
+                              }}
+                              className="bg-[#141414] text-white px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2"
+                            >
+                              <ArrowRightLeft size={12} />
+                              Adjust
+                            </button>
+                          )}
                           {!isAdmin && item.product?.allow_direct_buy && (
                             <button 
                               onClick={() => {

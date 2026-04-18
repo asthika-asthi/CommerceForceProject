@@ -95,6 +95,7 @@ export interface Product {
   images?: string[]; // Array of image URLs
   is_active: boolean;
   allow_direct_buy: boolean;
+  total_stock?: number;
   created_at?: string;
 }
 

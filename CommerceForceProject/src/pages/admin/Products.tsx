@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Product, FeatureFlag } from '../../shared/types';
 import { useBranding } from '../../context/BrandingContext';
-import { Search, Plus, MoreHorizontal, Filter, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Filter, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -62,6 +62,9 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
             {product.sale_percentage ? (
               <span className="text-[10px] text-rose-600 font-bold">-{product.sale_percentage}%</span>
             ) : null}
+            {product.total_stock !== undefined && product.total_stock <= 0 && (
+              <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1">Out of Stock</span>
+            )}
           </div>
         </div>
         
@@ -73,10 +76,20 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
           {product.allow_direct_buy && (
             <button 
               onClick={onAddToCart}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-black text-white rounded-xl text-xs font-bold hover:bg-[var(--primary-color)] transition-all shadow-md"
+              disabled={product.total_stock !== undefined && product.total_stock <= 0}
+              className={`w-full flex items-center justify-center gap-2 py-3 bg-black text-white rounded-xl text-xs font-bold hover:bg-[var(--primary-color)] transition-all shadow-md ${product.total_stock !== undefined && product.total_stock <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
             >
-              <Plus size={14} />
-              Add to Cart
+              {product.total_stock !== undefined && product.total_stock <= 0 ? (
+                <>
+                  <AlertTriangle size={14} />
+                  Out of Stock
+                </>
+              ) : (
+                <>
+                  <Plus size={14} />
+                  Add to Cart
+                </>
+              )}
             </button>
           )}
           {rfqEnabled && (

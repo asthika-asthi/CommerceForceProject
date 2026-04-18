@@ -4,7 +4,7 @@ import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
-import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2 } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
 import { AIChat } from '../components/AIChat';
 import { Carousel } from '../components/Carousel';
 
@@ -609,9 +609,14 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
           <h3 className="font-bold text-lg leading-tight group-hover:text-[var(--primary-color)] transition-colors" style={{ color: 'var(--secondary-color)' }}>
             {product.name}
           </h3>
-          <span className="font-mono font-bold text-[var(--primary-color)]">
-            {brandingConfig?.currency_symbol || '£'}{product.base_price.toFixed(2)}
-          </span>
+          <div className="flex flex-col items-end">
+            <span className="font-mono font-bold text-[var(--primary-color)]">
+              {brandingConfig?.currency_symbol || '£'}{product.base_price.toFixed(2)}
+            </span>
+            {product.total_stock !== undefined && product.total_stock <= 0 && (
+              <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1">Out of Stock</span>
+            )}
+          </div>
         </div>
         
         <p className="text-sm text-black/40 line-clamp-2 leading-relaxed">
@@ -620,10 +625,20 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
 
         <button 
           onClick={onAddToCart}
-          className={buttonClass}
+          disabled={product.total_stock !== undefined && product.total_stock <= 0}
+          className={`${buttonClass} ${product.total_stock !== undefined && product.total_stock <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
         >
-          <Plus size={18} />
-          Add to Cart
+          {product.total_stock !== undefined && product.total_stock <= 0 ? (
+            <>
+              <AlertTriangle size={18} />
+              Out of Stock
+            </>
+          ) : (
+            <>
+              <Plus size={18} />
+              Add to Cart
+            </>
+          )}
         </button>
       </div>
     </div>

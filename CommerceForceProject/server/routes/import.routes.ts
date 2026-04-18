@@ -57,8 +57,8 @@ router.post("/config/master", upload.single('file'), async (req, res) => {
  * Download Product CSV Template
  */
 router.get("/products/template", async (req, res) => {
-  const headers = "id,sku,name,description,category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active\n";
-  const example = ",SKU-001,Example Product,This is a description,Electronics,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true\n";
+  const headers = "id,sku,name,description,category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,initial_stock,min_stock_level\n";
+  const example = ",SKU-001,Example Product,This is a description,Electronics,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,50,5\n";
   
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=product_template.csv');
@@ -71,7 +71,7 @@ router.get("/products/template", async (req, res) => {
 router.get("/products/export", async (req, res) => {
   try {
     const products = await AdminService.getProducts();
-    const headers = ["id", "sku", "name", "description", "category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active"];
+    const headers = ["id", "sku", "name", "description", "category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "total_stock"];
     
     const rows = products.map(p => {
       return headers.map(h => {

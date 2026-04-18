@@ -48,18 +48,34 @@ export class WarehouseService {
   // Inventory Management
   static async getInventoryByWarehouse(warehouseId: string): Promise<Inventory[]> {
     const result = await db.query(`
-      SELECT i.*, p.name as product_name, p.sku as product_sku
-      FROM inventory i
-      JOIN products p ON i.product_id = p.id
-      WHERE i.warehouse_id = ?
+      SELECT 
+        p.id as product_id,
+        p.name as product_name, 
+        p.sku as product_sku,
+        p.allow_direct_buy,
+        i.id as inventory_id,
+        COALESCE(i.quantity, 0) as quantity,
+        COALESCE(i.min_stock_level, 0) as min_stock_level,
+        COALESCE(i.updated_at, CURRENT_TIMESTAMP) as updated_at
+      FROM products p
+      LEFT JOIN inventory i ON p.id = i.product_id AND i.warehouse_id = ?
+      WHERE p.is_active = 1
+      ORDER BY p.name ASC
     `, [warehouseId]);
 
     return result.rows.map(row => ({
       ...row,
+      id: row.inventory_id || `temp-${row.product_id}`,
+      warehouse_id: warehouseId,
+      product_id: row.product_id,
+      quantity: Number(row.quantity),
+      min_stock_level: Number(row.min_stock_level),
+      updated_at: row.updated_at,
       product: {
         id: row.product_id,
         name: row.product_name,
         sku: row.product_sku,
+        allow_direct_buy: Boolean(row.allow_direct_buy),
         base_price: 0,
         is_active: true
       }

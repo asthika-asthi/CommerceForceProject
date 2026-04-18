@@ -27,8 +27,6 @@ export const LoginPage: React.FC<{ initialRegister?: boolean }> = ({ initialRegi
     setIsRegistering(initialRegister);
   }, [initialRegister]);
 
-  const { register } = useAuth();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

@@ -3,7 +3,7 @@ import { Product } from '../shared/types';
 import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, onBack: () => void }) => {
@@ -208,9 +208,14 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
           <h3 className="font-bold text-lg leading-tight group-hover:text-[var(--primary-color)] transition-colors line-clamp-2" style={{ color: 'var(--secondary-color)' }}>
             {product.name}
           </h3>
-          <span className="font-mono font-bold text-[var(--primary-color)] whitespace-nowrap">
-            {config?.currency_symbol || '£'}{product.base_price.toFixed(2)}
-          </span>
+          <div className="flex flex-col items-end">
+            <span className="font-mono font-bold text-[var(--primary-color)] whitespace-nowrap">
+              {config?.currency_symbol || '£'}{product.base_price.toFixed(2)}
+            </span>
+            {product.total_stock !== undefined && product.total_stock <= 0 && (
+              <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1">Out of Stock</span>
+            )}
+          </div>
         </div>
         
         <p className="text-sm text-black/40 line-clamp-2 leading-relaxed flex-1">
@@ -219,10 +224,20 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
 
         <button 
           onClick={onAddToCart}
-          className={buttonClass}
+          disabled={product.total_stock !== undefined && product.total_stock <= 0}
+          className={`${buttonClass} ${product.total_stock !== undefined && product.total_stock <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
         >
-          <Plus size={18} />
-          Add to Cart
+          {product.total_stock !== undefined && product.total_stock <= 0 ? (
+            <>
+              <AlertTriangle size={18} />
+              Out of Stock
+            </>
+          ) : (
+            <>
+              <Plus size={18} />
+              Add to Cart
+            </>
+          )}
         </button>
       </div>
     </motion.div>

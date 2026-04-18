@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { ProductService } from './product.service';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
+import { WarehouseService } from './warehouse.service';
 import { Product } from '../../src/shared/types';
 
 export class ImportService {
@@ -50,11 +51,32 @@ export class ImportService {
           productData.images = row.images.split(',').map((img: string) => img.trim()).filter((img: string) => img.length > 0);
         }
 
+        // Create/Update product
+        let product: Product;
         if (row.id) {
-          await ProductService.update(row.id, productData);
+          product = await ProductService.update(row.id, productData);
         } else {
-          await ProductService.create(productData);
+          product = await ProductService.create(productData);
         }
+
+        // Handle initial stock if provided
+        const initialStock = parseInt(row.initial_stock);
+        const minStock = parseInt(row.min_stock_level);
+        
+        if (!isNaN(initialStock) || !isNaN(minStock)) {
+          const warehouses = await WarehouseService.getAll();
+          if (warehouses.length > 0) {
+            // Add to the first active warehouse
+            const targetWarehouse = warehouses[0];
+            await WarehouseService.updateStock(
+              targetWarehouse.id, 
+              product.id, 
+              isNaN(initialStock) ? 0 : initialStock, 
+              isNaN(minStock) ? 0 : minStock
+            );
+          }
+        }
+
         results.success++;
       } catch (err: any) {
         results.failed++;

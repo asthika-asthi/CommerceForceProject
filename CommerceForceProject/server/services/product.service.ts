@@ -5,21 +5,46 @@ import { Product } from '../../src/shared/types';
 export class ProductService {
   static async getAll(includeInactive = false): Promise<Product[]> {
     const query = includeInactive 
-      ? 'SELECT * FROM products ORDER BY created_at DESC' 
-      : 'SELECT * FROM products WHERE is_active = 1 ORDER BY created_at DESC';
+      ? `
+        SELECT p.*, COALESCE(SUM(i.quantity), 0) as total_stock 
+        FROM products p 
+        LEFT JOIN inventory i ON p.id = i.product_id 
+        GROUP BY p.id 
+        ORDER BY p.created_at DESC
+      ` 
+      : `
+        SELECT p.*, COALESCE(SUM(i.quantity), 0) as total_stock 
+        FROM products p 
+        LEFT JOIN inventory i ON p.id = i.product_id 
+        WHERE p.is_active = 1 
+        GROUP BY p.id 
+        ORDER BY p.created_at DESC
+      `;
     
     const result = await db.query(query);
     return result.rows.map(this.mapToProduct);
   }
 
   static async getById(id: string): Promise<Product | null> {
-    const result = await db.query('SELECT * FROM products WHERE id = ?', [id]);
+    const result = await db.query(`
+      SELECT p.*, COALESCE(SUM(i.quantity), 0) as total_stock 
+      FROM products p 
+      LEFT JOIN inventory i ON p.id = i.product_id 
+      WHERE p.id = ?
+      GROUP BY p.id
+    `, [id]);
     const product = result.rows[0];
     return product ? this.mapToProduct(product) : null;
   }
 
   static async getBySku(sku: string): Promise<Product | null> {
-    const result = await db.query('SELECT * FROM products WHERE sku = ?', [sku]);
+    const result = await db.query(`
+      SELECT p.*, COALESCE(SUM(i.quantity), 0) as total_stock 
+      FROM products p 
+      LEFT JOIN inventory i ON p.id = i.product_id 
+      WHERE p.sku = ?
+      GROUP BY p.id
+    `, [sku]);
     const product = result.rows[0];
     return product ? this.mapToProduct(product) : null;
   }
@@ -89,7 +114,8 @@ export class ProductService {
       images,
       is_active: Boolean(row.is_active),
       allow_direct_buy: Boolean(row.allow_direct_buy),
-      sale_percentage: Number(row.sale_percentage || 0)
+      sale_percentage: Number(row.sale_percentage || 0),
+      total_stock: Number(row.total_stock || 0)
     };
   }
 }
