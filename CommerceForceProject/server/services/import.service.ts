@@ -42,8 +42,9 @@ export class ImportService {
           base_price: parseFloat(row.base_price) || 0,
           sale_percentage: parseFloat(row.sale_percentage) || 0,
           image_url: row.image_url,
-          is_active: row.is_active === 'true' || row.is_active === '1' || row.is_active === 'yes' || row.is_active === undefined,
-          allow_direct_buy: row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes' || row.allow_direct_buy === undefined
+          // Default to true if the column is missing OR empty
+          is_active: row.is_active === undefined || row.is_active === '' || row.is_active === 'true' || row.is_active === '1' || row.is_active === 'yes',
+          allow_direct_buy: row.allow_direct_buy === undefined || row.allow_direct_buy === '' || row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes'
         };
 
         // Handle multiple images (comma separated)
@@ -56,7 +57,13 @@ export class ImportService {
         if (row.id) {
           product = await ProductService.update(row.id, productData);
         } else {
-          product = await ProductService.create(productData);
+          // If we have an existing product with same SKU, update it instead of failing
+          const existingBySku = row.sku ? await ProductService.getBySku(row.sku) : null;
+          if (existingBySku) {
+            product = await ProductService.update(existingBySku.id, productData);
+          } else {
+            product = await ProductService.create(productData);
+          }
         }
 
         // Handle initial stock if provided

@@ -62,12 +62,22 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   useEffect(() => {
     if (token) {
       const fetchPoints = () => {
-        fetch('/api/loyalty/points', {
+        fetch('/api/loyalty/my/balance', {
           headers: { 'Authorization': `Bearer ${token}` }
         })
-          .then(res => res.json())
-          .then(data => setLoyaltyPoints(data.points || 0))
-          .catch(err => console.error('Failed to fetch loyalty points:', err));
+          .then(res => {
+            if (!res.ok) {
+              if (res.status === 401) return { balance: 0 }; // Gracefully handle expired/invalid session
+              throw new Error(`Failed to fetch balance: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (typeof data.balance === 'number') {
+              setLoyaltyPoints(data.balance);
+            }
+          })
+          .catch(err => console.error('Error fetching loyalty points:', err));
       };
 
       fetch('/api/admin/features', {
@@ -86,9 +96,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           setFeatures([]);
         });
 
-      if (user?.role === 'customer') {
-        fetchPoints();
-      }
+      // Always check for points if logged in, as any role might have earned them
+      fetchPoints();
 
       // Fetch categories
       fetch('/api/products')
@@ -106,7 +115,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       window.addEventListener('refreshPoints', handlePointsRefresh);
       return () => window.removeEventListener('refreshPoints', handlePointsRefresh);
     }
-  }, [token, user?.role]);
+  }, [token]);
 
   interface NavItem {
     id: string;
