@@ -9,6 +9,11 @@ export class StorageService {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
+    // Pre-create assets directory for centralized management
+    const assetsDir = path.join(this.uploadDir, 'assets');
+    if (!fs.existsSync(assetsDir)) {
+      fs.mkdirSync(assetsDir, { recursive: true });
+    }
   }
 
   /**
@@ -46,6 +51,34 @@ export class StorageService {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
+  }
+
+  /**
+   * Lists files in a subdirectory of uploads
+   */
+  static async listFiles(subDir: string = ''): Promise<{ name: string; url: string; size: number; mtime: Date }[]> {
+    const targetDir = path.join(this.uploadDir, subDir);
+    if (!fs.existsSync(targetDir)) return [];
+
+    const files = fs.readdirSync(targetDir);
+    const result = [];
+
+    for (const file of files) {
+      const filePath = path.join(targetDir, file);
+      const stats = fs.statSync(filePath);
+      
+      if (stats.isFile()) {
+        const relativePath = subDir ? `${subDir}/${file}` : file;
+        result.push({
+          name: file,
+          url: `/uploads/${relativePath}`,
+          size: stats.size,
+          mtime: stats.mtime
+        });
+      }
+    }
+
+    return result.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
   }
 
   /**

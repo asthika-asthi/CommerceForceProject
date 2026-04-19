@@ -1,135 +1,158 @@
-[
-  {
-    "id": "w9m0yqzao",
-    "type": "content",
-    "enabled": true,
-    "config": {
-      "title": "",
-      "layoutType": "grid",
-      "rows": 1,
-      "columns": 2,
-      "items": [
-        {
-          "title": "Family Owned Business",
-          "body": "We are a family-owned business dedicated to providing top quality products at affordable prices. Purchase your tarpaulin, dust sheets and accessories today or contact us for more information.",
-          "imageUrl": "",
-          "alignment": "center",
-          "includeInGrid": true,
-          "link": "",
-          "displayMode": "side-by-side"
-        },
-        {
-          "title": "",
-          "body": "",
-          "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/PaintNRollers.png",
-          "alignment": "center",
-          "includeInGrid": true,
-          "link": ""
-        }
-      ]
+{
+  "sections": [
+    {
+      "id": "w9m0yqzao",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "Family Owned Business",
+            "body": "We are a family-owned business dedicated to providing top quality products at affordable prices. Purchase your tarpaulin, dust sheets and accessories today or contact us for more information.",
+            "imageUrl": "",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "",
+            "displayMode": "side-by-side"
+          },
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/PaintNRollers.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "qb49yuw5f",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 4,
+        "items": [
+          {
+            "title": "Paint Brushes & Rollers",
+            "body": "",
+            "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/PaintNRollers.png",
+            "alignment": "center",
+            "includeInGrid": false,
+            "link": "/category/PaintBrushes"
+          },
+          {
+            "title": "Dustsheets",
+            "body": "",
+            "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Dustsheets.png",
+            "alignment": "center",
+            "includeInGrid": false,
+            "link": "/category/dustsheets"
+          },
+          {
+            "title": "Sacks & Bags",
+            "body": "",
+            "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/sacksNbags.png",
+            "alignment": "center",
+            "includeInGrid": false,
+            "link": "/category/SackBags"
+          },
+          {
+            "title": "Tarpaulins",
+            "body": "",
+            "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Tarpaulines.png",
+            "alignment": "center",
+            "includeInGrid": false,
+            "link": "/category/tarpaulins"
+          }
+        ]
+      }
+    },
+    {
+      "id": "50eq75py7",
+      "type": "features",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "items": [
+          {
+            "title": "Why Trust Us",
+            "desc": "Tristar are a family owned, leading supplier in high quality, durable tarpaulin covers, dust sheets, sacks and bags and painting equipment. With years of experience, we are able to help you find all the equipment you need."
+          },
+          {
+            "title": "Delivery",
+            "desc": "We have earned a great reputation for a fast and prompt delivery of all our premium quality goods at competitive prices. Place an order on our website or get in touch and we will be happy to help."
+          },
+          {
+            "title": "Special Offers",
+            "desc": "Check out our fantastic deals and special offers. Keep up to date with our special offers page as we regularly update it with our amazing deals and offers, making sure you get the best price for your products."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rx0aolg66",
+      "type": "testimonials",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "items": [
+          {
+            "name": "John Doe",
+            "text": "A great friendly bunch"
+          },
+          {
+            "name": "Mary",
+            "text": "Great service!"
+          },
+          {
+            "name": "Anita",
+            "text": "Great Bargains!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "yjqketenp",
+      "type": "faq",
+      "enabled": true,
+      "config": {
+        "title": "Frequently Asked Questions",
+        "items": [
+          {
+            "q": "Question1?",
+            "a": "My Answer here."
+          }
+        ]
+      }
+    },
+    {
+      "id": "c3qv295b4",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Content Section",
+        "layoutType": "standard",
+        "rows": 1,
+        "columns": 3,
+        "items": [
+          {
+            "title": "Test image URL",
+            "body": "Enter your content here...",
+            "imageUrl": "/uploads/assets/3618fde2-d1a2-4dee-976e-8fb7a1154e36.PNG",
+            "alignment": "center",
+            "includeInGrid": false,
+            "link": ""
+          }
+        ]
+      }
     }
-  },
-  {
-    "id": "qb49yuw5f",
-    "type": "content",
-    "enabled": true,
-    "config": {
-      "title": "",
-      "layoutType": "grid",
-      "rows": 1,
-      "columns": 4,
-      "items": [
-        {
-          "title": "Paint Brushes & Rollers",
-          "body": "",
-          "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/PaintNRollers.png",
-          "alignment": "center",
-          "includeInGrid": false,
-          "link": "/category/PaintBrushes"
-        },
-        {
-          "title": "Dustsheets",
-          "body": "",
-          "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Dustsheets.png",
-          "alignment": "center",
-          "includeInGrid": false,
-          "link": "/category/dustsheets"
-        },
-        {
-          "title": "Sacks & Bags",
-          "body": "",
-          "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/sacksNbags.png",
-          "alignment": "center",
-          "includeInGrid": false,
-          "link": "/category/SackBags"
-        },
-        {
-          "title": "Tarpaulins",
-          "body": "",
-          "imageUrl": "https://storage.googleapis.com/commerceforce-base-bucket/tristarltd/Tarpaulines.png",
-          "alignment": "center",
-          "includeInGrid": false,
-          "link": "/category/tarpaulins"
-        }
-      ]
-    }
-  },
-  {
-    "id": "50eq75py7",
-    "type": "features",
-    "enabled": true,
-    "config": {
-      "title": "",
-      "items": [
-        {
-          "title": "Why Trust Us",
-          "desc": "Tristar are a family owned, leading supplier in high quality, durable tarpaulin covers, dust sheets, sacks and bags and painting equipment. With years of experience, we are able to help you find all the equipment you need."
-        },
-        {
-          "title": "Delivery",
-          "desc": "We have earned a great reputation for a fast and prompt delivery of all our premium quality goods at competitive prices. Place an order on our website or get in touch and we will be happy to help."
-        },
-        {
-          "title": "Special Offers",
-          "desc": "Check out our fantastic deals and special offers. Keep up to date with our special offers page as we regularly update it with our amazing deals and offers, making sure you get the best price for your products."
-        }
-      ]
-    }
-  },
-  {
-    "id": "rx0aolg66",
-    "type": "testimonials",
-    "enabled": true,
-    "config": {
-      "title": "",
-      "items": [
-        {
-          "name": "John Doe",
-          "text": "A great friendly bunch"
-        },
-        {
-          "name": "Mary",
-          "text": "Great service!"
-        },
-        {
-          "name": "Anita",
-          "text": "Great Bargains!"
-        }
-      ]
-    }
-  },
-  {
-    "id": "yjqketenp",
-    "type": "faq",
-    "enabled": true,
-    "config": {
-      "title": "Frequently Asked Questions",
-      "items": [
-        {
-          "q": "Question1?",
-          "a": "My Answer here."
-        }
-      ]
-    }
-  }
-]
+  ]
+}

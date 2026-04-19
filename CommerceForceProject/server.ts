@@ -22,6 +22,7 @@ import couponRoutes from "./server/routes/coupon.routes.ts";
 import stripeRoutes from "./server/routes/stripe.routes.ts";
 import configRoutes from "./server/routes/config.routes.ts";
 import importRoutes from "./server/routes/import.routes.ts";
+import storageRoutes from "./server/routes/storage.routes.ts";
 import { AdminService } from "./server/services/admin.service.ts";
 import { ConfigService } from "./server/services/config.service.ts";
 import { StorageService } from "./server/services/storage.service.ts";
@@ -56,6 +57,7 @@ export async function createApp() {
   app.use("/api/stripe", stripeRoutes);
   app.use("/api/config", configRoutes);
   app.use("/api/admin/import", importRoutes);
+  app.use("/api/storage", storageRoutes);
 
   app.get("/api/branding", async (req, res) => {
     try {
