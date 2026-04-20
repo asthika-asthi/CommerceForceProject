@@ -147,6 +147,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       title: 'Store',
       items: [
         { id: 'products', label: 'Products', icon: Package, roles: ['admin', 'superadmin', 'client', 'customer'] },
+        { id: 'my-orders', label: 'MyOrders', icon: ShoppingCart, roles: ['customer'] },
         { id: 'orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'superadmin', 'client'] },
         { id: 'coupons', label: 'Promotions', icon: Ticket, roles: ['admin', 'superadmin', 'client'] },
         { id: 'rfq', label: 'RFQs', icon: FileText, roles: ['admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
@@ -432,7 +433,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   Platform Status
                 </span>
                 <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
-                  v1.0.0-dev
+                  v2.6.0-enterprise
                 </span>
               </div>
             </div>

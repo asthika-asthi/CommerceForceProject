@@ -18,6 +18,7 @@ import { UsersAdmin } from './pages/admin/Users';
 import { CouponsAdmin } from './pages/admin/Coupons';
 import { InventoryAlerts } from './pages/admin/InventoryAlerts';
 import { SystemTools } from './pages/admin/SystemTools';
+import { MyOrders } from './pages/MyOrders';
 import { CustomerRFQ } from './pages/CustomerRFQ';
 import { Checkout } from './pages/Checkout';
 import { Cart } from './pages/Cart';
@@ -96,7 +97,7 @@ function AppContent() {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq'].includes(rootPath)) {
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders'].includes(rootPath)) {
       return rootPath;
     }
     
@@ -133,7 +134,7 @@ function AppContent() {
       setPathname(currentPath);
       const path = currentPath.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq'].includes(rootPath)) {
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -173,6 +174,7 @@ function AppContent() {
         { id: 'users', roles: ['superadmin'] },
         { id: 'system-tools', roles: ['superadmin'] },
         { id: 'customer-rfq', roles: ['customer', 'admin', 'superadmin', 'client'] },
+        { id: 'my-orders', roles: ['customer', 'admin', 'superadmin', 'client'] },
         { id: 'contact', roles: ['customer', 'admin', 'superadmin', 'client'] },
         { id: 'contact-us', roles: ['customer', 'admin', 'superadmin', 'client'] },
       ];
@@ -232,6 +234,8 @@ function AppContent() {
         return <CouponsAdmin />;
       case 'inventory-alerts':
         return <InventoryAlerts />;
+      case 'my-orders':
+        return <MyOrders />;
       case 'customer-rfq':
         return <CustomerRFQ />;
       case 'contact':

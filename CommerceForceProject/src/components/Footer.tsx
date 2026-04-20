@@ -7,6 +7,36 @@ export const Footer = () => {
 
   if (!config) return null;
 
+  const [email, setEmail] = React.useState('');
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = React.useState('');
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) return;
+
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus('success');
+        setEmail('');
+        setMessage(data.message || 'Thank you for subscribing!');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Failed to subscribe. Please try again.');
+      }
+    } catch (err) {
+      setStatus('error');
+      setMessage('An error occurred. Please try again later.');
+    }
+  };
+
   const footerStyle = config.footer_use_brand_color 
     ? { backgroundColor: config.primary_color || 'var(--secondary-color)', color: '#ffffff' }
     : { backgroundColor: '#ffffff', color: 'var(--secondary-color)' };
@@ -91,16 +121,27 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className={`text-[10px] font-bold uppercase tracking-widest ${headingClass}`}>Newsletter</h4>
             <p className={`text-xs ${opacityClass}`}>Subscribe for the latest updates and exclusive offers.</p>
-            <div className="relative">
-              <input 
-                type="email" 
-                placeholder="email@example.com"
-                className={`w-full bg-black/5 border ${borderClass} rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] transition-all`}
-              />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[var(--primary-color)] text-white rounded-lg hover:brightness-110 transition-all">
-                <ArrowRight size={14} />
-              </button>
-            </div>
+            <form onSubmit={handleSubscribe} className="space-y-3">
+              <div className="relative">
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  disabled={status === 'loading' || status === 'success'}
+                  className={`w-full bg-black/5 border ${borderClass} rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] transition-all disabled:opacity-50`}
+                />
+                <button 
+                  type="submit"
+                  disabled={status === 'loading' || status === 'success'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[var(--primary-color)] text-white rounded-lg hover:brightness-110 transition-all disabled:opacity-50"
+                >
+                  <ArrowRight size={14} className={status === 'loading' ? 'animate-pulse' : ''} />
+                </button>
+              </div>
+              {status === 'success' && <p className="text-[10px] text-green-600 font-bold uppercase tracking-wider">{message}</p>}
+              {status === 'error' && <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider">{message}</p>}
+            </form>
           </div>
         </div>
 
