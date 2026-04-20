@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { ProductService } from '../services/product.service';
 import { AdminService } from '../services/admin.service';
-import { isAuthenticated, isAdmin } from '../middleware/auth.middleware';
+import { isAuthenticated, isAdmin, isSuperAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -71,7 +71,7 @@ router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
+router.delete('/:id', isAuthenticated, isSuperAdmin, async (req, res) => {
   try {
     const product = await ProductService.getById(req.params.id);
     await ProductService.delete(req.params.id);
@@ -80,6 +80,9 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
     }
     res.status(204).end();
   } catch (error: any) {
+    if (error.message?.includes('FOREIGN KEY') || error.message?.includes('constraint')) {
+      return res.status(400).json({ error: 'Cannot delete product with existing orders or inventory. Try deactivating it instead.' });
+    }
     res.status(500).json({ error: error.message });
   }
 });

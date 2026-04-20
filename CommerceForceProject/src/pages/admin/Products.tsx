@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Product, FeatureFlag } from '../../shared/types';
 import { useBranding } from '../../context/BrandingContext';
-import { Search, Plus, MoreHorizontal, Filter, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Filter, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, ShoppingBag, AlertTriangle, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -194,6 +194,33 @@ export const Products = () => {
     fetchProducts();
     if (token) fetchFeatures();
   }, [token]);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone if there are no associated orders.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete product');
+      }
+
+      fetchProducts();
+      if (editingProduct?.id === id) {
+        handleCloseModal();
+      }
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -419,13 +446,23 @@ export const Products = () => {
                       {product.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="p-6 text-right">
+                  <td className="p-6 text-right flex items-center justify-end gap-2">
                     <button 
                       onClick={() => handleEdit(product)}
                       className="p-2 hover:bg-black/5 rounded-xl transition-all"
+                      title="Edit Product"
                     >
                       <MoreHorizontal size={18} />
                     </button>
+                    {user?.role === 'superadmin' && (
+                      <button 
+                        onClick={() => handleDelete(product.id)}
+                        className="p-2 hover:bg-red-50 text-red-500 rounded-xl transition-all"
+                        title="Delete Product"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
