@@ -158,7 +158,7 @@ export class OrderService {
         `, [item.id, item.order_id, item.product_id, item.quantity, item.unit_price, item.total_price]);
         
         // Deduct stock
-        await WarehouseService.deductStock(item.product_id, item.quantity);
+        await WarehouseService.deductStock(item.product_id, item.quantity, client);
       }
 
       // Award loyalty points
@@ -175,33 +175,36 @@ export class OrderService {
     const order = await this.getById(orderId);
     const brandingConfig = await AdminService.getBranding();
 
-    // Send admin notification email
-    try {
-      if (brandingConfig?.admin_email) {
+    // Send emails asynchronously to prevent blocking the response
+    (async () => {
+      // Send admin notification email
+      try {
+        if (brandingConfig?.admin_email) {
+          const user = await AuthService.getUserById(userId);
+          const currency = brandingConfig?.currency_symbol || '£';
+          await EmailService.sendEmail(
+            brandingConfig.admin_email,
+            `New Order Received - #${orderId.substring(0, 8)}`,
+            `A new order has been placed by ${user.name} (${user.email}).\n\nOrder ID: ${orderId}\nTotal Amount: ${currency}${order!.total_amount.toLocaleString()}\nPayment Method: ${paymentMethodId?.toUpperCase()}`
+          );
+        }
+      } catch (err) {
+        console.error('Failed to send admin order notification email:', err);
+      }
+
+      // Send order confirmation email
+      try {
         const user = await AuthService.getUserById(userId);
         const currency = brandingConfig?.currency_symbol || '£';
         await EmailService.sendEmail(
-          brandingConfig.admin_email,
-          `New Order Received - #${orderId.substring(0, 8)}`,
-          `A new order has been placed by ${user.name} (${user.email}).\n\nOrder ID: ${orderId}\nTotal Amount: ${currency}${order!.total_amount.toLocaleString()}\nPayment Method: ${paymentMethodId?.toUpperCase()}`
+          user.email,
+          `Order Confirmation - #${order!.id.substring(0, 8)}`,
+          `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for ${currency}${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethodId?.toUpperCase()}`
         );
+      } catch (err) {
+        console.error('Failed to send order confirmation email:', err);
       }
-    } catch (err) {
-      console.error('Failed to send admin order notification email:', err);
-    }
-
-    // Send order confirmation email
-    try {
-      const user = await AuthService.getUserById(userId);
-      const currency = brandingConfig?.currency_symbol || '£';
-      await EmailService.sendEmail(
-        user.email,
-        `Order Confirmation - #${order!.id.substring(0, 8)}`,
-        `Hi ${user.name},\n\nThank you for your order! Your order #${order!.id.substring(0, 8)} for ${currency}${order!.total_amount.toLocaleString()} has been received and is being processed. Payment Method: ${paymentMethodId?.toUpperCase()}`
-      );
-    } catch (err) {
-      console.error('Failed to send order confirmation email:', err);
-    }
+    })().catch(err => console.error('Background order email failed:', err));
 
     return order!;
   }

@@ -80,7 +80,9 @@ export const Footer = () => {
               )}
               <div className="flex items-start gap-3">
                 <MapPin size={14} className={opacityClass} />
-                <span className={`text-xs leading-relaxed ${headingClass}`}>Global HQ<br />Technology District, North America</span>
+                <span className={`text-xs leading-relaxed whitespace-pre-line ${headingClass}`}>
+                  {config.footer_address || 'Global HQ\nTechnology District, North America'}
+                </span>
               </div>
             </div>
           </div>

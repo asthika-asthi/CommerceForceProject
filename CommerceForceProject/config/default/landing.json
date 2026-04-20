@@ -1,259 +1,30 @@
 {
   "sections": [
     {
-      "id": "w9m0yqzao",
-      "type": "content",
-      "enabled": true,
+      "type": "hero",
       "config": {
-        "title": "",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 3,
-        "items": [
-          {
-            "title": "Why Trust Us",
-            "body": "We are a family-owned business dedicated to providing top quality products at affordable prices. Purchase your tarpaulin, dust sheets and accessories today or contact us for more information.",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": "",
-            "displayMode": "side-by-side"
-          },
-          {
-            "title": "Delivery",
-            "body": "We have earned a great reputation for a fast and prompt delivery of all our premium quality goods at competitive prices. Place an order on our website or get in touch and we will be happy to help.",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          },
-          {
-            "title": "Special Offers",
-            "body": "Check out our fantastic deals and special offers. Keep up to date with our special offers on products as we regularly update it with our amazing deals and offers, making sure you get the best price for your products",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          }
-        ]
+        "title": "Welcome to Our Premium Store",
+        "subtitle": "Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.",
+        "backgroundColor": "#1e3a8a",
+        "cta_text": "Explore Collection",
+        "cta_link": "/products"
       }
     },
     {
-      "id": "qb49yuw5f",
-      "type": "content",
-      "enabled": true,
-      "config": {
-        "title": "",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 4,
-        "items": [
-          {
-            "title": "Paint Brushes & Rollers",
-            "body": "",
-            "imageUrl": "uploads/assets/72912174-0059-4f3a-bf25-1579fd8a9366.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": "/category/PaintBrushes"
-          },
-          {
-            "title": "Dustsheets",
-            "body": "",
-            "imageUrl": "uploads/assets/f710a581-a9c7-4412-a068-44a3f62269ce.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": "/category/dustsheets"
-          },
-          {
-            "title": "Sacks & Bags",
-            "body": "",
-            "imageUrl": "uploads/assets/baecb81c-db4e-4d85-a774-2182b18ccd25.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": "/category/SackBags"
-          },
-          {
-            "title": "Tarpaulins",
-            "body": "",
-            "imageUrl": "uploads/assets/7f384915-9e2b-4b01-a519-29530bfa995b.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": "/category/tarpaulins"
-          }
-        ]
-      }
-    },
-    {
-      "id": "50eq75py7",
       "type": "features",
-      "enabled": true,
       "config": {
-        "title": "",
         "items": [
           {
-            "title": "Why Trust Us",
-            "desc": "Tristar are a family owned, leading supplier in high quality, durable tarpaulin covers, dust sheets, sacks and bags and painting equipment. With years of experience, we are able to help you find all the equipment you need."
+            "title": "Fast Delivery",
+            "desc": "Global shipping with real-time tracking for all orders."
           },
           {
-            "title": "Delivery",
-            "desc": "We have earned a great reputation for a fast and prompt delivery of all our premium quality goods at competitive prices. Place an order on our website or get in touch and we will be happy to help."
+            "title": "Secure Payments",
+            "desc": "Enterprise-grade security for all your transactions."
           },
           {
-            "title": "Special Offers",
-            "desc": "Check out our fantastic deals and special offers. Keep up to date with our special offers page as we regularly update it with our amazing deals and offers, making sure you get the best price for your products."
-          }
-        ]
-      }
-    },
-    {
-      "id": "rx0aolg66",
-      "type": "testimonials",
-      "enabled": true,
-      "config": {
-        "title": "",
-        "items": [
-          {
-            "name": "John Doe",
-            "text": "A great friendly bunch"
-          },
-          {
-            "name": "Mary",
-            "text": "Great service!"
-          },
-          {
-            "name": "Anita",
-            "text": "Great Bargains!"
-          }
-        ]
-      }
-    },
-    {
-      "id": "yjqketenp",
-      "type": "faq",
-      "enabled": true,
-      "config": {
-        "title": "Frequently Asked Questions",
-        "items": [
-          {
-            "q": "Question1?",
-            "a": "My Answer here."
-          }
-        ]
-      }
-    },
-    {
-      "id": "c3qv295b4",
-      "type": "content",
-      "enabled": true,
-      "config": {
-        "title": "",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 2,
-        "items": [
-          {
-            "title": "Cotton Dust Sheets and tarpaulin suppliers throughout the UK",
-            "body": "If you are looking for high-quality and durable tarpaulin covers, dust sheets, sacks and bags, paint brushes and more; look no further than Tristar UK Ltd. All our products are directly sourced from Europe, India and the Far East; and we ensure all they are all of superior quality. ",
-            "imageUrl": "",
-            "alignment": "left",
-            "includeInGrid": true,
-            "link": "",
-            "displayMode": "side-by-side"
-          },
-          {
-            "title": "",
-            "body": "",
-            "imageUrl": "uploads/assets/35479608-91ae-4fdd-b917-8dc079715dec.jpg",
-            "alignment": "right",
-            "includeInGrid": true,
-            "link": ""
-          }
-        ]
-      }
-    },
-    {
-      "id": "mgkdd4mjn",
-      "type": "content",
-      "enabled": true,
-      "config": {
-        "title": "",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 2,
-        "items": [
-          {
-            "title": "",
-            "body": "",
-            "imageUrl": "uploads/assets/4833a29a-17ad-4489-b9b0-4b31aeaaa11f.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          },
-          {
-            "title": "Experienced",
-            "body": "Tristar are leading tool suppliers in Stevenage with almost 30 years of industry knowledge and experience we can help you find the perfect equipment and tools for your project. We stock a fully comprehensive range of tarpaulin, dust sheets and decorating accessories in a range of thickness and sizes. We have a wide variety and can help you find the most suitable products for your projects. Whether it be keeping your goods dry, protection against harsh weathers, or covering furniture while decorating we have it all. We also stock a wide range of sacks and bags including heavy duty rubble sacks and bin liners, wheelie bins liners; and paint brushes and rollers and painting supplies and equipment. ",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          }
-        ]
-      }
-    },
-    {
-      "id": "wy6ej8ttg",
-      "type": "content",
-      "enabled": true,
-      "config": {
-        "title": "",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 2,
-        "items": [
-          {
-            "title": "Family-Owned Business",
-            "body": "We are a family-owned business dedicated to providing you with top quality products and affordable prices. Purchase your tarpaulin, dust sheets and accessories today or give us a call for more information.",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          },
-          {
-            "title": "",
-            "body": "",
-            "imageUrl": "uploads/assets/dbad565a-7788-490d-8cc3-5f1f1fa69da2.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          }
-        ]
-      }
-    },
-    {
-      "id": "mlelve1ou",
-      "type": "content",
-      "enabled": true,
-      "config": {
-        "title": "Content Section",
-        "layoutType": "grid",
-        "rows": 1,
-        "columns": 2,
-        "items": [
-          {
-            "title": "",
-            "body": "",
-            "imageUrl": "uploads/assets/8aa503c9-5901-47c4-86be-d6784b83f517.jpg",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
-          },
-          {
-            "title": "Help & Advice",
-            "body": "Do you need help choosing the right tarpaulin for you?\nThen check out our FAQ guide or call us on 01438 880 178",
-            "imageUrl": "",
-            "alignment": "center",
-            "includeInGrid": true,
-            "link": ""
+            "title": "Premium Quality",
+            "desc": "Only the finest products sourced from trusted manufacturers."
           }
         ]
       }

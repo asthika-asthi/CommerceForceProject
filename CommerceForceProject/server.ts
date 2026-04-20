@@ -1,13 +1,17 @@
 import { config as dotenvConfig } from 'dotenv';
-const dotenvResult = dotenvConfig();
-console.log('Dotenv Load Result:', { 
-  error: dotenvResult.error ? dotenvResult.error.message : 'None',
-  parsed: dotenvResult.parsed ? Object.keys(dotenvResult.parsed) : 'None'
-});
+import fs from 'fs';
+import path from 'path';
+
+// Only load .env if it exists
+if (fs.existsSync(path.join(process.cwd(), '.env'))) {
+  dotenvConfig();
+  console.log('.env file loaded');
+} else {
+  console.log('No .env file found, using system environment variables');
+}
 
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import path from "path";
 import { fileURLToPath } from "url";
 import { initDb } from "./server/db.ts";
 import adminRoutes from "./server/routes/admin.routes.ts";

@@ -82,8 +82,9 @@ export class WarehouseService {
     }));
   }
 
-  static async updateStock(warehouseId: string, productId: string, quantity: number, minStockLevel?: number): Promise<Inventory> {
-    const existingResult = await db.query('SELECT id FROM inventory WHERE warehouse_id = ? AND product_id = ?', [warehouseId, productId]);
+  static async updateStock(warehouseId: string, productId: string, quantity: number, minStockLevel?: number, client?: any): Promise<Inventory> {
+    const query = client ? db.queryWithClient.bind(db, client) : db.query.bind(db);
+    const existingResult = await query('SELECT id FROM inventory WHERE warehouse_id = ? AND product_id = ?', [warehouseId, productId]);
     const existing = existingResult.rows[0];
 
     if (existing) {
@@ -96,16 +97,16 @@ export class WarehouseService {
       }
       
       values.push(existing.id);
-      await db.query(`UPDATE inventory SET ${sets.join(', ')} WHERE id = ?`, values);
+      await query(`UPDATE inventory SET ${sets.join(', ')} WHERE id = ?`, values);
     } else {
       const id = uuidv4();
-      await db.query(`
+      await query(`
         INSERT INTO inventory (id, warehouse_id, product_id, quantity, min_stock_level)
         VALUES (?, ?, ?, ?, ?)
       `, [id, warehouseId, productId, quantity, minStockLevel || 0]);
     }
 
-    const inventoryResult = await db.query(`
+    const inventoryResult = await query(`
       SELECT i.*, p.name as product_name, p.sku as product_sku
       FROM inventory i
       JOIN products p ON i.product_id = p.id
@@ -119,21 +120,23 @@ export class WarehouseService {
       
       // Log alert to DB
       const alertId = uuidv4();
-      await db.query(`
+      await query(`
         INSERT INTO inventory_alerts (id, warehouse_id, product_id, quantity, min_stock_level)
         VALUES (?, ?, ?, ?, ?)
       `, [alertId, warehouseId, productId, inventory.quantity, inventory.min_stock_level]);
 
-      // In a real app, we'd send this to the warehouse manager or admin
-      try {
-        await EmailService.sendEmail(
-          'admin@commerceforce.com',
-          `Low Stock Alert: ${inventory.product_name}`,
-          `Stock for ${inventory.product_name} (SKU: ${inventory.product_sku}) in warehouse ${warehouse?.name} has fallen to ${inventory.quantity}, which is at or below the minimum level of ${inventory.min_stock_level}.`
-        );
-      } catch (err) {
-        console.error('Failed to send low stock email:', err);
-      }
+      // Fire and forget email to prevent blocking
+      (async () => {
+        try {
+          await EmailService.sendEmail(
+            'admin@commerceforce.com',
+            `Low Stock Alert: ${inventory.product_name}`,
+            `Stock for ${inventory.product_name} (SKU: ${inventory.product_sku}) in warehouse ${warehouse?.name} has fallen to ${inventory.quantity}, which is at or below the minimum level of ${inventory.min_stock_level}.`
+          );
+        } catch (err) {
+          console.error('Failed to send low stock email:', err);
+        }
+      })().catch(() => {});
     }
 
     return inventory;
@@ -154,13 +157,15 @@ export class WarehouseService {
     await db.query('UPDATE inventory_alerts SET status = ? WHERE id = ?', ['read', id]);
   }
 
-  static async getStockLevel(productId: string): Promise<number> {
-    const result = await db.query('SELECT SUM(quantity) as total FROM inventory WHERE product_id = ?', [productId]);
+  static async getStockLevel(productId: string, client?: any): Promise<number> {
+    const query = client ? db.queryWithClient.bind(db, client) : db.query.bind(db);
+    const result = await query('SELECT SUM(quantity) as total FROM inventory WHERE product_id = ?', [productId]);
     return Number(result.rows[0]?.total || 0);
   }
 
-  static async deductStock(productId: string, quantity: number): Promise<void> {
-    const result = await db.query(`
+  static async deductStock(productId: string, quantity: number, client?: any): Promise<void> {
+    const query = client ? db.queryWithClient.bind(db, client) : db.query.bind(db);
+    const result = await query(`
       SELECT * FROM inventory 
       WHERE product_id = ? AND quantity >= ? 
       ORDER BY quantity DESC LIMIT 1
@@ -168,11 +173,10 @@ export class WarehouseService {
     const inventory = result.rows[0];
 
     if (!inventory) {
-      // If no single warehouse has enough, we could split it, but for now let's throw
       throw new Error(`Insufficient stock for product ${productId}`);
     }
 
     const newQuantity = inventory.quantity - quantity;
-    await this.updateStock(inventory.warehouse_id, productId, newQuantity);
+    await this.updateStock(inventory.warehouse_id, productId, newQuantity, undefined, client);
   }
 }

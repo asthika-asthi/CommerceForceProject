@@ -71,7 +71,7 @@ export const Branding = () => {
   const defaultPaymentMethods: PaymentMethodConfig[] = [
     { id: 'cash', name: 'Cash on Delivery', description: 'Pay when you receive your order', enabled: true, order: 0, type: 'cash' },
     { id: 'credit_limit', name: 'Credit Limit', description: 'Charge to your approved credit limit', enabled: true, order: 1, type: 'credit_limit' },
-    { id: 'stripe', name: 'Credit Card', description: 'Secure payment via Credit or Debit card', enabled: true, order: 2, type: 'stripe', config: { publicKey: '', secretKey: '' } },
+    { id: 'stripe', name: 'Credit Card', description: 'Secure payment via Credit or Debit card', enabled: false, order: 2, type: 'stripe', config: { publicKey: '', secretKey: '' } },
     { id: 'paypal', name: 'PayPal', description: 'Pay via your PayPal account', enabled: false, order: 3, type: 'paypal' },
     { id: 'razorpay', name: 'Razorpay', description: 'Secure payment via Razorpay', enabled: false, order: 4, type: 'razorpay' },
   ];

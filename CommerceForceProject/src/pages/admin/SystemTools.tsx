@@ -65,7 +65,7 @@ export const SystemTools = () => {
     }
 
     // Size validation
-    const isPdf = file.type === 'application/pdf';
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const maxSize = (isPdf ? 12 : 5) * 1024 * 1024;
     
     if (file.size > maxSize) {

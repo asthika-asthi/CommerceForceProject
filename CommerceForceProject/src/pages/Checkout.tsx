@@ -36,6 +36,9 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
       return methods
         .filter(m => m.enabled)
         .filter(m => {
+          if (m.type === 'stripe' && !m.config?.publicKey) {
+            return false;
+          }
           if (m.type === 'credit_limit') {
             return b2bEnabled && (user?.credit_limit || 0) > 0;
           }

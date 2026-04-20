@@ -432,7 +432,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   Platform Status
                 </span>
                 <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
-                  v2.6.0-enterprise
+                  v1.0.0-dev
                 </span>
               </div>
             </div>

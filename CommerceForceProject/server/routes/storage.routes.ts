@@ -35,7 +35,7 @@ router.post('/upload', isAuthenticated, isAdmin, upload.single('file'), async (r
     }
 
     // PDF specific size limit (12MB) vs others (5MB)
-    const isPdf = req.file.mimetype === 'application/pdf';
+    const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf');
     const limit = isPdf ? 12 * 1024 * 1024 : 5 * 1024 * 1024;
 
     if (req.file.size > limit) {
