@@ -173,7 +173,9 @@ export class WarehouseService {
     const inventory = result.rows[0];
 
     if (!inventory) {
-      throw new Error(`Insufficient stock for product ${productId}`);
+      const productResult = await query('SELECT name FROM products WHERE id = ?', [productId]);
+      const productName = productResult.rows[0]?.name || productId;
+      throw new Error(`Insufficient stock for product: ${productName}`);
     }
 
     const newQuantity = inventory.quantity - quantity;

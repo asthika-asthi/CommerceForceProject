@@ -40,7 +40,9 @@ router.post('/validate-stock', async (req, res) => {
     for (const item of items) {
       const stock = await WarehouseService.getStockLevel(item.productId);
       if (stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for product. Available: ${stock}` });
+        const product = await ProductService.getById(item.productId);
+        const productName = product?.name || 'Product';
+        return res.status(400).json({ error: `Insufficient stock for ${productName}. Available: ${stock}` });
       }
     }
 

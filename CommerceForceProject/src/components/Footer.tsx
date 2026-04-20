@@ -4,12 +4,11 @@ import { Mail, MapPin, Phone, Instagram, Twitter, Facebook, Linkedin, ArrowRight
 
 export const Footer = () => {
   const { config } = useBranding();
-
-  if (!config) return null;
-
   const [email, setEmail] = React.useState('');
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = React.useState('');
+
+  if (!config) return null;
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
