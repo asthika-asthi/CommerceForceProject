@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useBranding } from '../../context/BrandingContext';
 import { CartModal } from '../CartModal';
 import { Footer } from '../Footer';
+import { AIChat } from '../AIChat';
 import { FeatureFlag } from '../../shared/types';
 
 interface NavItemProps {
@@ -183,6 +184,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
         { id: 'customer-rfq', label: 'My RFQs', icon: FileText, roles: ['customer', 'admin', 'superadmin', 'client'], feature: 'rfq_enabled' },
         { id: 'contact', label: 'Support Center', icon: MessageSquare, roles: ['customer', 'admin', 'superadmin', 'client'], enabled: config?.contact_page_enabled },
         { id: 'contact-us', label: 'Contact Us', icon: Mail, roles: ['customer', 'admin', 'superadmin', 'client'] },
+        { id: 'faq', label: 'FAQ', icon: HelpCircle, roles: ['customer', 'admin', 'superadmin', 'client'] },
         ...(config?.catalogue_url ? [{ 
           id: 'catalogue', 
           label: 'Catalogue', 
@@ -467,6 +469,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           />
         )}
       </AnimatePresence>
+      <AIChat />
     </div>
   );
 };

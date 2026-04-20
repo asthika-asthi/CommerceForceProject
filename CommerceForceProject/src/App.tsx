@@ -29,6 +29,7 @@ import { CartProvider, useCart } from './context/CartContext';
 import { BrandingProvider, useBranding } from './context/BrandingContext';
 import { LoginPage } from './pages/LoginPage';
 import { CategoryPage } from './pages/CategoryPage';
+import { FAQ } from './pages/FAQPage';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -95,7 +96,7 @@ function AppContent() {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
+    if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq'].includes(rootPath)) {
       return rootPath;
     }
     
@@ -132,7 +133,7 @@ function AppContent() {
       setPathname(currentPath);
       const path = currentPath.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register'].includes(rootPath)) {
+      if (rootPath && ['landing', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -195,7 +196,7 @@ function AppContent() {
     );
   }
 
-  const publicTabs = ['landing', 'products', 'category', 'contact', 'contact-us', 'cart', 'login', 'register'];
+  const publicTabs = ['landing', 'products', 'category', 'contact', 'contact-us', 'cart', 'login', 'register', 'faq'];
   const isPublicTab = publicTabs.includes(activeTab);
 
   if (!user && !isPublicTab) {
@@ -248,6 +249,8 @@ function AppContent() {
         return <UsersAdmin />;
       case 'system-tools':
         return <SystemTools />;
+      case 'faq':
+        return <FAQ />;
       default:
         return <Dashboard />;
     }

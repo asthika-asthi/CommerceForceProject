@@ -11,6 +11,7 @@ import {
   Database,
   HardDrive,
   Image as ImageIcon,
+  FileText as FileIcon,
   Trash2,
   Copy,
   ExternalLink
@@ -57,9 +58,9 @@ export const SystemTools = () => {
     if (!file || !token) return;
 
     // Type validation
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'];
     if (!allowed.includes(file.type)) {
-      setError('Invalid file type. Only images (JPG, PNG, GIF, WEBP, SVG) are allowed.');
+      setError('Invalid file type. Only images (JPG, PNG, GIF, WEBP, SVG) and PDFs are allowed.');
       return;
     }
 
@@ -83,14 +84,14 @@ export const SystemTools = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccess('Image uploaded successfully');
+        setSuccess('File uploaded successfully');
         fetchAssets();
         setTimeout(() => setSuccess(null), 3000);
       } else {
         setError(data.error || 'Upload failed');
       }
     } catch (err) {
-      setError('Network error uploading image');
+      setError('Network error uploading file');
     } finally {
       setIsUploadingAsset(false);
       // Reset input
@@ -239,7 +240,7 @@ export const SystemTools = () => {
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-serif italic text-[#141414] mb-2">System Tools (INTERNAL)</h1>
+          <h1 className="text-4xl font-serif italic text-[#141414] mb-2">System Tools</h1>
           <p className="text-sm opacity-60 font-mono uppercase tracking-widest">Advanced Configuration & Bulk Operations</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white border border-[#141414] text-[10px] font-mono uppercase tracking-widest">
@@ -278,7 +279,7 @@ export const SystemTools = () => {
           <div className="relative w-full sm:w-auto">
             <input 
               type="file" 
-              accept="image/*"
+              accept="image/*,.pdf"
               onChange={handleAssetUpload}
               disabled={isUploadingAsset}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
@@ -304,7 +305,7 @@ export const SystemTools = () => {
         >
           <input 
             type="file" 
-            accept="image/*"
+            accept="image/*,.pdf"
             onChange={handleAssetUpload}
             disabled={isUploadingAsset}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
@@ -316,9 +317,12 @@ export const SystemTools = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              <ImageIcon size={32} className="opacity-20 mx-auto mb-2" />
+              <div className="flex justify-center gap-4 mb-2">
+                <ImageIcon size={32} className="opacity-20" />
+                <FileIcon size={32} className="opacity-20" />
+              </div>
               <p className="text-sm font-medium">Drag & drop files here, or click to browse</p>
-              <p className="text-[10px] opacity-40 uppercase tracking-widest">Supports JPG, PNG, WEBP, SVG • Max 5MB</p>
+              <p className="text-[10px] opacity-40 uppercase tracking-widest">Supports JPG, PNG, WEBP, SVG, PDF • Max 5MB</p>
             </div>
           )}
         </div>
@@ -335,54 +339,68 @@ export const SystemTools = () => {
               <p className="text-xs font-mono uppercase opacity-40">No assets stored yet</p>
             </div>
           ) : (
-            assets.map((asset) => (
-              <div key={asset.name} className="group relative bg-white border border-[#141414]/10 rounded-2xl overflow-hidden transition-all hover:border-[#141414]/30 hover:shadow-md">
-                <div className="aspect-[4/3] bg-[#f9f9f9] relative overflow-hidden flex items-center justify-center p-2 border-b border-[#141414]/5">
-                  <img 
-                    src={asset.url} 
-                    alt={asset.name} 
-                    className="max-w-full max-h-full object-contain transition-transform group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
+            assets.map((asset) => {
+              const rotate = (asset.name.charCodeAt(0) % 6) - 3;
+              const isPdf = asset.name.toLowerCase().endsWith('.pdf');
+              
+              return (
+                <div key={asset.name} className="group relative bg-white border border-[#141414]/10 rounded-2xl overflow-hidden transition-all hover:border-[#141414]/30 hover:shadow-md">
+                  <div className="aspect-[4/3] bg-[#f9f9f9] relative overflow-hidden flex items-center justify-center p-2 border-b border-[#141414]/5">
+                    {isPdf ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-16 h-20 bg-rose-50 border border-rose-100 rounded flex flex-col items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform">
+                          <div className="absolute top-0 right-0 w-6 h-6 bg-rose-500 text-white text-[8px] flex items-center justify-center font-bold">PDF</div>
+                          <FileIcon size={32} className="text-rose-500" />
+                        </div>
+                      </div>
+                    ) : (
+                      <img 
+                        src={asset.url} 
+                        alt={asset.name} 
+                        className="max-w-full max-h-full object-contain transition-transform group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
+                    
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => copyToClipboard(window.location.origin + asset.url)}
+                        className="p-2 bg-white text-[#141414] rounded-lg hover:bg-[#f0f0f0] transition-colors"
+                        title="Copy URL"
+                      >
+                        <Copy size={16} />
+                      </button>
+                      <a 
+                        href={asset.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-2 bg-white text-[#141414] rounded-lg hover:bg-[#f0f0f0] transition-colors"
+                        title="View Full Size"
+                      >
+                        <ExternalLink size={16} />
+                      </a>
+                      <button 
+                        onClick={() => deleteAsset(asset.name)}
+                        className="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                        title="Delete Asset"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
                   
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button 
-                      onClick={() => copyToClipboard(window.location.origin + asset.url)}
-                      className="p-2 bg-white text-[#141414] rounded-lg hover:bg-[#f0f0f0] transition-colors"
-                      title="Copy URL"
-                    >
-                      <Copy size={16} />
-                    </button>
-                    <a 
-                      href={asset.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2 bg-white text-[#141414] rounded-lg hover:bg-[#f0f0f0] transition-colors"
-                      title="View Full Size"
-                    >
-                      <ExternalLink size={16} />
-                    </a>
-                    <button 
-                      onClick={() => deleteAsset(asset.name)}
-                      className="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
-                      title="Delete Asset"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <div className="p-3 space-y-1">
+                    <p className="text-[10px] font-mono truncate font-bold text-[#141414]" title={asset.name}>
+                      {asset.name}
+                    </p>
+                    <div className="flex justify-between items-center text-[9px] font-mono opacity-40 uppercase tracking-tighter">
+                      <span>{(asset.size / 1024).toFixed(0)} KB</span>
+                      <span>{new Date(asset.mtime).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="p-3 space-y-1">
-                  <p className="text-[10px] font-mono truncate font-bold text-[#141414]" title={asset.name}>
-                    {asset.name}
-                  </p>
-                  <div className="flex justify-between items-center text-[9px] font-mono opacity-40 uppercase tracking-tighter">
-                    <span>{(asset.size / 1024).toFixed(0)} KB</span>
-                    <span>{new Date(asset.mtime).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

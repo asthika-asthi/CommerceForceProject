@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
 import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
-import { AIChat } from '../components/AIChat';
 import { Carousel } from '../components/Carousel';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
@@ -400,10 +399,9 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
                   </div>
                   <div className="relative z-10 space-y-4">
                     <h3 className="text-2xl font-bold">Can't find what you're looking for?</h3>
-                    <p className="text-white/80 leading-relaxed">Our AI assistant is trained on our specific products and services to give you accurate, real-time answers.</p>
+                    <p className="text-white/80 leading-relaxed">Our AI assistant is trained on our specific products and services to give you accurate, real-time answers. Just click the help icon at the bottom of your screen!</p>
                   </div>
                 </div>
-                <AIChat />
               </div>
             </div>
           </section>

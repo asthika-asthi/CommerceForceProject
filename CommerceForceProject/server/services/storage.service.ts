@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 export class StorageService {
   private static uploadDir = path.join(process.cwd(), 'uploads');
@@ -16,6 +15,25 @@ export class StorageService {
     }
   }
 
+  private static normalizeFileName(fileName: string): string {
+    const ext = path.extname(fileName).toLowerCase();
+    const nameWithoutExt = path.basename(fileName, path.extname(fileName));
+    
+    let normalized = nameWithoutExt
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')           // spaces to hyphens
+      .replace(/[^a-z0-9-]/g, '')     // remove non-alphanumeric (except hyphens)
+      .replace(/-+/g, '-')             // collapse multiple hyphens
+      .replace(/^-+|-+$/g, '');       // trim hyphens from start/end
+    
+    if (!normalized) {
+      normalized = 'file';
+    }
+    
+    return `${normalized}${ext}`;
+  }
+
   /**
    * Saves a file from a Multer buffer or temporary path
    */
@@ -27,9 +45,13 @@ export class StorageService {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    const fileExt = path.extname(file.originalname);
-    const fileName = `${uuidv4()}${fileExt}`;
+    const fileName = this.normalizeFileName(file.originalname);
     const filePath = path.join(targetDir, fileName);
+
+    // Duplicate detection - case-insensitive check (already handled by normalization to lowercase)
+    if (fs.existsSync(filePath)) {
+      throw new Error(`Resource with ID '${fileName}' already exists.`);
+    }
 
     // If file is in buffer (memoryStorage)
     if (file.buffer) {

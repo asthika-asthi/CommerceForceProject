@@ -29,9 +29,9 @@ router.post('/upload', isAuthenticated, isAdmin, upload.single('file'), async (r
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'];
     if (!allowedTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ error: 'Invalid file type. Only images are allowed.' });
+      return res.status(400).json({ error: 'Invalid file type. Only images and PDFs are allowed.' });
     }
 
     const relativePath = await StorageService.saveFile(req.file, 'assets');
@@ -44,7 +44,7 @@ router.post('/upload', isAuthenticated, isAdmin, upload.single('file'), async (r
       path: relativePath
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -60,7 +60,7 @@ router.delete('/files/:filename', isAuthenticated, isAdmin, async (req, res) => 
     await StorageService.deleteFile(`assets/${filename}`);
     res.json({ success: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 });
 
