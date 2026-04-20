@@ -70,11 +70,29 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ amount: totalPrice - couponDiscount })
+          body: JSON.stringify({ 
+            amount: totalPrice - couponDiscount,
+            items: items
+              .filter(item => item.product)
+              .map(item => ({
+                productId: item.product.id,
+                quantity: item.quantity
+              }))
+          })
         })
         .then(res => res.json())
-        .then(data => setClientSecret(data.clientSecret))
-        .catch(err => console.error('Failed to create payment intent:', err));
+        .then(data => {
+          if (data.error) {
+            setError(data.error);
+            setClientSecret('');
+          } else {
+            setClientSecret(data.clientSecret);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to create payment intent:', err);
+          setError('Failed to initialize payment. Please try again.');
+        });
       }
     }
   }, [paymentMethod, totalPrice, couponDiscount, token, availablePaymentMethods]);
@@ -150,6 +168,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
       window.dispatchEvent(new CustomEvent('refreshPoints'));
     } catch (err: any) {
       setError(err.message);
+      throw err; // Rethrow to allow caller (like Stripe form) to know success failed
     } finally {
       setIsSubmitting(false);
     }
@@ -271,6 +290,13 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             </div>
           </section>
 
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm animate-in fade-in slide-in-from-top-2">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
           {paymentMethod && availablePaymentMethods.find(m => m.id === paymentMethod)?.type === 'stripe' ? (
             stripePromise && clientSecret ? (
               <section className="bg-white p-8 rounded-[32px] border border-[#141414]/5 shadow-sm animate-in fade-in slide-in-from-bottom-4">
@@ -278,6 +304,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <StripePaymentForm 
                     amount={totalPrice - couponDiscount}
+                    items={items}
                     onSuccess={() => handleSubmit(new Event('submit') as any)}
                     onError={(err) => setError(err)}
                   />
@@ -291,7 +318,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                   {!stripePromise && (
                     <div className="mt-4 p-3 bg-rose-50 text-rose-600 text-xs rounded-xl flex items-center gap-2">
                       <AlertCircle size={14} />
-                      Stripe is not configured correctly.
+                      Payment gateway is not fully configured.
                     </div>
                   )}
                 </div>
@@ -299,13 +326,6 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             )
           ) : (
             <>
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm">
-                  <AlertCircle size={18} />
-                  {error}
-                </div>
-              )}
-
               <button
                 onClick={(e) => {
                   e.preventDefault();

@@ -27,6 +27,29 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Stock validation endpoint
+router.post('/validate-stock', async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ error: 'Items array is required' });
+    }
+
+    const { WarehouseService } = await import('../services/warehouse.service');
+    
+    for (const item of items) {
+      const stock = await WarehouseService.getStockLevel(item.productId);
+      if (stock < item.quantity) {
+        return res.status(400).json({ error: `Insufficient stock for product. Available: ${stock}` });
+      }
+    }
+
+    res.json({ valid: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Admin routes
 router.post('/', isAuthenticated, isAdmin, async (req, res) => {
   try {

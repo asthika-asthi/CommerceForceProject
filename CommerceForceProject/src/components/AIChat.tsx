@@ -110,7 +110,7 @@ INTERACTION GUIDELINES:
       const ai = new GoogleGenAI({ apiKey: key });
       
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3-flash",
         contents: userMessage,
         config: {
           systemInstruction: generateSystemInstruction(),

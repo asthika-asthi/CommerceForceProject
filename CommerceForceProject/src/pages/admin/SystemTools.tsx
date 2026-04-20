@@ -64,9 +64,12 @@ export const SystemTools = () => {
       return;
     }
 
-    // Size validation (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File too large. Max size is 5MB.');
+    // Size validation
+    const isPdf = file.type === 'application/pdf';
+    const maxSize = (isPdf ? 12 : 5) * 1024 * 1024;
+    
+    if (file.size > maxSize) {
+      setError(`File too large. Max size for ${isPdf ? 'PDFs' : 'images'} is ${isPdf ? '12MB' : '5MB'}.`);
       return;
     }
 
@@ -322,7 +325,7 @@ export const SystemTools = () => {
                 <FileIcon size={32} className="opacity-20" />
               </div>
               <p className="text-sm font-medium">Drag & drop files here, or click to browse</p>
-              <p className="text-[10px] opacity-40 uppercase tracking-widest">Supports JPG, PNG, WEBP, SVG, PDF • Max 5MB</p>
+              <p className="text-[10px] opacity-40 uppercase tracking-widest">Supports JPG, PNG, WEBP, SVG, PDF • Max 5MB (12MB for PDFs)</p>
             </div>
           )}
         </div>

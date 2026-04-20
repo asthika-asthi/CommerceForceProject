@@ -8,9 +8,27 @@ const router = Router();
 
 router.post('/create-payment-intent', isAuthenticated, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, items } = req.body;
     if (!amount) {
       return res.status(400).json({ error: 'Amount is required' });
+    }
+
+    // Optional stock validation if items are provided
+    if (items && Array.isArray(items)) {
+      const { WarehouseService } = await import('../services/warehouse.service');
+      const { AuthService } = await import('../services/auth.service');
+      const { OrderService } = await import('../services/order.service');
+
+      for (const item of items) {
+        const stock = await WarehouseService.getStockLevel(item.productId);
+        if (stock < item.quantity) {
+          const { ProductService } = await import('../services/product.service');
+          const product = await ProductService.getById(item.productId);
+          return res.status(400).json({ 
+            error: `Insufficient stock for ${product?.name || 'one of the items'}. Only ${stock} available.` 
+          });
+        }
+      }
     }
 
     // Get Stripe secret key from branding config

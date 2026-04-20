@@ -7,7 +7,7 @@ const router = Router();
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 12 * 1024 * 1024 // 12MB general limit
   }
 });
 
@@ -32,6 +32,16 @@ router.post('/upload', isAuthenticated, isAdmin, upload.single('file'), async (r
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'];
     if (!allowedTypes.includes(req.file.mimetype)) {
       return res.status(400).json({ error: 'Invalid file type. Only images and PDFs are allowed.' });
+    }
+
+    // PDF specific size limit (12MB) vs others (5MB)
+    const isPdf = req.file.mimetype === 'application/pdf';
+    const limit = isPdf ? 12 * 1024 * 1024 : 5 * 1024 * 1024;
+
+    if (req.file.size > limit) {
+      return res.status(400).json({ 
+        error: `File too large. Max size for ${isPdf ? 'PDFs' : 'images'} is ${isPdf ? '12MB' : '5MB'}.` 
+      });
     }
 
     const relativePath = await StorageService.saveFile(req.file, 'assets');
