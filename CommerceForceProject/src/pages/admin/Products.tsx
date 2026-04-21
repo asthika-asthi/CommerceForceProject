@@ -454,7 +454,7 @@ export const Products = () => {
                     >
                       <MoreHorizontal size={18} />
                     </button>
-                    {user?.role === 'superadmin' && (
+                    {(user?.role === 'superadmin' || user?.role === 'admin') && (
                       <button 
                         onClick={() => handleDelete(product.id)}
                         className="p-2 hover:bg-red-50 text-red-500 rounded-xl transition-all"

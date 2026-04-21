@@ -42,7 +42,7 @@ router.post('/validate-stock', async (req, res) => {
       if (stock < item.quantity) {
         const product = await ProductService.getById(item.productId);
         const productName = product?.name || 'Product';
-        return res.status(400).json({ error: `Insufficient stock for ${productName}. Available: ${stock}` });
+        return res.status(400).json({ error: `We're sorry, it looks like we don't have enough of ${productName} in stock. We only have ${stock} units available at this time.` });
       }
     }
 
@@ -73,7 +73,7 @@ router.put('/:id', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
-router.delete('/:id', isAuthenticated, isSuperAdmin, async (req, res) => {
+router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const product = await ProductService.getById(req.params.id);
     await ProductService.delete(req.params.id);

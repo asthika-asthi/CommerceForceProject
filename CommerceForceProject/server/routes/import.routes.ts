@@ -114,7 +114,9 @@ router.get("/config/export", async (req, res) => {
       'payment_methods_config', 'currency_symbol', 'currency_code', 'base_font_size', 
       'hero_font_size', 'heading_font_size', 'content_font_size', 'carousel_enabled', 
       'hero_enabled', 'carousel_images', 'catalogue_url', 'admin_email', 'footer_tagline',
-      'loyalty_points_per_currency', 'loyalty_redemption_value', 'loyalty_program_name', 'loyalty_banner_image'
+      'loyalty_points_per_currency', 'loyalty_redemption_value', 'loyalty_program_name', 'loyalty_banner_image',
+      'category_display_style', 'nav_font_family', 'nav_text_color', 
+      'sidebar_font_size', 'sidebar_font_weight', 'top_nav_font_size', 'top_nav_font_weight'
     ];
 
     const fullBranding: any = {};

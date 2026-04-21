@@ -33,6 +33,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const primary = config.primary_color || '#1A56DB';
     const secondary = config.secondary_color || '#4B5563';
 
+    root.style.fontSize = `${config.base_font_size || 16}px`;
     root.style.setProperty('--primary-color', primary);
     root.style.setProperty('--primary-color-light', `${primary}15`);
     
@@ -49,6 +50,14 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.style.setProperty('--hero-font-size', `${config.hero_font_size || 48}px`);
     root.style.setProperty('--heading-font-size', `${config.heading_font_size || 32}px`);
     root.style.setProperty('--content-font-size', `${config.content_font_size || 16}px`);
+
+    // Navigation Customization
+    root.style.setProperty('--nav-font-family', config.nav_font_family || config.font_family || 'Inter');
+    root.style.setProperty('--nav-text-color', config.nav_text_color || '#141414');
+    root.style.setProperty('--sidebar-font-size', `${config.sidebar_font_size || 14}px`);
+    root.style.setProperty('--sidebar-font-weight', config.sidebar_font_weight || '500');
+    root.style.setProperty('--top-nav-font-size', `${config.top_nav_font_size || 12}px`);
+    root.style.setProperty('--top-nav-font-weight', config.top_nav_font_weight || '500');
 
     // Apply Background
     document.body.style.backgroundColor = '';

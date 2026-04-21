@@ -159,24 +159,28 @@ export const Dashboard = () => {
 
       {systemHealthEnabled && (
         <div className="bg-white border border-[#141414] p-4 flex flex-wrap items-center gap-x-8 gap-y-2 text-[10px] font-mono uppercase tracking-widest">
-          <span className="opacity-40">System Health:</span>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span>Database: Optimal</span>
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+              <span>Database: Optimal</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+              <span>API: Active</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+              <span>Storage: Connected</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+              <span>Jobs: 3 Pending</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span>API: Active</span>
+          <div className="ml-auto flex items-center gap-4">
+            <span className="opacity-30">Core v2.5.1</span>
+            <span className="px-2 py-1 bg-green-600 text-white rounded font-bold shadow-sm shadow-green-600/20">v2.6.0-enterprise</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span>Storage: Connected</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-            <span>Jobs: 3 Pending</span>
-          </div>
-          <span className="ml-auto opacity-30">v2.5.1</span>
         </div>
       )}
 

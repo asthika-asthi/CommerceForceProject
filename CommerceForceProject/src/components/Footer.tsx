@@ -8,8 +8,6 @@ export const Footer = () => {
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = React.useState('');
 
-  if (!config) return null;
-
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) return;
@@ -35,6 +33,8 @@ export const Footer = () => {
       setMessage('An error occurred. Please try again later.');
     }
   };
+
+  if (!config) return null;
 
   const footerStyle = config.footer_use_brand_color 
     ? { backgroundColor: config.primary_color || 'var(--secondary-color)', color: '#ffffff' }

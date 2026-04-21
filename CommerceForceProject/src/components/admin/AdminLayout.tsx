@@ -20,10 +20,16 @@ interface NavItemProps {
 const NavItem = ({ icon: Icon, label, active, onClick }: NavItemProps) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+    style={{ 
+      fontFamily: 'var(--nav-font-family)', 
+      color: active ? 'white' : 'var(--nav-text-color)', 
+      fontSize: 'var(--sidebar-font-size)',
+      fontWeight: 'var(--sidebar-font-weight)'
+    }}
+    className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${
       active 
         ? 'bg-[var(--primary-color)] text-white shadow-lg shadow-[var(--primary-color)]/20 rounded-xl' 
-        : 'text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-xl'
+        : 'opacity-70 hover:opacity-100 hover:bg-black/5 rounded-xl'
     }`}
   >
     <Icon size={18} />
@@ -50,7 +56,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
   const b2bEnabled = features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true;
   const rfqEnabled = features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true;
-  const loyaltyEnabled = features.find(f => f.feature_key === 'loyalty_program')?.enabled ?? true;
+  const loyaltyEnabled = features.find(f => f.feature_key === 'loyalty_program')?.enabled ?? false;
 
   const toggleSection = (title: string) => {
     setOpenSections(prev => 
@@ -241,13 +247,17 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     {config?.company_name?.charAt(0) || 'C'}
                   </div>
                 )}
-                <span className="font-bold text-lg tracking-tight text-[#141414] truncate max-w-[140px]">
+                <span 
+                  style={{ color: 'var(--nav-text-color)' }}
+                  className="font-bold text-lg tracking-tight truncate max-w-[140px]"
+                >
                   {config?.company_name || 'CommerceForce'}
                 </span>
               </div>
             )}
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{ color: 'var(--nav-text-color)' }}
               className="p-2 hover:bg-black/5 rounded-xl transition-colors"
             >
               {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -260,7 +270,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 {isSidebarOpen ? (
                   <button 
                     onClick={() => toggleSection(section.title)}
-                    className="w-full flex items-center justify-between px-4 text-[10px] font-mono uppercase opacity-40 tracking-widest font-bold mb-2 hover:opacity-100 transition-opacity group"
+                    style={{ color: 'var(--nav-text-color)' }}
+                    className="w-full flex items-center justify-between px-4 text-[10px] font-mono uppercase tracking-widest font-bold mb-2 hover:opacity-100 transition-opacity group"
                   >
                     <span>{section.title}</span>
                     <ChevronDown size={12} className={`transition-transform duration-200 ${openSections.includes(section.title) ? 'rotate-180' : ''}`} />
@@ -326,50 +337,108 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
         <header className="h-20 border-b border-black/5 bg-white/80 backdrop-blur-md z-10 sticky top-0">
           <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <h1 className="font-bold text-xl text-[#141414] tracking-tight">
+              <h1 
+                style={{ color: 'var(--nav-text-color)' }}
+                className="font-bold text-xl tracking-tight"
+              >
                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || config?.company_name || 'CommerceForce'}
               </h1>
               
               <nav className="hidden lg:flex items-center gap-8">
-                <div className="relative group">
-                  <button className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] flex items-center gap-1 transition-colors">
-                    Categories <ChevronDown size={14} />
-                  </button>
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
-                    {categories.length > 0 ? (
-                      categories.map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => {
-                            window.history.pushState({}, '', `/category/${cat}`);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                            setActiveTab('category');
-                          }}
-                          className="w-full text-left px-4 py-3 text-sm text-[#141414]/60 hover:text-[#141414] hover:bg-black/5 rounded-xl transition-all capitalize font-medium"
-                        >
-                          {cat}
-                        </button>
-                      ))
-                    ) : (
-                      <span className="block px-4 py-3 text-xs text-[#141414]/40 italic">No categories</span>
-                    )}
+                {config?.category_display_style === 'inline' ? (
+                  <div className="flex items-center gap-6">
+                    {categories.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          window.history.pushState({}, '', `/category/${cat}`);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                          setActiveTab('category');
+                        }}
+                        style={{ 
+                          fontFamily: 'var(--nav-font-family)', 
+                          color: 'var(--nav-text-color)',
+                          fontSize: 'var(--top-nav-font-size)',
+                          fontWeight: 'var(--top-nav-font-weight)'
+                        }}
+                        className="opacity-60 hover:opacity-100 transition-colors capitalize whitespace-nowrap"
+                      >
+                        {cat}
+                      </button>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="relative group">
+                    <button 
+                      style={{ 
+                        fontFamily: 'var(--nav-font-family)', 
+                        color: 'var(--nav-text-color)', 
+                        fontSize: 'var(--top-nav-font-size)',
+                        fontWeight: 'var(--top-nav-font-weight)'
+                      }}
+                      className="opacity-60 hover:opacity-100 flex items-center gap-1 transition-colors"
+                    >
+                      Categories <ChevronDown size={14} />
+                    </button>
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
+                      {categories.length > 0 ? (
+                        categories.map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => {
+                              window.history.pushState({}, '', `/category/${cat}`);
+                              window.dispatchEvent(new PopStateEvent('popstate'));
+                              setActiveTab('category');
+                            }}
+                            style={{ 
+                              fontFamily: 'var(--nav-font-family)', 
+                              color: 'var(--nav-text-color)',
+                              fontWeight: 'var(--top-nav-font-weight)'
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize"
+                          >
+                            {cat}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="block px-4 py-3 text-xs text-[#141414]/40 italic">No categories</span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <button 
                   onClick={() => setActiveTab('products')}
-                  className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] transition-colors"
+                  style={{ 
+                    fontFamily: 'var(--nav-font-family)', 
+                    color: 'var(--nav-text-color)', 
+                    fontSize: 'var(--top-nav-font-size)',
+                    fontWeight: 'var(--top-nav-font-weight)'
+                  }}
+                  className="opacity-60 hover:opacity-100 transition-colors"
                 >
                   Products
                 </button>
                 <button 
                   onClick={() => setActiveTab('contact')}
-                  className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] transition-colors"
+                  style={{ 
+                    fontFamily: 'var(--nav-font-family)', 
+                    color: 'var(--nav-text-color)', 
+                    fontSize: 'var(--top-nav-font-size)',
+                    fontWeight: 'var(--top-nav-font-weight)'
+                  }}
+                  className="opacity-60 hover:opacity-100 transition-colors"
                 >
                   Support
                 </button>
                 <button 
                   onClick={() => setActiveTab('contact-us')}
-                  className="text-sm font-medium text-[#141414]/60 hover:text-[#141414] transition-colors"
+                  style={{ 
+                    fontFamily: 'var(--nav-font-family)', 
+                    color: 'var(--nav-text-color)', 
+                    fontSize: 'var(--top-nav-font-size)',
+                    fontWeight: 'var(--top-nav-font-weight)'
+                  }}
+                  className="opacity-60 hover:opacity-100 transition-colors"
                 >
                   Contact
                 </button>
@@ -392,7 +461,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         window.history.pushState({}, '', '/login');
                         window.dispatchEvent(new PopStateEvent('popstate'));
                       }}
-                      className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                      style={{ color: 'var(--nav-text-color)' }}
+                      className="text-xs font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-colors"
                     >
                       Login
                     </button>
@@ -401,7 +471,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         window.history.pushState({}, '', '/register');
                         window.dispatchEvent(new PopStateEvent('popstate'));
                       }}
-                      className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-[#141414] transition-colors"
+                      style={{ color: 'var(--nav-text-color)' }}
+                      className="text-xs font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-colors"
                     >
                       Register
                     </button>
@@ -420,7 +491,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   onClick={() => setIsCartOpen(true)}
                   className="relative p-3 bg-white border border-black/5 rounded-2xl transition-all hover:shadow-lg group"
                 >
-                  <ShoppingBag size={20} className="text-[#141414]" />
+                  <ShoppingCart size={20} style={{ color: 'var(--nav-text-color)' }} />
                   {totalItems > 0 && (
                     <span className="absolute -top-1 -right-1 w-6 h-6 bg-[var(--primary-color)] text-white text-[10px] font-bold rounded-lg flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
                       {totalItems}
@@ -428,14 +499,6 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   )}
                 </button>
               )}
-              <div className="hidden md:flex flex-col items-end">
-                <span className="text-[10px] font-mono uppercase tracking-widest opacity-30 font-bold">
-                  Platform Status
-                </span>
-                <span className="text-[10px] font-mono text-green-600 font-bold uppercase">
-                  v2.6.0-enterprise
-                </span>
-              </div>
             </div>
           </div>
         </header>

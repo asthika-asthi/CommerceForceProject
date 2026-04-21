@@ -57,6 +57,6 @@ describe('Inventory Alerts Unit Tests', () => {
   });
 
   it('should throw error if stock is insufficient', async () => {
-    await expect(WarehouseService.deductStock(productId, 100)).rejects.toThrow(`Insufficient stock for product ${productId}`);
+    await expect(WarehouseService.deductStock(productId, 100)).rejects.toThrow(`We're sorry, but we don't have enough of ${productId} available to complete your request.`);
   });
 });

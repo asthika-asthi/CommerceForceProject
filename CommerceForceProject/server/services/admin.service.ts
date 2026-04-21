@@ -60,7 +60,14 @@ export class AdminService {
         { name: 'loyalty_points_per_currency', type: 'REAL DEFAULT 1' },
         { name: 'loyalty_redemption_value', type: 'REAL DEFAULT 100' },
         { name: 'loyalty_program_name', type: 'TEXT DEFAULT "Loyalty Points"' },
-        { name: 'loyalty_banner_image', type: 'TEXT' }
+        { name: 'loyalty_banner_image', type: 'TEXT' },
+        { name: 'category_display_style', type: 'TEXT DEFAULT "dropdown"' },
+        { name: 'nav_font_family', type: 'TEXT' },
+        { name: 'nav_text_color', type: 'TEXT' },
+        { name: 'sidebar_font_size', type: 'INTEGER DEFAULT 14' },
+        { name: 'sidebar_font_weight', type: 'TEXT DEFAULT "500"' },
+        { name: 'top_nav_font_size', type: 'INTEGER DEFAULT 12' },
+        { name: 'top_nav_font_weight', type: 'TEXT DEFAULT "500"' }
       ];
 
       for (const col of columns) {
@@ -110,7 +117,14 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS loyalty_points_per_currency NUMERIC(10,2) DEFAULT 1,
         ADD COLUMN IF NOT EXISTS loyalty_redemption_value NUMERIC(10,2) DEFAULT 100,
         ADD COLUMN IF NOT EXISTS loyalty_program_name TEXT DEFAULT 'Loyalty Points',
-        ADD COLUMN IF NOT EXISTS loyalty_banner_image TEXT
+        ADD COLUMN IF NOT EXISTS loyalty_banner_image TEXT,
+        ADD COLUMN IF NOT EXISTS category_display_style VARCHAR(20) DEFAULT 'dropdown',
+        ADD COLUMN IF NOT EXISTS nav_font_family TEXT,
+        ADD COLUMN IF NOT EXISTS nav_text_color TEXT,
+        ADD COLUMN IF NOT EXISTS sidebar_font_size INTEGER DEFAULT 14,
+        ADD COLUMN IF NOT EXISTS sidebar_font_weight VARCHAR(20) DEFAULT '500',
+        ADD COLUMN IF NOT EXISTS top_nav_font_size INTEGER DEFAULT 12,
+        ADD COLUMN IF NOT EXISTS top_nav_font_weight VARCHAR(20) DEFAULT '500'
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -132,7 +146,9 @@ export class AdminService {
             currency_symbol = ?, currency_code = ?,
             base_font_size = ?, hero_font_size = ?, heading_font_size = ?, content_font_size = ?,
             carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?, footer_tagline = ?,
-            loyalty_points_per_currency = ?, loyalty_redemption_value = ?, loyalty_program_name = ?, loyalty_banner_image = ?
+            loyalty_points_per_currency = ?, loyalty_redemption_value = ?, loyalty_program_name = ?, loyalty_banner_image = ?,
+            category_display_style = ?, nav_font_family = ?, nav_text_color = ?, 
+            sidebar_font_size = ?, sidebar_font_weight = ?, top_nav_font_size = ?, top_nav_font_weight = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -176,6 +192,13 @@ export class AdminService {
         config.loyalty_redemption_value !== undefined ? config.loyalty_redemption_value : current.loyalty_redemption_value,
         config.loyalty_program_name !== undefined ? config.loyalty_program_name : current.loyalty_program_name,
         config.loyalty_banner_image !== undefined ? config.loyalty_banner_image : current.loyalty_banner_image,
+        config.category_display_style || current.category_display_style || 'dropdown',
+        config.nav_font_family !== undefined ? config.nav_font_family : current.nav_font_family,
+        config.nav_text_color !== undefined ? config.nav_text_color : current.nav_text_color,
+        config.sidebar_font_size !== undefined ? config.sidebar_font_size : (current.sidebar_font_size || 14),
+        config.sidebar_font_weight !== undefined ? config.sidebar_font_weight : (current.sidebar_font_weight || '500'),
+        config.top_nav_font_size !== undefined ? config.top_nav_font_size : (current.top_nav_font_size || 12),
+        config.top_nav_font_weight !== undefined ? config.top_nav_font_weight : (current.top_nav_font_weight || '500'),
         current.id
       ]);
     }

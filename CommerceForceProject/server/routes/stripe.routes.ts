@@ -25,7 +25,7 @@ router.post('/create-payment-intent', isAuthenticated, async (req, res) => {
           const { ProductService } = await import('../services/product.service');
           const product = await ProductService.getById(item.productId);
           return res.status(400).json({ 
-            error: `Insufficient stock for ${product?.name || 'one of the items'}. Only ${stock} available.` 
+            error: `We're sorry, but we don't have enough ${product?.name || 'items'} in stock. We only have ${stock} available at the moment.` 
           });
         }
       }

@@ -413,6 +413,103 @@ export const Branding = () => {
                   />
                 </div>
               </div>
+
+              <div className="pt-6 border-t border-[#141414]/5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings size={18} className="text-blue-600" />
+                  <h3 className="font-bold text-lg uppercase tracking-tight">Navigation & Sidebar Customization</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Nav Font Family</label>
+                    <select
+                      value={config.nav_font_family || 'Inter'}
+                      onChange={e => setConfig({ ...config, nav_font_family: e.target.value })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="Inter">Inter (Modern Sans)</option>
+                      <option value="Space Grotesk">Space Grotesk (Tech)</option>
+                      <option value="Outfit">Outfit (Geometric)</option>
+                      <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+                      <option value="JetBrains Mono">JetBrains Mono (Technical)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Nav Text Color</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={config.nav_text_color || '#141414'}
+                        onChange={e => setConfig({ ...config, nav_text_color: e.target.value })}
+                        className="w-12 h-12 bg-transparent border-none cursor-pointer rounded-xl overflow-hidden"
+                      />
+                      <input
+                        type="text"
+                        value={config.nav_text_color || '#141414'}
+                        onChange={e => setConfig({ ...config, nav_text_color: e.target.value })}
+                        className="flex-1 bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Sidebar Font Size (px)</label>
+                    <input
+                      type="number"
+                      value={config.sidebar_font_size || 14}
+                      onChange={e => setConfig({ ...config, sidebar_font_size: parseInt(e.target.value) })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Sidebar Font Weight</label>
+                    <select
+                      value={config.sidebar_font_weight || '500'}
+                      onChange={e => setConfig({ ...config, sidebar_font_weight: e.target.value })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="300">Light (300)</option>
+                      <option value="400">Regular (400)</option>
+                      <option value="500">Medium (500)</option>
+                      <option value="600">Semibold (600)</option>
+                      <option value="700">Bold (700)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Top Nav Font Size (px)</label>
+                    <input
+                      type="number"
+                      value={config.top_nav_font_size || 12}
+                      onChange={e => setConfig({ ...config, top_nav_font_size: parseInt(e.target.value) })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Top Nav Font Weight</label>
+                    <select
+                      value={config.top_nav_font_weight || '500'}
+                      onChange={e => setConfig({ ...config, top_nav_font_weight: e.target.value })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="300">Light (300)</option>
+                      <option value="400">Regular (400)</option>
+                      <option value="500">Medium (500)</option>
+                      <option value="600">Semibold (600)</option>
+                      <option value="700">Bold (700)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Category Display Style</label>
+                    <select
+                      value={config.category_display_style || 'dropdown'}
+                      onChange={e => setConfig({ ...config, category_display_style: e.target.value as 'dropdown' | 'inline' })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="dropdown">Dropdown Menu</option>
+                      <option value="inline">Horizontal Navigation Bar</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

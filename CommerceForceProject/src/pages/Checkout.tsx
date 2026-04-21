@@ -67,6 +67,8 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
     if (paymentMethod) {
       const method = availablePaymentMethods.find(m => m.id === paymentMethod);
       if (method?.type === 'stripe' && token) {
+        setError(''); // Reset error when starting payment initialization
+        setClientSecret(''); // Reset client secret to force loader
         fetch('/api/stripe/create-payment-intent', {
           method: 'POST',
           headers: {
@@ -98,7 +100,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
         });
       }
     }
-  }, [paymentMethod, totalPrice, couponDiscount, token, availablePaymentMethods]);
+  }, [paymentMethod, totalPrice, couponDiscount, token]); // Removed availablePaymentMethods dependency to avoid loops
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
@@ -293,48 +295,67 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
             </div>
           </section>
 
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={18} />
-              {error}
-            </div>
-          )}
-
-          {paymentMethod && availablePaymentMethods.find(m => m.id === paymentMethod)?.type === 'stripe' ? (
-            stripePromise && clientSecret ? (
-              <section className="bg-white p-8 rounded-[32px] border border-[#141414]/5 shadow-sm animate-in fade-in slide-in-from-bottom-4">
-                <h3 className="text-lg font-bold mb-6">Card Details</h3>
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <StripePaymentForm 
-                    amount={totalPrice - couponDiscount}
-                    items={items}
-                    onSuccess={() => handleSubmit(new Event('submit') as any)}
-                    onError={(err) => setError(err)}
-                  />
-                </Elements>
-              </section>
-            ) : (
-              <div className="p-8 bg-white rounded-[32px] border border-[#141414]/5 text-center">
-                <div className="flex flex-col items-center justify-center py-4">
-                  <Loader2 className="animate-spin mb-4 opacity-20" size={32} />
-                  <p className="text-sm opacity-50">Initializing secure payment...</p>
-                  {!stripePromise && (
-                    <div className="mt-4 p-3 bg-rose-50 text-rose-600 text-xs rounded-xl flex items-center gap-2">
-                      <AlertCircle size={14} />
-                      Payment gateway is not fully configured.
-                    </div>
-                  )}
-                </div>
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-sm animate-in fade-in slide-in-from-top-2">
+                <AlertCircle size={18} />
+                <span className="flex-1">{error}</span>
+                {error.includes('stock') && (
+                  <button 
+                    onClick={() => {
+                      setError('');
+                      onBack();
+                    }}
+                    className="text-xs bg-red-100 px-2 py-1 rounded hover:bg-red-200 transition-colors"
+                  >
+                    Adjust Cart
+                  </button>
+                )}
               </div>
-            )
-          ) : (
-            <>
+            )}
+
+            {paymentMethod && availablePaymentMethods.find(m => m.id === paymentMethod)?.type === 'stripe' ? (
+              <div className="space-y-6">
+                {!clientSecret && !error && (
+                  <div className="p-8 bg-white rounded-[32px] border border-[#141414]/5 text-center">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <Loader2 className="animate-spin mb-4 opacity-20" size={32} />
+                      <p className="text-sm opacity-50">Initializing secure payment...</p>
+                      {!stripePromise && (
+                        <div className="mt-4 p-3 bg-rose-50 text-rose-600 text-xs rounded-xl flex items-center gap-2">
+                          <AlertCircle size={14} />
+                          Payment gateway is not fully configured.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {clientSecret && (!error || !error.toLowerCase().includes('stock')) && (
+                  <section className="bg-white p-8 rounded-[32px] border border-[#141414]/5 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                    <h3 className="text-lg font-bold mb-6">Card Details</h3>
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                      <StripePaymentForm 
+                        amount={totalPrice - couponDiscount}
+                        items={items}
+                        onSuccess={() => handleSubmit(new Event('submit') as any)}
+                        onError={(err) => {
+                          setError(err);
+                          if (err.toLowerCase().includes('stock')) {
+                            setClientSecret(''); // Force hide form on stock error
+                          }
+                        }}
+                      />
+                    </Elements>
+                  </section>
+                )}
+              </div>
+            ) : (
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   handleSubmit(e);
                 }}
-                disabled={isSubmitting || items.length === 0 || !shippingAddress}
+                disabled={isSubmitting || items.length === 0 || !shippingAddress || !!error}
                 className="w-full bg-[#141414] text-white py-4 rounded-[20px] font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : (
@@ -344,8 +365,7 @@ export const Checkout = ({ onBack }: { onBack: () => void }) => {
                   </>
                 )}
               </button>
-            </>
-          )}
+            )}
         </div>
 
         {/* Order Summary */}

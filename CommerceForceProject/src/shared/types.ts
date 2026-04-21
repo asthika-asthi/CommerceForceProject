@@ -42,6 +42,14 @@ export interface BrandingConfig {
   loyalty_redemption_value?: number;
   loyalty_program_name?: string;
   loyalty_banner_image?: string;
+  category_display_style?: 'dropdown' | 'inline';
+  // Font Customization
+  nav_font_family?: string;
+  nav_text_color?: string;
+  sidebar_font_size?: number;
+  sidebar_font_weight?: string;
+  top_nav_font_size?: number;
+  top_nav_font_weight?: string;
   created_at?: string;
 }
 
