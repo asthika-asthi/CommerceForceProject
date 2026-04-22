@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Product } from '../shared/types';
 import { useAuth } from './AuthContext';
 
@@ -76,7 +76,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user?.id, isLoading]);
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const addToCart = useCallback((product: Product, quantity = 1) => {
     setItems(prev => {
       const existing = prev.find(item => String(item.product.id) === String(product.id));
       if (existing) {
@@ -88,13 +88,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prev, { product, quantity }];
     });
-  };
+  }, []);
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = useCallback((productId: string) => {
     setItems(prev => prev.filter(item => String(item.product.id) !== String(productId)));
-  };
+  }, []);
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
@@ -104,12 +104,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         String(item.product.id) === String(productId) ? { ...item, quantity } : item
       )
     );
-  };
+  }, [removeFromCart]);
 
-  const clearCart = () => setItems([]);
+  const clearCart = useCallback(() => setItems([]), []);
 
-  const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-  const totalPrice = items.reduce((sum, item) => {
+  const totalItems = useMemo(() => items.reduce((sum, item) => sum + (item.quantity || 0), 0), [items]);
+  const totalPrice = useMemo(() => items.reduce((sum, item) => {
     if (!item.product) return sum;
     const basePrice = Number(item.product.base_price || 0);
     const salePercentage = Number(item.product.sale_percentage || 0);
@@ -117,18 +117,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? basePrice * (1 - salePercentage / 100)
       : basePrice;
     return sum + (price * (item.quantity || 0));
-  }, 0);
+  }, 0), [items]);
+
+  const contextValue = useMemo(() => ({
+    items,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    totalPrice
+  }), [items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice]);
 
   return (
-    <CartContext.Provider value={{
-      items,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      totalItems,
-      totalPrice
-    }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

@@ -227,28 +227,29 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
     }
   ];
 
-  const filteredSections = navSections.filter(section => {
-    // Check if section has required roles
-    if (section.roles && !section.roles.includes(user?.role || '')) return false;
-    
-    // Check if section feature is enabled
-    if (section.feature) {
-      const featureFlag = features.find(f => f.feature_key === section.feature);
-      if (!(featureFlag?.enabled ?? true)) return false;
-    }
+  const filteredSections = navSections
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        const hasRole = item.roles.includes(user?.role || '');
+        const featureFlag = features.find(f => f.feature_key === item.feature);
+        const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
+        const isExplicitlyEnabled = item.enabled !== undefined ? item.enabled : true;
+        return hasRole && isFeatureEnabled && isExplicitlyEnabled;
+      })
+    }))
+    .filter(section => {
+      // Check if section has required roles
+      if (section.roles && !section.roles.includes(user?.role || '')) return false;
+      
+      // Check if section feature is enabled
+      if (section.feature) {
+        const featureFlag = features.find(f => f.feature_key === section.feature);
+        if (!(featureFlag?.enabled ?? true)) return false;
+      }
 
-    // Filter items within section
-    const filteredItems = section.items.filter(item => {
-      const hasRole = item.roles.includes(user?.role || '');
-      const featureFlag = features.find(f => f.feature_key === item.feature);
-      const isFeatureEnabled = item.feature ? (featureFlag?.enabled ?? true) : true;
-      const isExplicitlyEnabled = item.enabled !== undefined ? item.enabled : true;
-      return hasRole && isFeatureEnabled && isExplicitlyEnabled;
+      return section.items.length > 0;
     });
-
-    section.items = filteredItems;
-    return filteredItems.length > 0;
-  });
 
   const hideSidebar = !user || filteredSections.length === 0;
 

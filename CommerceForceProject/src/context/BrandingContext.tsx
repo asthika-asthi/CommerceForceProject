@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { BrandingConfig } from '../shared/types';
 
 interface BrandingContextType {
@@ -13,7 +13,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [config, setConfig] = useState<BrandingConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchBranding = async () => {
+  const fetchBranding = useCallback(async () => {
     try {
       const res = await fetch('/api/branding');
       const data = await res.json();
@@ -24,7 +24,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const applyBranding = (config: BrandingConfig) => {
     if (!config) return;
@@ -98,7 +98,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     fetchBranding();
-  }, []);
+  }, [fetchBranding]);
 
   useEffect(() => {
     if (config) {
@@ -106,8 +106,14 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [config]);
 
+  const contextValue = useMemo(() => ({ 
+    config, 
+    isLoading, 
+    refreshBranding: fetchBranding 
+  }), [config, isLoading, fetchBranding]);
+
   return (
-    <BrandingContext.Provider value={{ config, isLoading, refreshBranding: fetchBranding }}>
+    <BrandingContext.Provider value={contextValue}>
       {children}
     </BrandingContext.Provider>
   );

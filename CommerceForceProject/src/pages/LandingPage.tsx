@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Product, LayoutSection } from '../shared/types';
 import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
@@ -6,7 +6,6 @@ import { useCart } from '../context/CartContext';
 import { motion } from 'motion/react';
 import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
 import { Carousel } from '../components/Carousel';
-
 import { useResponsiveStyle } from '../hooks/useResponsiveStyle';
 
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
@@ -17,12 +16,12 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [layout, setLayout] = useState<LayoutSection[]>([]);
 
-  const navigate = (path: string) => {
+  const navigate = useCallback((path: string) => {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
-  };
+  }, []);
 
-  const requireAuth = (product: Product) => {
+  const requireAuth = useCallback((product: Product) => {
     if (!user) {
       setPendingAction({
         type: 'BUY_NOW',
@@ -33,7 +32,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       return false;
     }
     return true;
-  };
+  }, [user, setPendingAction, navigate]);
 
   useEffect(() => {
     fetch('/api/products')
@@ -68,392 +67,6 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
     brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
     brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   }`;
-  
-  const StyledSection = ({ section, children }: { section: LayoutSection, children: React.ReactNode }) => {
-    const containerStyles = useResponsiveStyle(section.styles?.container);
-    return (
-      <section 
-        key={section.id} 
-        style={containerStyles}
-        className={`w-full overflow-hidden ${!section.styles?.container ? 'py-8' : ''}`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </section>
-    );
-  };
-
-  const renderSection = (section: LayoutSection) => {
-    if (!section.enabled) return null;
-
-    const titleStyles = useResponsiveStyle(section.styles?.title);
-    const subtitleStyles = useResponsiveStyle(section.styles?.subtitle);
-    const buttonStyles = useResponsiveStyle(section.styles?.button);
-    const cardStyles = useResponsiveStyle(section.styles?.card);
-    const gridStyles = section.styles?.grid;
-
-    // Grid config from styles if present, else fallback to config or defaults
-    const desktopCols = gridStyles?.desktop?.columns || section.config.columns || (section.type === 'category_grid' ? 4 : 3);
-    const mobileCols = gridStyles?.mobile?.columns || 1;
-    const tabletCols = gridStyles?.tablet?.columns || 2;
-    const gap = gridStyles?.desktop?.gap || section.config.gap || '2rem';
-    
-    const gridClassName = `grid gap-6 md:gap-8`;
-    const gridInlineStyles = {
-      gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))`,
-      gap: gap
-    };
-
-    // Responsive classes for columns
-    const responsiveGridClass = `grid grid-cols-${mobileCols} sm:grid-cols-${tabletCols} lg:grid-cols-${desktopCols}`;
-
-    // Helper for flexible mapping
-    const getConfig = (keys: string[]) => {
-      for (const key of keys) {
-        if (section.config[key] !== undefined) return section.config[key];
-      }
-      return undefined;
-    };
-
-    const title = getConfig(['title']);
-    const body = getConfig(['body', 'text', 'desc', 'subtitle']);
-    const imageUrl = getConfig(['imageUrl', 'image']);
-    const buttonText = getConfig(['buttonText', 'button_text', 'cta_text']);
-    const link = getConfig(['link', 'button_link', 'cta_link']);
-
-    switch (section.type) {
-      case 'features':
-        return (
-          <StyledSection section={section}>
-             <div className="space-y-12">
-              {title && (
-                <h2 style={titleStyles} className="text-3xl font-bold text-center">{title}</h2>
-              )}
-              <div 
-                className={responsiveGridClass}
-                style={{ gap: gap }}
-              >
-                {(section.config.items || []).map((feature: any, i: number) => (
-                  <div key={i} style={cardStyles} className="p-10 bg-white rounded-[32px] border border-black/5 shadow-sm hover:shadow-xl transition-all group">
-                    <div className="w-14 h-14 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                      <Star size={28} />
-                    </div>
-                    <h3 style={titleStyles} className="text-xl font-bold mb-3">{feature.title}</h3>
-                    <p style={subtitleStyles} className="text-sm text-black/50 leading-relaxed">{feature.desc || feature.text || feature.body}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'promotions':
-        return (
-          <StyledSection section={section}>
-            <div 
-              style={cardStyles} 
-              className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${!cardStyles.backgroundColor && section.config.variant === 'dark' ? 'bg-[var(--secondary-color)] text-white' : 'bg-white border border-black/5 shadow-sm'}`}
-            >
-              {imageUrl && (
-                <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
-                  <img src={imageUrl} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                </div>
-              )}
-              <div className="flex-1 space-y-6 text-center md:text-left">
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-50">{section.config.tag || 'Special Offer'}</span>
-                <h2 style={titleStyles} className="text-4xl font-bold leading-tight">{title}</h2>
-                <p style={subtitleStyles} className="text-lg opacity-60">{body}</p>
-                {buttonText && (
-                  <button 
-                    onClick={() => navigate(link || '#')}
-                    style={buttonStyles}
-                    className={`px-8 py-4 font-bold transition-all ${
-                      brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
-                      brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
-                    } ${!buttonStyles.backgroundColor && section.config.variant === 'dark' ? 'bg-white text-black hover:bg-[var(--primary-color)] hover:text-white' : 'bg-[var(--primary-color)] text-white hover:opacity-90'}`}
-                  >
-                    {buttonText}
-                  </button>
-                )}
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'products':
-        return (
-          <StyledSection section={section}>
-             <div className="space-y-12">
-              <div className="flex items-end justify-between px-4">
-                <div className="space-y-2">
-                  <h2 style={titleStyles} className="text-3xl font-bold tracking-tight">{title || 'Featured Products'}</h2>
-                  <p style={subtitleStyles} className="text-black/40 font-medium">{section.config.subtitle || 'Handpicked selections just for you'}</p>
-                </div>
-                <button onClick={onShopNow} className="text-sm font-bold text-[var(--primary-color)] hover:underline flex items-center gap-2">
-                  View All <ArrowRight size={16} />
-                </button>
-              </div>
-              <div 
-                className={responsiveGridClass}
-                style={{ gap: gap }}
-              >
-                {featuredProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    onAddToCart={() => {
-                      if (requireAuth(product)) {
-                        addToCart(product, 1);
-                      }
-                    }} 
-                  />
-                ))}
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'category_grid' as any:
-        return (
-          <StyledSection section={section}>
-            <div className="space-y-8">
-              {title && (
-                <div className="px-4">
-                  <h2 style={titleStyles} className="text-3xl font-bold tracking-tight">{title}</h2>
-                </div>
-              )}
-              <div 
-                className={responsiveGridClass}
-                style={{ gap: gap }}
-              >
-                {(section.config.items || []).map((item: any, i: number) => (
-                  <div 
-                    key={i} 
-                    onClick={() => item.link && navigate(item.link)}
-                    style={cardStyles}
-                    className="group relative aspect-square rounded-[32px] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all"
-                  >
-                    <img 
-                      src={item.image || item.imageUrl} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                      <h3 style={titleStyles} className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                      <div className="flex items-center gap-2 text-white/70 text-sm font-bold group-hover:text-white transition-colors">
-                        Shop Now <ArrowRight size={14} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </StyledSection>
-        );
-// ... continue with other cases
-
-      case 'content':
-        const items = section.config.items || [{ title: title, body: body, imageUrl: imageUrl, alignment: section.config.layout === 'right-image' ? 'right' : section.config.layout === 'left-image' ? 'left' : 'center' }];
-        const isGrid = section.config.layoutType === 'grid';
-        const gridItems = items.filter((item: any) => item.includeInGrid);
-
-        return (
-          <StyledSection section={section}>
-             <div className="space-y-12">
-              {section.config.title && (
-                 <h2 style={titleStyles} className="text-4xl font-bold text-center mb-4">{section.config.title}</h2>
-              )}
-              
-              <div className="space-y-12">
-                {items.map((item: any, i: number) => {
-                  const hasImage = !!item.imageUrl;
-                  const hasText = !!(item.title || item.body);
-                  const alignment = item.alignment || 'center';
-                  
-                  if (isGrid && item.includeInGrid) {
-                     const firstGridIndex = items.findIndex((it: any) => it.includeInGrid);
-                     if (i !== firstGridIndex) return null;
-
-                     return (
-                       <div key={`grid-${i}`} className={responsiveGridClass} style={{ gap }}>
-                         {gridItems.map((gItem: any, gi: number) => (
-                           <div 
-                             key={gi} 
-                             onClick={() => gItem.link && navigate(gItem.link)}
-                             style={cardStyles}
-                             className={`flex flex-col gap-6 p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all h-full ${
-                               gItem.link ? 'cursor-pointer hover:scale-[1.02] duration-300' : ''
-                             } ${
-                               gItem.alignment === 'left' ? 'text-left items-start' :
-                               gItem.alignment === 'right' ? 'text-right items-end' : 'text-center items-center'
-                             }`}
-                           >
-                             {gItem.imageUrl && (
-                               <div className="w-full aspect-video rounded-3xl overflow-hidden mb-2 shrink-0">
-                                 <img src={gItem.imageUrl} alt={gItem.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                               </div>
-                             )}
-                             <div className={`space-y-3 flex-1 w-full ${
-                               gItem.alignment === 'left' ? 'text-left' :
-                               gItem.alignment === 'right' ? 'text-right' : 'text-center'
-                             }`}>
-                               {gItem.title && <h3 style={titleStyles} className="text-2xl font-bold">{gItem.title}</h3>}
-                               {gItem.body && <p style={subtitleStyles} className="text-black/60 leading-relaxed whitespace-pre-wrap">{gItem.body}</p>}
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     );
-                  }
-
-                  const isStacked = item.displayMode === 'stacked' || alignment === 'center' || !hasImage || !hasText;
-                  
-                  return (
-                    <div 
-                      key={i} 
-                      onClick={() => item.link && navigate(item.link)}
-                      className={`flex flex-col ${isStacked ? 'items-center text-center' : 'md:flex-row items-center gap-16'} w-full transition-all ${
-                        item.link ? 'cursor-pointer hover:opacity-90 group/content' : ''
-                      } ${
-                        !isStacked && alignment === 'right' ? 'md:flex-row-reverse text-right' : 
-                        !isStacked && alignment === 'left' ? 'text-left' : ''
-                      }`}
-                    >
-                      {hasText && (
-                        <div className={`flex-1 space-y-8 ${isStacked ? 'w-full' : ''}`}>
-                          {item.title && <h2 style={titleStyles} className="text-5xl font-bold leading-tight tracking-tight group-hover/content:text-[var(--primary-color)] transition-colors">{item.title}</h2>}
-                          {item.body && <div style={subtitleStyles} className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium content-text">{item.body}</div>}
-                        </div>
-                      )}
-                      {hasImage && (
-                        <div className={`w-full ${hasText && !isStacked ? 'md:w-1/2' : 'w-full'} aspect-video rounded-[48px] overflow-hidden shadow-2xl transition-transform ${item.link ? 'group-hover/content:scale-[1.02]' : 'hover:scale-[1.02]'} duration-500`}>
-                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'testimonials':
-        return (
-          <StyledSection section={section}>
-             <div className="space-y-12">
-              {section.config.title && (
-                <h2 style={titleStyles} className="text-3xl font-bold text-center">{section.config.title}</h2>
-              )}
-              <div 
-                className={responsiveGridClass}
-                style={{ gap }}
-              >
-                {(section.config.items || []).map((item: any, i: number) => (
-                  <div key={i} style={cardStyles} className="p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="flex gap-1 text-[var(--primary-color)]">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
-                      </div>
-                      <p style={subtitleStyles} className="text-lg text-black/60 leading-relaxed italic">"{item.text}"</p>
-                    </div>
-                    <div className="mt-8 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[var(--primary-color-light)] flex items-center justify-center text-[var(--primary-color)] font-bold text-sm">
-                        {item.name?.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-bold text-black">{item.name}</div>
-                        <div className="text-[10px] uppercase tracking-widest opacity-40">Verified Customer</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'faq':
-        return (
-          <StyledSection section={section}>
-             <div className="space-y-12">
-              <div className="text-center space-y-4">
-                <h2 style={titleStyles} className="text-4xl font-bold tracking-tight">{section.config.title || 'Frequently Asked Questions'}</h2>
-                <p style={subtitleStyles} className="text-black/40 max-w-2xl mx-auto">Find quick answers to common questions or chat with our AI assistant for personalized help.</p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div className="space-y-4">
-                  {(section.config.items || []).map((item: any, i: number) => (
-                    <div key={i} style={cardStyles} className="p-6 bg-white rounded-3xl border border-black/5 shadow-sm hover:shadow-md transition-all">
-                      <h4 style={titleStyles} className="font-bold mb-3 flex items-center gap-3 text-lg">
-                        <div className="w-8 h-8 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-lg flex items-center justify-center shrink-0">
-                          <HelpCircle size={18} />
-                        </div>
-                        {item.q}
-                      </h4>
-                      <p style={subtitleStyles} className="text-black/60 leading-relaxed pl-11">{item.a}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-6">
-                  <div className="p-8 bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] rounded-[40px] text-white shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                      <Sparkles size={120} />
-                    </div>
-                    <div className="relative z-10 space-y-4">
-                      <h3 className="text-2xl font-bold">Can't find what you're looking for?</h3>
-                      <p className="text-white/80 leading-relaxed">Our AI assistant is trained on our specific products and services to give you accurate, real-time answers. Just click the help icon at the bottom of your screen!</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'cta':
-        return (
-          <StyledSection section={section}>
-             <div style={cardStyles} className="bg-[var(--primary-color)] rounded-[40px] p-16 text-center text-white shadow-2xl relative overflow-hidden my-12">
-              <div className="relative z-10 max-w-2xl mx-auto space-y-8">
-                <h2 style={titleStyles} className="text-4xl font-bold">{section.config.title}</h2>
-                <button 
-                  onClick={() => navigate(section.config.link || '#')}
-                  style={buttonStyles}
-                  className={`px-10 py-4 bg-white text-[var(--primary-color)] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all shadow-xl ${
-                    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
-                    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
-                  }`}
-                >
-                  {section.config.buttonText}
-                </button>
-              </div>
-            </div>
-          </StyledSection>
-        );
-
-      case 'carousel':
-        return (
-          <StyledSection section={section}>
-            <Carousel 
-              images={section.config.items || []} 
-              height={section.config.height || "h-[500px]"}
-              onNavigate={navigate}
-            />
-          </StyledSection>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const showCarousel = brandingConfig?.carousel_enabled;
-  const showHero = !showCarousel && brandingConfig?.hero_enabled !== false;
 
   if (brandingLoading || !brandingConfig) {
     return (
@@ -462,6 +75,9 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       </div>
     );
   }
+
+  const showCarousel = brandingConfig?.carousel_enabled;
+  const showHero = !showCarousel && brandingConfig?.hero_enabled !== false;
 
   return (
     <div className="space-y-6 pb-24">
@@ -474,13 +90,13 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
             if (!val) return [];
             
             try {
-              if (val.trim().startsWith('[') || val.trim().startsWith('{')) {
+              if (typeof val === 'string' && (val.trim().startsWith('[') || val.trim().startsWith('{'))) {
                 return JSON.parse(val);
               }
-              return val.split(',').map(url => url.trim()).filter(Boolean);
+              return String(val).split(',').map(url => url.trim()).filter(Boolean);
             } catch (e) {
               console.error('Failed to parse carousel_images:', e);
-              return val.split(',').map(url => url.trim()).filter(Boolean);
+              return String(val).split(',').map(url => url.trim()).filter(Boolean);
             }
           })()} 
           onNavigate={navigate}
@@ -541,7 +157,18 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       )}
 
       {/* Dynamic Sections */}
-      {layout?.filter((s: any) => s.type !== 'hero').map(renderSection)}
+      {layout?.filter((s: any) => s.type !== 'hero' && s.enabled).map((section) => (
+        <DynamicSection 
+          key={section.id} 
+          section={section} 
+          featuredProducts={featuredProducts}
+          addToCart={addToCart}
+          requireAuth={requireAuth}
+          navigate={navigate}
+          onShopNow={onShopNow}
+          brandingConfig={brandingConfig}
+        />
+      ))}
 
       {/* Default Features if no layout */}
       {(!layout || layout.length === 0) && (
@@ -563,6 +190,394 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
       )}
     </div>
   );
+};
+
+const StyledSectionWrap = ({ section, children }: { section: LayoutSection, children: React.ReactNode }) => {
+  const containerStyles = useResponsiveStyle(section.styles?.container);
+  return (
+    <section 
+      key={section.id} 
+      style={containerStyles}
+      className={`w-full overflow-hidden ${!section.styles?.container ? 'py-8' : ''}`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {children}
+      </div>
+    </section>
+  );
+};
+
+const DynamicSection = ({ 
+  section, 
+  featuredProducts, 
+  addToCart, 
+  requireAuth, 
+  navigate, 
+  onShopNow, 
+  brandingConfig 
+}: { 
+  section: LayoutSection, 
+  featuredProducts: Product[], 
+  addToCart: (p: Product, q?: number) => void,
+  requireAuth: (p: Product) => boolean,
+  navigate: (path: string) => void,
+  onShopNow: () => void,
+  brandingConfig: any,
+  key?: string | number
+}) => {
+  const titleStyles = useResponsiveStyle(section.styles?.title);
+  const subtitleStyles = useResponsiveStyle(section.styles?.subtitle);
+  const buttonStyles = useResponsiveStyle(section.styles?.button);
+  const cardStyles = useResponsiveStyle(section.styles?.card);
+  const gridStyles = section.styles?.grid;
+
+  const desktopCols = gridStyles?.desktop?.columns || section.config.columns || (section.type === 'category_grid' ? 4 : 3);
+  const mobileCols = gridStyles?.mobile?.columns || 1;
+  const tabletCols = gridStyles?.tablet?.columns || 2;
+  const gap = gridStyles?.desktop?.gap || section.config.gap || '2rem';
+  
+  const responsiveGridClass = `grid grid-cols-${mobileCols} sm:grid-cols-${tabletCols} lg:grid-cols-${desktopCols}`;
+
+  const getConfig = (keys: string[]) => {
+    for (const key of keys) {
+      if (section.config[key] !== undefined) return section.config[key];
+    }
+    return undefined;
+  };
+
+  const title = getConfig(['title']);
+  const body = getConfig(['body', 'text', 'desc', 'subtitle']);
+  const imageUrl = getConfig(['imageUrl', 'image']);
+  const buttonText = getConfig(['buttonText', 'button_text', 'cta_text']);
+  const link = getConfig(['link', 'button_link', 'cta_link']);
+
+  switch (section.type) {
+    case 'features':
+      return (
+        <StyledSectionWrap section={section}>
+           <div className="space-y-12">
+            {title && (
+              <h2 style={titleStyles} className="text-3xl font-bold text-center">{title}</h2>
+            )}
+            <div 
+              className={responsiveGridClass}
+              style={{ gap: gap }}
+            >
+              {(section.config.items || []).map((feature: any, i: number) => (
+                <div key={i} style={cardStyles} className="p-10 bg-white rounded-[32px] border border-black/5 shadow-sm hover:shadow-xl transition-all group">
+                  <div className="w-14 h-14 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Star size={28} />
+                  </div>
+                  <h3 style={titleStyles} className="text-xl font-bold mb-3">{feature.title}</h3>
+                  <p style={subtitleStyles} className="text-sm text-black/50 leading-relaxed">{feature.desc || feature.text || feature.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'promotions':
+      return (
+        <StyledSectionWrap section={section}>
+          <div 
+            style={cardStyles} 
+            className={`relative overflow-hidden rounded-[40px] p-12 flex flex-col md:flex-row items-center gap-10 ${!cardStyles.backgroundColor && section.config.variant === 'dark' ? 'bg-[var(--secondary-color)] text-white' : 'bg-white border border-black/5 shadow-sm'}`}
+          >
+            {imageUrl && (
+              <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
+                <img src={imageUrl} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              </div>
+            )}
+            <div className="flex-1 space-y-6 text-center md:text-left">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-50">{section.config.tag || 'Special Offer'}</span>
+              <h2 style={titleStyles} className="text-4xl font-bold leading-tight">{title}</h2>
+              <p style={subtitleStyles} className="text-lg opacity-60">{body}</p>
+              {buttonText && (
+                <button 
+                  onClick={() => navigate(link || '#')}
+                  style={buttonStyles}
+                  className={`px-8 py-4 font-bold transition-all ${
+                    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+                    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+                  } ${!buttonStyles.backgroundColor && section.config.variant === 'dark' ? 'bg-white text-black hover:bg-[var(--primary-color)] hover:text-white' : 'bg-[var(--primary-color)] text-white hover:opacity-90'}`}
+                >
+                  {buttonText}
+                </button>
+              )}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'products':
+      return (
+        <StyledSectionWrap section={section}>
+           <div className="space-y-12">
+            <div className="flex items-end justify-between px-4">
+              <div className="space-y-2">
+                <h2 style={titleStyles} className="text-3xl font-bold tracking-tight">{title || 'Featured Products'}</h2>
+                <p style={subtitleStyles} className="text-black/40 font-medium">{section.config.subtitle || 'Handpicked selections just for you'}</p>
+              </div>
+              <button onClick={onShopNow} className="text-sm font-bold text-[var(--primary-color)] hover:underline flex items-center gap-2">
+                View All <ArrowRight size={16} />
+              </button>
+            </div>
+            <div 
+              className={responsiveGridClass}
+              style={{ gap: gap }}
+            >
+              {featuredProducts.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={() => {
+                    if (requireAuth(product)) {
+                      addToCart(product, 1);
+                    }
+                  }} 
+                />
+              ))}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'category_grid' as any:
+      return (
+        <StyledSectionWrap section={section}>
+          <div className="space-y-8">
+            {title && (
+              <div className="px-4">
+                <h2 style={titleStyles} className="text-3xl font-bold tracking-tight">{title}</h2>
+              </div>
+            )}
+            <div 
+              className={responsiveGridClass}
+              style={{ gap: gap }}
+            >
+              {(section.config.items || []).map((item: any, i: number) => (
+                <div 
+                  key={i} 
+                  onClick={() => item.link && navigate(item.link)}
+                  style={cardStyles}
+                  className="group relative aspect-square rounded-[32px] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all"
+                >
+                  <img 
+                    src={item.image || item.imageUrl} 
+                    alt={item.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                    <h3 style={titleStyles} className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                    <div className="flex items-center gap-2 text-white/70 text-sm font-bold group-hover:text-white transition-colors">
+                      Shop Now <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'content':
+      const items = section.config.items || [{ title: title, body: body, imageUrl: imageUrl, alignment: section.config.layout === 'right-image' ? 'right' : section.config.layout === 'left-image' ? 'left' : 'center' }];
+      const isGrid = section.config.layoutType === 'grid';
+      const gridItems = items.filter((item: any) => item.includeInGrid);
+
+      return (
+        <StyledSectionWrap section={section}>
+           <div className="space-y-12">
+            {section.config.title && (
+               <h2 style={titleStyles} className="text-4xl font-bold text-center mb-4">{section.config.title}</h2>
+            )}
+            
+            <div className="space-y-12">
+              {items.map((item: any, i: number) => {
+                const hasImage = !!item.imageUrl;
+                const hasText = !!(item.title || item.body);
+                const alignment = item.alignment || 'center';
+                
+                if (isGrid && item.includeInGrid) {
+                   const firstGridIndex = items.findIndex((it: any) => it.includeInGrid);
+                   if (i !== firstGridIndex) return null;
+
+                   return (
+                     <div key={`grid-${i}`} className={responsiveGridClass} style={{ gap }}>
+                       {gridItems.map((gItem: any, gi: number) => (
+                         <div 
+                           key={gi} 
+                           onClick={() => gItem.link && navigate(gItem.link)}
+                           style={cardStyles}
+                           className={`flex flex-col gap-6 p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all h-full ${
+                             gItem.link ? 'cursor-pointer hover:scale-[1.02] duration-300' : ''
+                           } ${
+                             gItem.alignment === 'left' ? 'text-left items-start' :
+                             gItem.alignment === 'right' ? 'text-right items-end' : 'text-center items-center'
+                           }`}
+                         >
+                           {gItem.imageUrl && (
+                             <div className="w-full aspect-video rounded-3xl overflow-hidden mb-2 shrink-0">
+                               <img src={gItem.imageUrl} alt={gItem.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                             </div>
+                           )}
+                           <div className={`space-y-3 flex-1 w-full ${
+                             gItem.alignment === 'left' ? 'text-left' :
+                             gItem.alignment === 'right' ? 'text-right' : 'text-center'
+                           }`}>
+                             {gItem.title && <h3 style={titleStyles} className="text-2xl font-bold">{gItem.title}</h3>}
+                             {gItem.body && <p style={subtitleStyles} className="text-black/60 leading-relaxed whitespace-pre-wrap">{gItem.body}</p>}
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   );
+                }
+
+                const isStacked = item.displayMode === 'stacked' || alignment === 'center' || !hasImage || !hasText;
+                
+                return (
+                  <div 
+                    key={i} 
+                    onClick={() => item.link && navigate(item.link)}
+                    className={`flex flex-col ${isStacked ? 'items-center text-center' : 'md:flex-row items-center gap-16'} w-full transition-all ${
+                      item.link ? 'cursor-pointer hover:opacity-90 group/content' : ''
+                    } ${
+                      !isStacked && alignment === 'right' ? 'md:flex-row-reverse text-right' : 
+                      !isStacked && alignment === 'left' ? 'text-left' : ''
+                    }`}
+                  >
+                    {hasText && (
+                      <div className={`flex-1 space-y-8 ${isStacked ? 'w-full' : ''}`}>
+                        {item.title && <h2 style={titleStyles} className="text-5xl font-bold leading-tight tracking-tight group-hover/content:text-[var(--primary-color)] transition-colors">{item.title}</h2>}
+                        {item.body && <div style={subtitleStyles} className="text-xl text-black/60 leading-relaxed whitespace-pre-wrap font-medium content-text">{item.body}</div>}
+                      </div>
+                    )}
+                    {hasImage && (
+                      <div className={`w-full ${hasText && !isStacked ? 'md:w-1/2' : 'w-full'} aspect-video rounded-[48px] overflow-hidden shadow-2xl transition-transform ${item.link ? 'group-hover/content:scale-[1.02]' : 'hover:scale-[1.02]'} duration-500`}>
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'testimonials':
+      return (
+        <StyledSectionWrap section={section}>
+           <div className="space-y-12">
+            {section.config.title && (
+              <h2 style={titleStyles} className="text-3xl font-bold text-center">{section.config.title}</h2>
+            )}
+            <div 
+              className={responsiveGridClass}
+              style={{ gap }}
+            >
+              {(section.config.items || []).map((item: any, i: number) => (
+                <div key={i} style={cardStyles} className="p-8 bg-white rounded-[40px] border border-black/5 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex gap-1 text-[var(--primary-color)]">
+                      {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                    </div>
+                    <p style={subtitleStyles} className="text-lg text-black/60 leading-relaxed italic">"{item.text}"</p>
+                  </div>
+                  <div className="mt-8 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[var(--primary-color-light)] flex items-center justify-center text-[var(--primary-color)] font-bold text-sm">
+                      {item.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-bold text-black">{item.name}</div>
+                      <div className="text-[10px] uppercase tracking-widest opacity-40">Verified Customer</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'faq':
+      return (
+        <StyledSectionWrap section={section}>
+           <div className="space-y-12">
+            <div className="text-center space-y-4">
+              <h2 style={titleStyles} className="text-4xl font-bold tracking-tight">{section.config.title || 'Frequently Asked Questions'}</h2>
+              <p style={subtitleStyles} className="text-black/40 max-w-2xl mx-auto">Find quick answers to common questions or chat with our AI assistant for personalized help.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+              <div className="space-y-4">
+                {(section.config.items || []).map((item: any, i: number) => (
+                  <div key={i} style={cardStyles} className="p-6 bg-white rounded-3xl border border-black/5 shadow-sm hover:shadow-md transition-all">
+                    <h4 style={titleStyles} className="font-bold mb-3 flex items-center gap-3 text-lg">
+                      <div className="w-8 h-8 bg-[var(--primary-color-light)] text-[var(--primary-color)] rounded-lg flex items-center justify-center shrink-0">
+                        <HelpCircle size={18} />
+                      </div>
+                      {item.q}
+                    </h4>
+                    <p style={subtitleStyles} className="text-black/60 leading-relaxed pl-11">{item.a}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-8 bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] rounded-[40px] text-white shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                    <Sparkles size={120} />
+                  </div>
+                  <div className="relative z-10 space-y-4">
+                    <h3 className="text-2xl font-bold">Can't find what you're looking for?</h3>
+                    <p className="text-white/80 leading-relaxed">Our AI assistant is trained on our specific products and services to give you accurate, real-time answers. Just click the help icon at the bottom of your screen!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'cta':
+      return (
+        <StyledSectionWrap section={section}>
+           <div style={cardStyles} className="bg-[var(--primary-color)] rounded-[40px] p-16 text-center text-white shadow-2xl relative overflow-hidden my-12">
+            <div className="relative z-10 max-w-2xl mx-auto space-y-8">
+              <h2 style={titleStyles} className="text-4xl font-bold">{section.config.title}</h2>
+              <button 
+                onClick={() => navigate(section.config.link || '#')}
+                style={buttonStyles}
+                className={`px-10 py-4 bg-white text-[var(--primary-color)] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all shadow-xl ${
+                  brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+                  brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+                }`}
+              >
+                {section.config.buttonText}
+              </button>
+            </div>
+          </div>
+        </StyledSectionWrap>
+      );
+
+    case 'carousel':
+      return (
+        <StyledSectionWrap section={section}>
+          <Carousel 
+            images={section.config.items || []} 
+            height={section.config.height || "h-[500px]"}
+            onNavigate={navigate}
+          />
+        </StyledSectionWrap>
+      );
+
+    default:
+      return null;
+  }
 };
 
 const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ product, onAddToCart }) => {

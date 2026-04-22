@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, LoginCredentials, RegisterData, AuthResponse, PendingAction } from '../shared/types';
 
 interface AuthContextType {
@@ -32,14 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const handleSetPendingAction = (action: PendingAction | null) => {
+  const handleSetPendingAction = useCallback((action: PendingAction | null) => {
     if (action) {
       sessionStorage.setItem('pending_auth_action', JSON.stringify(action));
     } else {
       sessionStorage.removeItem('pending_auth_action');
     }
     setPendingAction(action);
-  };
+  }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, [token]);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = useCallback(async (credentials: LoginCredentials) => {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,9 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
-  };
+  }, []);
 
-  const register = async (data: RegisterData) => {
+  const register = useCallback(async (data: RegisterData) => {
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -101,26 +101,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('token', authData.token);
     setToken(authData.token);
     setUser(authData.user);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.clear();
     setToken(null);
     setUser(null);
     window.location.replace('/login');
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({ 
+    user, 
+    token, 
+    login, 
+    register, 
+    logout, 
+    isLoading, 
+    pendingAction, 
+    setPendingAction: handleSetPendingAction 
+  }), [user, token, login, register, logout, isLoading, pendingAction, handleSetPendingAction]);
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      login, 
-      register, 
-      logout, 
-      isLoading, 
-      pendingAction, 
-      setPendingAction: handleSetPendingAction 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
