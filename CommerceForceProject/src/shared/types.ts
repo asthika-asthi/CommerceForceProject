@@ -52,6 +52,10 @@ export interface BrandingConfig {
   top_nav_font_weight?: string;
   nav_heading_color?: string;
   nav_heading_font_weight?: string;
+  sidebar_background_style?: 'default' | 'primary' | 'secondary' | 'accent' | 'image';
+  sidebar_background_value?: string;
+  footer_background_style?: 'default' | 'primary' | 'secondary' | 'accent' | 'image';
+  footer_background_value?: string;
   created_at?: string;
 }
 

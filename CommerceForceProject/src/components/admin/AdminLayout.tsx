@@ -251,6 +251,31 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       return section.items.length > 0;
     });
 
+  const getSidebarStyle = () => {
+    if (!config) return {};
+    
+    switch (config.sidebar_background_style) {
+      case 'primary':
+        return { backgroundColor: config.primary_color || '#1A56DB', borderRightColor: 'rgba(255,255,255,0.1)' };
+      case 'secondary':
+        return { backgroundColor: config.secondary_color || '#4B5563', borderRightColor: 'rgba(255,255,255,0.1)' };
+      case 'accent':
+        return { backgroundColor: 'var(--primary-color-light)', borderRightColor: 'var(--primary-color)' };
+      case 'image':
+        return { 
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${config.sidebar_background_value})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRight: 'none'
+        };
+      default:
+        return { backgroundColor: 'white' };
+    }
+  };
+
+  const sidebarStyle = getSidebarStyle();
+  const isDarkSidebar = ['primary', 'secondary', 'image'].includes(config?.sidebar_background_style || '');
+
   const hideSidebar = !user || filteredSections.length === 0;
 
   return (
@@ -258,22 +283,23 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       {/* Sidebar */}
       {!hideSidebar && (
         <aside 
+          style={sidebarStyle}
           className={`${
             isSidebarOpen ? 'w-72' : 'w-24'
-          } border-r border-black/5 transition-all duration-300 flex flex-col bg-white shadow-xl z-20 sticky top-0 h-screen`}
+          } border-r border-black/5 transition-all duration-300 flex flex-col shadow-xl z-20 sticky top-0 h-screen overflow-hidden`}
         >
-          <div className="p-8 flex items-center justify-between">
+          <div className="p-8 flex items-center justify-between relative z-10">
             {isSidebarOpen && (
               <div className="flex items-center gap-3">
                 {config?.logo_url ? (
-                  <img src={config.logo_url} alt="Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+                  <img src={config.logo_url} alt="Logo" className={`h-8 w-auto object-contain ${isDarkSidebar ? 'brightness-0 invert' : ''}`} referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-8 h-8 rounded-lg bg-[var(--primary-color)] flex items-center justify-center text-white font-bold">
                     {config?.company_name?.charAt(0) || 'C'}
                   </div>
                 )}
                 <span 
-                  style={{ color: 'var(--nav-text-color)' }}
+                  style={{ color: isDarkSidebar ? 'white' : 'var(--nav-text-color)' }}
                   className="font-bold text-lg tracking-tight truncate max-w-[140px]"
                 >
                   {config?.company_name || 'CommerceForce'}
@@ -282,30 +308,31 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
             )}
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{ color: 'var(--nav-text-color)' }}
-              className="p-2 hover:bg-black/5 rounded-xl transition-colors"
+              style={{ color: isDarkSidebar ? 'white' : 'var(--nav-text-color)' }}
+              className={`p-2 rounded-xl transition-colors ${isDarkSidebar ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
             >
               {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto custom-scrollbar">
+          <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto custom-scrollbar relative z-10">
             {filteredSections.map((section) => (
               <div key={section.title} className="space-y-1">
                 {isSidebarOpen ? (
                   <button 
                     onClick={() => toggleSection(section.title)}
                     style={{ 
-                      color: 'var(--nav-heading-color)',
-                      fontWeight: 'var(--nav-heading-font-weight)' as any
+                      color: isDarkSidebar ? 'rgba(255,255,255,0.6)' : 'var(--nav-heading-color)',
+                      fontWeight: 'var(--nav-heading-font-weight)' as any,
+                      fontSize: 'var(--sidebar-font-size)'
                     }}
-                    className="w-full flex items-center justify-between px-4 text-[10px] font-mono uppercase tracking-widest mb-2 hover:opacity-100 transition-opacity group"
+                    className="w-full flex items-center justify-between px-4 font-mono uppercase tracking-widest mb-2 hover:opacity-100 transition-opacity group scale-90 origin-left"
                   >
                     <span>{section.title}</span>
                     <ChevronDown size={12} className={`transition-transform duration-200 ${openSections.includes(section.title) ? 'rotate-180' : ''}`} />
                   </button>
                 ) : (
-                  <div className="h-px bg-black/5 my-4 mx-2" />
+                  <div className={`h-px my-4 mx-2 ${isDarkSidebar ? 'bg-white/10' : 'bg-black/5'}`} />
                 )}
                 
                 <AnimatePresence>

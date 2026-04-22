@@ -26,26 +26,30 @@ export async function initDb() {
   const dbName = getEnv('POSTGRES_DB') || getEnv('DB_NAME') || 'commerce';
   const databaseUrl = getEnv('DATABASE_URL');
 
+  // Prevent 'pg' from picking up conflicting env vars automatically
+  delete process.env.DATABASE_URL;
+  delete process.env.PGPASSWORD;
+  delete process.env.PGUSER;
+
   // Diagnostic logging (Safe)
   console.log('Database Environment Diagnostics:');
-  console.log(`- Keys found: ${Object.keys(process.env).filter(k => k.includes('DB') || k.includes('POSTGRES')).join(', ')}`);
   console.log(`- Host: ${dbHost}, Port: ${dbPort}, DB: ${dbName}, User: ${dbUser}`);
-  console.log(`- Password set: ${!!dbPassword} (Length: ${dbPassword?.length || 0})`);
+  console.log(`- Password Length: ${dbPassword?.length || 0}`);
 
   const poolConfig: pg.PoolConfig = {
-    connectionTimeoutMillis: 10000, // Increased timeout
+    connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
   };
 
   if (dbUser && dbPassword) {
-    console.log(`Connection attempt using individual variables.`);
+    console.log(`Connecting via explicit config object...`);
     poolConfig.user = dbUser;
     poolConfig.password = dbPassword;
     poolConfig.host = dbHost;
     poolConfig.port = dbPort;
     poolConfig.database = dbName;
   } else if (databaseUrl) {
-    console.log(`Connection attempt using DATABASE_URL.`);
+    console.log(`Connecting via DATABASE_URL...`);
     poolConfig.connectionString = databaseUrl;
   }
 
@@ -56,6 +60,12 @@ export async function initDb() {
     while (retries > 0) {
       try {
         pool = new Pool(poolConfig);
+        
+        // Add a listener for background errors (like pool connection leaks)
+        pool.on('error', (err: any) => {
+          console.error('[DATABASE-POOL-INTERNAL-ERROR]:', err.message);
+        });
+
         const client = await pool.connect();
         console.log(`Successfully connected to Postgres on attempt ${11 - retries}`);
         await initPostgresSchema(client);
@@ -79,7 +89,8 @@ export async function initDb() {
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
-  } else {
+  }
+ else {
     console.log('No database credentials found (User/Pass or URL). Falling back to SQLite.');
   }
 
@@ -149,6 +160,10 @@ async function initPostgresSchema(client: any) {
         top_nav_font_weight VARCHAR(20) DEFAULT '500',
         nav_heading_color TEXT,
         nav_heading_font_weight TEXT DEFAULT '700',
+        sidebar_background_style TEXT DEFAULT 'default',
+        sidebar_background_value TEXT,
+        footer_background_style TEXT DEFAULT 'default',
+        footer_background_value TEXT,
         loyalty_points_per_currency REAL DEFAULT 1,
         loyalty_redemption_value REAL DEFAULT 100,
         loyalty_program_name TEXT DEFAULT 'Loyalty Points',
@@ -220,6 +235,18 @@ async function initPostgresSchema(client: any) {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='loyalty_program_name') THEN
           ALTER TABLE branding_config ADD COLUMN loyalty_program_name TEXT DEFAULT 'Loyalty Points';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='sidebar_background_style') THEN
+          ALTER TABLE branding_config ADD COLUMN sidebar_background_style TEXT DEFAULT 'default';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='sidebar_background_value') THEN
+          ALTER TABLE branding_config ADD COLUMN sidebar_background_value TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_background_style') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_background_style TEXT DEFAULT 'default';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_background_value') THEN
+          ALTER TABLE branding_config ADD COLUMN footer_background_value TEXT;
         END IF;
       END $$;
 
@@ -485,6 +512,10 @@ function initSqliteSchema() {
           top_nav_font_weight TEXT DEFAULT '500',
           nav_heading_color TEXT,
           nav_heading_font_weight TEXT DEFAULT '700',
+          sidebar_background_style TEXT DEFAULT 'default',
+          sidebar_background_value TEXT,
+          footer_background_style TEXT DEFAULT 'default',
+          footer_background_value TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();

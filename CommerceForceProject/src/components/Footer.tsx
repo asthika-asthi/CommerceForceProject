@@ -36,18 +36,42 @@ export const Footer = () => {
 
   if (!config) return null;
 
-  const footerStyle = config.footer_use_brand_color 
-    ? { backgroundColor: config.primary_color || 'var(--secondary-color)', color: '#ffffff' }
-    : { backgroundColor: '#ffffff', color: 'var(--secondary-color)' };
+  const getFooterStyle = () => {
+    switch (config.footer_background_style) {
+      case 'primary':
+        return { backgroundColor: config.primary_color || '#1A56DB', color: '#ffffff', borderTopColor: 'rgba(255,255,255,0.1)' };
+      case 'secondary':
+        return { backgroundColor: config.secondary_color || '#4B5563', color: '#ffffff', borderTopColor: 'rgba(255,255,255,0.1)' };
+      case 'accent':
+        return { backgroundColor: 'var(--primary-color-light)', color: 'var(--secondary-color)', borderTopColor: 'var(--primary-color)' };
+      case 'image':
+        return { 
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url(${config.footer_background_value})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: '#ffffff',
+          borderTop: 'none'
+        };
+      default:
+        // Legacy check for footer_use_brand_color
+        if (config.footer_use_brand_color) {
+          return { backgroundColor: config.primary_color || '#1A56DB', color: '#ffffff', borderTopColor: 'transparent' };
+        }
+        return { backgroundColor: '#ffffff', color: 'var(--secondary-color)', borderTopColor: 'rgba(0,0,0,0.05)' };
+    }
+  };
 
-  const opacityClass = config.footer_use_brand_color ? 'text-white/70' : 'text-[#141414]/50';
-  const headingClass = config.footer_use_brand_color ? 'text-white' : 'text-[#141414]';
-  const borderClass = config.footer_use_brand_color ? 'border-white/10' : 'border-[#141414]/5';
+  const footerStyle = getFooterStyle();
+  const isDarkFooter = ['primary', 'secondary', 'image'].includes(config.footer_background_style || '') || config.footer_use_brand_color;
+
+  const opacityClass = isDarkFooter ? 'text-white/70' : 'text-[#141414]/50';
+  const headingClass = isDarkFooter ? 'text-white' : 'text-[#141414]';
+  const borderClass = isDarkFooter ? 'border-white/10' : 'border-[#141414]/5';
 
   return (
-    <footer style={footerStyle} className="mt-20 border-t border-[#141414]/5 relative overflow-hidden">
+    <footer style={footerStyle} className="mt-20 border-t relative overflow-hidden transition-all duration-500">
       {/* Decorative background element */}
-      {config.footer_use_brand_color && (
+      {isDarkFooter && (
         <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform translate-x-1/2 pointer-events-none" />
       )}
 

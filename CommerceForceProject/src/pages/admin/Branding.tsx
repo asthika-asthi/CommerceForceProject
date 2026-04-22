@@ -542,6 +542,32 @@ export const Branding = () => {
                       <option value="inline">Horizontal Navigation Bar</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Sidebar Background Style</label>
+                    <select
+                      value={config.sidebar_background_style || 'default'}
+                      onChange={e => setConfig({ ...config, sidebar_background_style: e.target.value as any })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="default">Default (White)</option>
+                      <option value="primary">Primary Brand Color</option>
+                      <option value="secondary">Secondary Brand Color</option>
+                      <option value="accent">Light Accent (Glass)</option>
+                      <option value="image">Background Image</option>
+                    </select>
+                  </div>
+                  {config.sidebar_background_style === 'image' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Sidebar Background Image URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={config.sidebar_background_value || ''}
+                        onChange={e => setConfig({ ...config, sidebar_background_value: e.target.value })}
+                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1499,15 +1525,43 @@ export const Branding = () => {
                     placeholder="© 2026 Company Name. All rights reserved."
                   />
                 </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="footer_brand_color"
-                    checked={config.footer_use_brand_color || false}
-                    onChange={e => setConfig({ ...config, footer_use_brand_color: e.target.checked })}
-                    className="w-5 h-5 rounded border-black/10 text-black focus:ring-black"
-                  />
-                  <label htmlFor="footer_brand_color" className="text-sm font-bold">Use Primary Brand Color for Footer Background</label>
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Footer Background Style</label>
+                    <select
+                      value={config.footer_background_style || 'default'}
+                      onChange={e => setConfig({ ...config, footer_background_style: e.target.value as any })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                    >
+                      <option value="default">Default (White)</option>
+                      <option value="primary">Primary Brand Color</option>
+                      <option value="secondary">Secondary Brand Color</option>
+                      <option value="accent">Light Accent (Glass)</option>
+                      <option value="image">Background Image</option>
+                    </select>
+                  </div>
+                  {config.footer_background_style === 'image' && (
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Footer Background Image URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={config.footer_background_value || ''}
+                        onChange={e => setConfig({ ...config, footer_background_value: e.target.value })}
+                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 opacity-40 grayscale pointer-events-none">
+                    <input
+                      type="checkbox"
+                      id="footer_brand_color"
+                      checked={config.footer_use_brand_color || false}
+                      onChange={e => setConfig({ ...config, footer_use_brand_color: e.target.checked })}
+                      className="w-5 h-5 rounded border-black/10 text-black focus:ring-black"
+                    />
+                    <label htmlFor="footer_brand_color" className="text-sm font-bold truncate">Legacy: Use Brand Color (Overridden by style)</label>
+                  </div>
                 </div>
               </div>
 
