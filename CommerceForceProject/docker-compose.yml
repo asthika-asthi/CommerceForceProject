@@ -5,26 +5,20 @@ services:
       - "3000:3000"
     volumes:
       - ./config:/app/config
+    environment:
+      - NODE_ENV=production
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - commerce-net
 
   db:
     image: postgres:15-alpine
-    healthcheck:
-      # Using nc (netcat) for a silent TCP check that doesn't trigger auth audits
-      test: ["CMD-SHELL", "nc -z localhost 5432 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     env_file:
       - .env
-    ports:
-      - "5432:5432"
+    # Removed ports to prevent external bot/process interference
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
