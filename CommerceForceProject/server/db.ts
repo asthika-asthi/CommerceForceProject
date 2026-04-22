@@ -13,34 +13,52 @@ let sqliteDb: any = null;
 let isSqlite = false;
 
 export async function initDb() {
-  const rawConnectionString = process.env.DATABASE_URL || '';
-  const connectionString = rawConnectionString.trim();
-  
-  if (connectionString) {
-    try {
-      const url = new URL(connectionString);
-      console.log(`Attempting to connect to Postgres: ${url.hostname}:${url.port || 5432}${url.pathname}`);
-      
-      pool = new Pool({
-        connectionString,
-        connectionTimeoutMillis: 5000, // 5 seconds timeout
-      });
+  const dbUser = process.env.POSTGRES_USER || process.env.DB_USER;
+  const dbPassword = process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD;
+  const dbHost = process.env.POSTGRES_HOST || process.env.DB_HOST || 'db';
+  const dbPort = parseInt(process.env.POSTGRES_PORT || process.env.DB_PORT || '5432');
+  const dbName = process.env.POSTGRES_DB || process.env.DB_NAME || 'commerce';
+  const databaseUrl = process.env.DATABASE_URL;
 
-      let client;
-      try {
-        client = await pool.connect();
-        console.log(`Successfully connected to Postgres: ${url.hostname}`);
-        await initPostgresSchema(client);
-        client.release();
-        return;
-      } catch (err: any) {
-        console.log(`Postgres connection failed: ${err.message}. Falling back to SQLite.`);
-      }
+  // Connection settings
+  const poolConfig: pg.PoolConfig = {
+    connectionTimeoutMillis: 5000,
+  };
+
+  if (dbUser && dbPassword) {
+    console.log(`Connection Mode: Individual Variables -> ${dbHost}:${dbPort}/${dbName} (User: ${dbUser})`);
+    poolConfig.user = dbUser;
+    poolConfig.password = dbPassword;
+    poolConfig.host = dbHost;
+    poolConfig.port = dbPort;
+    poolConfig.database = dbName;
+  } else if (databaseUrl) {
+    try {
+      const url = new URL(databaseUrl.trim());
+      console.log(`Connection Mode: DATABASE_URL -> ${url.hostname}:${url.port || 5432}${url.pathname} (User: ${url.username})`);
+      poolConfig.connectionString = databaseUrl.trim();
     } catch (err) {
-      console.error(`Invalid DATABASE_URL: "${connectionString}". Falling back to SQLite.`);
+      console.error('Failed to parse DATABASE_URL, attempting raw connection string.');
+      poolConfig.connectionString = databaseUrl.trim();
+    }
+  }
+
+  if (poolConfig.user || poolConfig.connectionString) {
+    try {
+      pool = new Pool(poolConfig);
+      
+      const client = await pool.connect();
+      console.log(`Successfully connected to Postgres.`);
+      await initPostgresSchema(client);
+      client.release();
+      return;
+    } catch (err: any) {
+      console.error(`Postgres connection failed: ${err.message}.`);
+      console.log('Ensure POSTGRES_USER and POSTGRES_PASSWORD match your database configuration.');
+      console.log('Falling back to SQLite.');
     }
   } else {
-    console.log('No DATABASE_URL provided. Falling back to SQLite.');
+    console.log('No database credentials found. Falling back to SQLite.');
   }
 
   isSqlite = true;
