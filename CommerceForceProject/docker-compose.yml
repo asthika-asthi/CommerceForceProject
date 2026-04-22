@@ -26,7 +26,7 @@ services:
   db:
     image: postgres:15-alpine
     healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB:-commerce}", "-U", "${POSTGRES_USER:-postgres}"]
+      test: ["CMD", "pg_isready", "-q"]
       interval: 5s
       timeout: 5s
       retries: 5
