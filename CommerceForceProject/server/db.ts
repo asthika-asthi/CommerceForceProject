@@ -13,54 +13,77 @@ let sqliteDb: any = null;
 let isSqlite = false;
 
 export async function initDb() {
-  const dbUser = process.env.POSTGRES_USER || process.env.DB_USER;
-  const dbPassword = process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD;
-  const dbHost = process.env.POSTGRES_HOST || process.env.DB_HOST || 'db';
-  const dbPort = parseInt(process.env.POSTGRES_PORT || process.env.DB_PORT || '5432');
-  const dbName = process.env.POSTGRES_DB || process.env.DB_NAME || 'commerce';
-  const databaseUrl = process.env.DATABASE_URL;
+  // Helper to safely get and clean env vars
+  const getEnv = (key: string, defaultValue: string = ''): string => {
+    const val = process.env[key] || '';
+    return val.trim().replace(/^["']|["']$/g, ''); // Remove outer quotes and whitespace
+  };
 
-  // Connection settings
+  const dbUser = getEnv('POSTGRES_USER') || getEnv('DB_USER') || 'postgres';
+  const dbPassword = getEnv('POSTGRES_PASSWORD') || getEnv('DB_PASSWORD');
+  const dbHost = getEnv('POSTGRES_HOST') || getEnv('DB_HOST') || 'db';
+  const dbPort = parseInt(getEnv('POSTGRES_PORT') || getEnv('DB_PORT') || '5432');
+  const dbName = getEnv('POSTGRES_DB') || getEnv('DB_NAME') || 'commerce';
+  const databaseUrl = getEnv('DATABASE_URL');
+
+  // Diagnostic logging (Safe)
+  console.log('Database Environment Diagnostics:');
+  console.log(`- Keys found: ${Object.keys(process.env).filter(k => k.includes('DB') || k.includes('POSTGRES')).join(', ')}`);
+  console.log(`- Host: ${dbHost}, Port: ${dbPort}, DB: ${dbName}, User: ${dbUser}`);
+  console.log(`- Password set: ${!!dbPassword} (Length: ${dbPassword?.length || 0})`);
+
   const poolConfig: pg.PoolConfig = {
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000, // Increased timeout
+    idleTimeoutMillis: 30000,
   };
 
   if (dbUser && dbPassword) {
-    console.log(`Connection Mode: Individual Variables -> ${dbHost}:${dbPort}/${dbName} (User: ${dbUser})`);
+    console.log(`Connection attempt using individual variables.`);
     poolConfig.user = dbUser;
     poolConfig.password = dbPassword;
     poolConfig.host = dbHost;
     poolConfig.port = dbPort;
     poolConfig.database = dbName;
   } else if (databaseUrl) {
-    try {
-      const url = new URL(databaseUrl.trim());
-      console.log(`Connection Mode: DATABASE_URL -> ${url.hostname}:${url.port || 5432}${url.pathname} (User: ${url.username})`);
-      poolConfig.connectionString = databaseUrl.trim();
-    } catch (err) {
-      console.error('Failed to parse DATABASE_URL, attempting raw connection string.');
-      poolConfig.connectionString = databaseUrl.trim();
-    }
+    console.log(`Connection attempt using DATABASE_URL.`);
+    poolConfig.connectionString = databaseUrl;
   }
 
   if (poolConfig.user || poolConfig.connectionString) {
-    try {
-      pool = new Pool(poolConfig);
-      
-      const client = await pool.connect();
-      console.log(`Successfully connected to Postgres.`);
-      await initPostgresSchema(client);
-      client.release();
-      return;
-    } catch (err: any) {
-      console.error(`Postgres connection failed: ${err.message}.`);
-      console.log('Ensure POSTGRES_USER and POSTGRES_PASSWORD match your database configuration.');
-      console.log('Falling back to SQLite.');
+    let retries = 10;
+    const retryDelay = 3000;
+    
+    while (retries > 0) {
+      try {
+        pool = new Pool(poolConfig);
+        const client = await pool.connect();
+        console.log(`Successfully connected to Postgres on attempt ${11 - retries}`);
+        await initPostgresSchema(client);
+        client.release();
+        return;
+      } catch (err: any) {
+        retries--;
+        console.warn(`Postgres connection attempt failed (${10 - retries}/10): ${err.message}`);
+        
+        if (pool) {
+          await pool.end().catch(() => {});
+          pool = null;
+        }
+
+        if (retries === 0) {
+          console.error('Final Postgres connection attempt failed. Falling back to SQLite.');
+          break;
+        }
+        
+        console.log(`Retrying in ${retryDelay/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
     }
   } else {
-    console.log('No database credentials found. Falling back to SQLite.');
+    console.log('No database credentials found (User/Pass or URL). Falling back to SQLite.');
   }
 
+  // Fallback to SQLite
   isSqlite = true;
   const dataDir = path.join(process.cwd(), 'data');
   if (!fs.existsSync(dataDir)) {
