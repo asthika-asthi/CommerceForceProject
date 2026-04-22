@@ -108,6 +108,9 @@ async function initPostgresSchema(client: any) {
         top_nav_font_weight VARCHAR(20) DEFAULT '500',
         nav_heading_color TEXT,
         nav_heading_font_weight TEXT DEFAULT '700',
+        loyalty_points_per_currency REAL DEFAULT 1,
+        loyalty_redemption_value REAL DEFAULT 100,
+        loyalty_program_name TEXT DEFAULT 'Loyalty Points',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -167,6 +170,15 @@ async function initPostgresSchema(client: any) {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='catalogue_url') THEN
           ALTER TABLE branding_config ADD COLUMN catalogue_url TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='loyalty_points_per_currency') THEN
+          ALTER TABLE branding_config ADD COLUMN loyalty_points_per_currency REAL DEFAULT 1;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='loyalty_redemption_value') THEN
+          ALTER TABLE branding_config ADD COLUMN loyalty_redemption_value REAL DEFAULT 100;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='loyalty_program_name') THEN
+          ALTER TABLE branding_config ADD COLUMN loyalty_program_name TEXT DEFAULT 'Loyalty Points';
         END IF;
       END $$;
 
