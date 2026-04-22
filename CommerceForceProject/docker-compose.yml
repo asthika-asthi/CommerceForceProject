@@ -16,7 +16,8 @@ services:
   db:
     image: postgres:15-alpine
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      # Using nc (netcat) for a silent TCP check that doesn't trigger auth audits
+      test: ["CMD-SHELL", "nc -z localhost 5432 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
