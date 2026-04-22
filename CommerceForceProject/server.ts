@@ -1,11 +1,13 @@
 import { config as dotenvConfig } from 'dotenv';
+import { expand as dotenvExpand } from 'dotenv-expand';
 import fs from 'fs';
 import path from 'path';
 
 // Only load .env if it exists
 if (fs.existsSync(path.join(process.cwd(), '.env'))) {
-  dotenvConfig();
-  console.log('.env file loaded');
+  const myEnv = dotenvConfig();
+  dotenvExpand(myEnv);
+  console.log('.env file loaded with expansion');
 } else {
   console.log('No .env file found, using system environment variables');
 }
