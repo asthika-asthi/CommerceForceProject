@@ -67,7 +67,9 @@ export class AdminService {
         { name: 'sidebar_font_size', type: 'INTEGER DEFAULT 14' },
         { name: 'sidebar_font_weight', type: 'TEXT DEFAULT "500"' },
         { name: 'top_nav_font_size', type: 'INTEGER DEFAULT 12' },
-        { name: 'top_nav_font_weight', type: 'TEXT DEFAULT "500"' }
+        { name: 'top_nav_font_weight', type: 'TEXT DEFAULT "500"' },
+        { name: 'nav_heading_color', type: 'TEXT' },
+        { name: 'nav_heading_font_weight', type: 'TEXT DEFAULT "700"' }
       ];
 
       for (const col of columns) {
@@ -77,6 +79,14 @@ export class AdminService {
           // Ignore "duplicate column name" errors
         }
       }
+
+      // Add is_featured to products table
+      try {
+        await db.query('ALTER TABLE products ADD COLUMN is_featured INTEGER DEFAULT 0');
+      } catch (err) {
+        // Ignore "duplicate column name" errors
+      }
+
       return;
     }
     try {
@@ -124,7 +134,9 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS sidebar_font_size INTEGER DEFAULT 14,
         ADD COLUMN IF NOT EXISTS sidebar_font_weight VARCHAR(20) DEFAULT '500',
         ADD COLUMN IF NOT EXISTS top_nav_font_size INTEGER DEFAULT 12,
-        ADD COLUMN IF NOT EXISTS top_nav_font_weight VARCHAR(20) DEFAULT '500'
+        ADD COLUMN IF NOT EXISTS top_nav_font_weight VARCHAR(20) DEFAULT '500',
+        ADD COLUMN IF NOT EXISTS nav_heading_color TEXT,
+        ADD COLUMN IF NOT EXISTS nav_heading_font_weight VARCHAR(20) DEFAULT '700'
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -148,7 +160,8 @@ export class AdminService {
             carousel_enabled = ?, carousel_images = ?, hero_enabled = ?, catalogue_url = ?, admin_email = ?, footer_tagline = ?,
             loyalty_points_per_currency = ?, loyalty_redemption_value = ?, loyalty_program_name = ?, loyalty_banner_image = ?,
             category_display_style = ?, nav_font_family = ?, nav_text_color = ?, 
-            sidebar_font_size = ?, sidebar_font_weight = ?, top_nav_font_size = ?, top_nav_font_weight = ?
+            sidebar_font_size = ?, sidebar_font_weight = ?, top_nav_font_size = ?, top_nav_font_weight = ?,
+            nav_heading_color = ?, nav_heading_font_weight = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -199,6 +212,8 @@ export class AdminService {
         config.sidebar_font_weight !== undefined ? config.sidebar_font_weight : (current.sidebar_font_weight || '500'),
         config.top_nav_font_size !== undefined ? config.top_nav_font_size : (current.top_nav_font_size || 12),
         config.top_nav_font_weight !== undefined ? config.top_nav_font_weight : (current.top_nav_font_weight || '500'),
+        config.nav_heading_color !== undefined ? config.nav_heading_color : current.nav_heading_color,
+        config.nav_heading_font_weight !== undefined ? config.nav_heading_font_weight : (current.nav_heading_font_weight || '700'),
         current.id
       ]);
     }
@@ -221,6 +236,7 @@ export class AdminService {
     return result.rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
+      is_featured: Boolean(row.is_featured),
       allow_direct_buy: Boolean(row.allow_direct_buy),
       sale_percentage: Number(row.sale_percentage || 0)
     })) as Product[];

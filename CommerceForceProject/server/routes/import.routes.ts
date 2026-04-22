@@ -57,8 +57,8 @@ router.post("/config/master", upload.single('file'), async (req, res) => {
  * Download Product CSV Template
  */
 router.get("/products/template", async (req, res) => {
-  const headers = "id,sku,name,description,category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,initial_stock,min_stock_level\n";
-  const example = ",SKU-001,Example Product,This is a description,Electronics,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,50,5\n";
+  const headers = "id,sku,name,description,category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,is_featured,initial_stock,min_stock_level\n";
+  const example = ",SKU-001,Example Product,This is a description,Electronics,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,false,50,5\n";
   
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=product_template.csv');
@@ -71,7 +71,7 @@ router.get("/products/template", async (req, res) => {
 router.get("/products/export", async (req, res) => {
   try {
     const products = await AdminService.getProducts();
-    const headers = ["id", "sku", "name", "description", "category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "total_stock"];
+    const headers = ["id", "sku", "name", "description", "category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "is_featured", "total_stock"];
     
     const rows = products.map(p => {
       return headers.map(h => {
@@ -116,7 +116,8 @@ router.get("/config/export", async (req, res) => {
       'hero_enabled', 'carousel_images', 'catalogue_url', 'admin_email', 'footer_tagline',
       'loyalty_points_per_currency', 'loyalty_redemption_value', 'loyalty_program_name', 'loyalty_banner_image',
       'category_display_style', 'nav_font_family', 'nav_text_color', 
-      'sidebar_font_size', 'sidebar_font_weight', 'top_nav_font_size', 'top_nav_font_weight'
+      'sidebar_font_size', 'sidebar_font_weight', 'top_nav_font_size', 'top_nav_font_weight',
+      'nav_heading_color', 'nav_heading_font_weight'
     ];
 
     const fullBranding: any = {};

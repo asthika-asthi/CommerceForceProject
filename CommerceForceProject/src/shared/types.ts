@@ -50,6 +50,8 @@ export interface BrandingConfig {
   sidebar_font_weight?: string;
   top_nav_font_size?: number;
   top_nav_font_weight?: string;
+  nav_heading_color?: string;
+  nav_heading_font_weight?: string;
   created_at?: string;
 }
 
@@ -76,11 +78,61 @@ export interface PaymentMethodConfig {
   };
 }
 
+export interface ElementStyles {
+  textColor?: string;
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundPosition?: string;
+  backgroundSize?: string;
+  backgroundRepeat?: string;
+  fontSize?: number | string;
+  fontWeight?: string;
+  fontFamily?: string;
+  paddingTop?: number | string;
+  paddingRight?: number | string;
+  paddingBottom?: number | string;
+  paddingLeft?: number | string;
+  marginTop?: number | string;
+  marginRight?: number | string;
+  marginBottom?: number | string;
+  marginLeft?: number | string;
+  borderRadius?: number | string;
+  borderWidth?: number | string;
+  borderColor?: string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  display?: 'block' | 'none' | 'flex' | 'grid';
+  opacity?: number;
+  gap?: number | string;
+  columns?: number;
+}
+
+export interface ResponsiveStyles {
+  mobile?: ElementStyles;
+  tablet?: ElementStyles;
+  desktop?: ElementStyles;
+}
+
+export interface ComponentStyles {
+  container?: ResponsiveStyles;
+  content?: ResponsiveStyles;
+  title?: ResponsiveStyles;
+  subtitle?: ResponsiveStyles;
+  button?: ResponsiveStyles;
+  card?: ResponsiveStyles;
+  icon?: ResponsiveStyles;
+  grid?: {
+    mobile?: { columns?: number; gap?: number | string };
+    tablet?: { columns?: number; gap?: number | string };
+    desktop?: { columns?: number; gap?: number | string };
+  };
+}
+
 export interface LayoutSection {
   id: string;
-  type: 'hero' | 'features' | 'products' | 'promotions' | 'content' | 'testimonials' | 'faq' | 'cta' | 'carousel';
+  type: 'hero' | 'features' | 'products' | 'promotions' | 'content' | 'testimonials' | 'faq' | 'cta' | 'carousel' | 'category_grid';
   enabled: boolean;
   config: any;
+  styles?: ComponentStyles;
 }
 
 export interface FeatureFlag {
@@ -102,6 +154,7 @@ export interface Product {
   image_url?: string;
   images?: string[]; // Array of image URLs
   is_active: boolean;
+  is_featured?: boolean;
   allow_direct_buy: boolean;
   total_stock?: number;
   created_at?: string;

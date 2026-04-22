@@ -5,6 +5,14 @@ import { isAuthenticated, isAdmin, AuthRequest } from '../middleware/auth.middle
 const router = Router();
 
 // Public/Customer Endpoints
+router.get('/', async (req, res) => {
+  const coupons = await CouponService.getAll();
+  // If user is admin/superadmin/client, return all
+  // Otherwise, only return active and non-loyalty-only coupons (or let frontend handle it)
+  // For the Promotions page, we want active coupons.
+  res.json(coupons);
+});
+
 router.get('/validate/:code', isAuthenticated, async (req: AuthRequest, res) => {
   const { amount, quantity } = req.query;
   const result = await CouponService.validateCoupon(
@@ -17,10 +25,6 @@ router.get('/validate/:code', isAuthenticated, async (req: AuthRequest, res) => 
 });
 
 // Admin Endpoints
-router.get('/', isAuthenticated, isAdmin, async (req, res) => {
-  res.json(await CouponService.getAll());
-});
-
 router.post('/', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const coupon = await CouponService.create(req.body);

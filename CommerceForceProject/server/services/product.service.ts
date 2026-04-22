@@ -113,6 +113,7 @@ export class ProductService {
       ...row,
       images,
       is_active: Boolean(row.is_active),
+      is_featured: Boolean(row.is_featured),
       allow_direct_buy: Boolean(row.allow_direct_buy),
       sale_percentage: Number(row.sale_percentage || 0),
       total_stock: Number(row.total_stock || 0)

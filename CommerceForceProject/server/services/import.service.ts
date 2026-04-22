@@ -44,6 +44,7 @@ export class ImportService {
           image_url: row.image_url,
           // Default to true if the column is missing OR empty
           is_active: row.is_active === undefined || row.is_active === '' || row.is_active === 'true' || row.is_active === '1' || row.is_active === 'yes',
+          is_featured: row.is_featured === 'true' || row.is_featured === '1' || row.is_featured === 'yes',
           allow_direct_buy: row.allow_direct_buy === undefined || row.allow_direct_buy === '' || row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes'
         };
 

@@ -58,6 +58,8 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.style.setProperty('--sidebar-font-weight', config.sidebar_font_weight || '500');
     root.style.setProperty('--top-nav-font-size', `${config.top_nav_font_size || 12}px`);
     root.style.setProperty('--top-nav-font-weight', config.top_nav_font_weight || '500');
+    root.style.setProperty('--nav-heading-color', config.nav_heading_color || config.secondary_color || '#4B5563');
+    root.style.setProperty('--nav-heading-font-weight', config.nav_heading_font_weight || '700');
 
     // Apply Background
     document.body.style.backgroundColor = '';

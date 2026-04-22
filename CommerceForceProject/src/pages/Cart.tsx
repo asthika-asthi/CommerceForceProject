@@ -29,7 +29,7 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
     return (
       <div className="max-w-4xl mx-auto py-20 px-4 text-center">
         <div className="w-24 h-24 bg-[#141414]/5 rounded-full flex items-center justify-center mx-auto mb-8">
-          <ShoppingBag size={48} className="text-[#141414]/20" />
+          <ShoppingCart size={48} className="text-[#141414]/20" />
         </div>
         <h2 className="text-3xl font-bold text-[#141414] mb-4">Your cart is empty</h2>
         <p className="text-[#141414]/60 mb-10 max-w-md mx-auto">
@@ -84,7 +84,7 @@ export const Cart = ({ onCheckout, onBack }: { onCheckout: () => void; onBack: (
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[#141414]/20">
-                      <ShoppingBag size={32} />
+                      <ShoppingCart size={32} />
                     </div>
                   )}
                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -49,6 +49,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
   const [categories, setCategories] = useState<string[]>([]);
+  const [hasPromotions, setHasPromotions] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>(['Overview']); // Default open
   const { user, logout, token } = useAuth();
   const { totalItems } = useCart();
@@ -65,6 +66,40 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
         : [...prev, title]
     );
   };
+
+  useEffect(() => {
+    // Fetch public categories and promotions
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const cats = Array.from(new Set(data.map((p: any) => p.category).filter(Boolean))) as string[];
+          setCategories(cats);
+          
+          // Check for sale items
+          const hasSales = data.some((p: any) => (p.sale_percentage || 0) > 0 && p.is_active);
+          if (hasSales) {
+            setHasPromotions(true);
+          } else {
+            // Check for active coupons
+            fetch('/api/coupons')
+              .then(res => res.json())
+              .then(coupons => {
+                if (Array.isArray(coupons)) {
+                  const activeCoupons = coupons.some((c: any) => {
+                    if (!c.is_active) return false;
+                    if (c.expiry_date && new Date(c.expiry_date) < new Date()) return false;
+                    if (c.usage_limit && c.used_count >= c.usage_limit) return false;
+                    return true;
+                  });
+                  setHasPromotions(activeCoupons);
+                }
+              });
+          }
+        }
+      })
+      .catch(err => console.error('Failed to fetch categories/promotions:', err));
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -105,17 +140,6 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
       // Always check for points if logged in, as any role might have earned them
       fetchPoints();
-
-      // Fetch categories
-      fetch('/api/products')
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            const cats = Array.from(new Set(data.map((p: any) => p.category).filter(Boolean))) as string[];
-            setCategories(cats);
-          }
-        })
-        .catch(err => console.error('Failed to fetch categories:', err));
 
       // Global event listener for points refresh
       const handlePointsRefresh = () => fetchPoints();
@@ -270,8 +294,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 {isSidebarOpen ? (
                   <button 
                     onClick={() => toggleSection(section.title)}
-                    style={{ color: 'var(--nav-text-color)' }}
-                    className="w-full flex items-center justify-between px-4 text-[10px] font-mono uppercase tracking-widest font-bold mb-2 hover:opacity-100 transition-opacity group"
+                    style={{ 
+                      color: 'var(--nav-heading-color)',
+                      fontWeight: 'var(--nav-heading-font-weight)' as any
+                    }}
+                    className="w-full flex items-center justify-between px-4 text-[10px] font-mono uppercase tracking-widest mb-2 hover:opacity-100 transition-opacity group"
                   >
                     <span>{section.title}</span>
                     <ChevronDown size={12} className={`transition-transform duration-200 ${openSections.includes(section.title) ? 'rotate-180' : ''}`} />
@@ -418,6 +445,21 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 >
                   Products
                 </button>
+                {hasPromotions && (
+                  <button 
+                    onClick={() => setActiveTab('promotions')}
+                    style={{ 
+                      fontFamily: 'var(--nav-font-family)', 
+                      color: '#E11D48', // Specialized color for promotions (rose-600)
+                      fontSize: 'var(--top-nav-font-size)',
+                      fontWeight: 'bold'
+                    }}
+                    className="flex items-center gap-1 opacity-90 hover:opacity-100 transition-all hover:scale-105"
+                  >
+                    <Sparkles size={14} className="animate-pulse" />
+                    Offers
+                  </button>
+                )}
                 <button 
                   onClick={() => setActiveTab('contact')}
                   style={{ 

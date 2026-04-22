@@ -98,6 +98,16 @@ async function initPostgresSchema(client: any) {
         hero_enabled INTEGER DEFAULT 1,
         catalogue_url TEXT,
         admin_email TEXT,
+        loyalty_banner_image TEXT,
+        category_display_style VARCHAR(20) DEFAULT 'dropdown',
+        nav_font_family TEXT,
+        nav_text_color TEXT,
+        sidebar_font_size INTEGER DEFAULT 14,
+        sidebar_font_weight VARCHAR(20) DEFAULT '500',
+        top_nav_font_size INTEGER DEFAULT 12,
+        top_nav_font_weight VARCHAR(20) DEFAULT '500',
+        nav_heading_color TEXT,
+        nav_heading_font_weight TEXT DEFAULT '700',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -195,6 +205,7 @@ async function initPostgresSchema(client: any) {
         image_url TEXT,
         images TEXT DEFAULT '[]',
         is_active INTEGER DEFAULT 1,
+        is_featured INTEGER DEFAULT 0,
         allow_direct_buy INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -412,6 +423,15 @@ function initSqliteSchema() {
           loyalty_redemption_value REAL DEFAULT 100,
           loyalty_program_name TEXT DEFAULT 'Loyalty Points',
           loyalty_banner_image TEXT,
+          category_display_style TEXT DEFAULT 'dropdown',
+          nav_font_family TEXT,
+          nav_text_color TEXT,
+          sidebar_font_size INTEGER DEFAULT 14,
+          sidebar_font_weight TEXT DEFAULT '500',
+          top_nav_font_size INTEGER DEFAULT 12,
+          top_nav_font_weight TEXT DEFAULT '500',
+          nav_heading_color TEXT,
+          nav_heading_font_weight TEXT DEFAULT '700',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
@@ -458,6 +478,7 @@ function initSqliteSchema() {
           image_url TEXT,
           images TEXT DEFAULT '[]',
           is_active INTEGER DEFAULT 1,
+          is_featured INTEGER DEFAULT 0,
           allow_direct_buy INTEGER DEFAULT 1,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )

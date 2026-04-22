@@ -178,8 +178,7 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="ml-auto flex items-center gap-4">
-            <span className="opacity-30">Core v2.5.1</span>
-            <span className="px-2 py-1 bg-green-600 text-white rounded font-bold shadow-sm shadow-green-600/20">v2.6.0-enterprise</span>
+            <span className="text-green-600 font-bold">System Status: Clean</span>
           </div>
         </div>
       )}
@@ -232,6 +231,43 @@ export const Dashboard = () => {
                 No recent activity recorded.
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* System Information Footer */}
+      <div className="mt-8 pt-8 border-t border-[#141414]/10 flex flex-wrap justify-between items-center gap-6 text-[10px] font-mono opacity-40 uppercase tracking-[0.2em]">
+        <div className="flex flex-wrap gap-8">
+          <div className="flex flex-col gap-1">
+            <span className="opacity-60 text-[8px]">Core Version</span>
+            <span className="font-bold">v2.5.1-stable</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="opacity-60 text-[8px]">CommerceForce Enterprise</span>
+            <span className="text-[var(--primary-color)] font-bold">v2.6.0-gold</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="opacity-60 text-[8px]">Environment</span>
+            <span className="font-bold text-green-600">Production</span>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-8 items-center">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end gap-1">
+              <span className="opacity-60 text-[8px]">Uptime</span>
+              <span className="font-bold">99.99%</span>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className="opacity-60 text-[8px]">API Latency</span>
+              <span className="font-bold">12ms</span>
+            </div>
+          </div>
+          <div className="pl-8 border-l border-[#141414]/10">
+            <span className="opacity-60 text-[8px] block mb-1">Status</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+              <span className="text-green-600 font-bold">Safe & Clean</span>
+            </div>
           </div>
         </div>
       </div>

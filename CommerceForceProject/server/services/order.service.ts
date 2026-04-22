@@ -139,7 +139,7 @@ export class OrderService {
         const userResult = await db.queryWithClient(client, 'SELECT available_credit FROM users WHERE id = ?', [userId]);
         const user = userResult.rows[0];
         if (Number(user.available_credit) < totalAmount) {
-          throw new Error('Insufficient credit limit');
+          throw new Error('Your current credit limit is insufficient for this order. Please use another payment method or contact us to increase your limit.');
         }
         await db.queryWithClient(client, 'UPDATE users SET available_credit = available_credit - ? WHERE id = ?', [totalAmount, userId]);
       }

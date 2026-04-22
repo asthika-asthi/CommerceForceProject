@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared/types';
 import { Save, Globe, Palette, Type, Award, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { StyleEditor } from '../../components/admin/StyleEditor';
 
 type Tab = 'identity' | 'visuals' | 'hero' | 'sections' | 'footer' | 'payments' | 'carousel' | 'loyalty';
 
@@ -12,6 +13,7 @@ export const Branding = () => {
   const [uploading, setUploading] = useState(false);
   const [layout, setLayout] = useState<LayoutSection[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>([]);
+  const [editingSectionStyles, setEditingSectionStyles] = useState<string | null>(null);
   
   const { token } = useAuth();
 
@@ -455,8 +457,8 @@ export const Branding = () => {
                     <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Sidebar Font Size (px)</label>
                     <input
                       type="number"
-                      value={config.sidebar_font_size || 14}
-                      onChange={e => setConfig({ ...config, sidebar_font_size: parseInt(e.target.value) })}
+                      value={config.sidebar_font_size || ''}
+                      onChange={e => setConfig({ ...config, sidebar_font_size: e.target.value ? parseInt(e.target.value) : undefined })}
                       className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                     />
                   </div>
@@ -478,8 +480,8 @@ export const Branding = () => {
                     <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Top Nav Font Size (px)</label>
                     <input
                       type="number"
-                      value={config.top_nav_font_size || 12}
-                      onChange={e => setConfig({ ...config, top_nav_font_size: parseInt(e.target.value) })}
+                      value={config.top_nav_font_size || ''}
+                      onChange={e => setConfig({ ...config, top_nav_font_size: e.target.value ? parseInt(e.target.value) : undefined })}
                       className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                     />
                   </div>
@@ -495,6 +497,38 @@ export const Branding = () => {
                       <option value="500">Medium (500)</option>
                       <option value="600">Semibold (600)</option>
                       <option value="700">Bold (700)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Nav Heading Color</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={config.nav_heading_color || '#4B5563'}
+                        onChange={e => setConfig({ ...config, nav_heading_color: e.target.value })}
+                        className="w-12 h-12 bg-transparent border-none cursor-pointer rounded-xl overflow-hidden"
+                      />
+                      <input
+                        type="text"
+                        value={config.nav_heading_color || '#4B5563'}
+                        onChange={e => setConfig({ ...config, nav_heading_color: e.target.value })}
+                        className="flex-1 bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Nav Heading Weight</label>
+                    <select
+                      value={config.nav_heading_font_weight || '700'}
+                      onChange={e => setConfig({ ...config, nav_heading_font_weight: e.target.value })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                      <option value="300">Light (300)</option>
+                      <option value="400">Regular (400)</option>
+                      <option value="500">Medium (500)</option>
+                      <option value="600">Semibold (600)</option>
+                      <option value="700">Bold (700)</option>
+                      <option value="800">Extra Bold (800)</option>
                     </select>
                   </div>
                   <div>
@@ -605,6 +639,7 @@ export const Branding = () => {
                 <button type="button" onClick={() => addSection('faq')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add FAQ</button>
                 <button type="button" onClick={() => addSection('cta')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add CTA</button>
                 <button type="button" onClick={() => addSection('carousel')} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add Carousel</button>
+                <button type="button" onClick={() => addSection('category_grid' as any)} className="px-3 py-1.5 bg-white border border-black/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50">Add Category Grid</button>
               </div>
             </div>
 
@@ -633,8 +668,33 @@ export const Branding = () => {
                           placeholder="Section Title"
                         />
                       </div>
-                      <button type="button" onClick={() => removeSection(section.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"><Trash2 size={16} /></button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingSectionStyles(editingSectionStyles === section.id ? null : section.id)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            editingSectionStyles === section.id ? 'bg-blue-600 text-white' : 'bg-black/5 hover:bg-black/10'
+                          }`}
+                        >
+                          <Palette size={14} /> {editingSectionStyles === section.id ? 'Close Styles' : 'Styles'}
+                        </button>
+                        <button type="button" onClick={() => removeSection(section.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"><Trash2 size={16} /></button>
+                      </div>
                     </div>
+
+                    {editingSectionStyles === section.id && (
+                      <div className="animate-in zoom-in-95 duration-200">
+                        <StyleEditor 
+                          styles={section.styles || {}} 
+                          onChange={(newStyles) => {
+                            const newLayout = [...layout];
+                            newLayout[index].styles = newStyles;
+                            setLayout(newLayout);
+                          }}
+                          showGridOptions={['features', 'products', 'category_grid', 'content'].includes(section.type)}
+                        />
+                      </div>
+                    )}
 
                     {section.type === 'carousel' && (
                       <div className="space-y-4">
@@ -1285,6 +1345,87 @@ export const Branding = () => {
                           className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm"
                           placeholder="Button Link"
                         />
+                      </div>
+                    )}
+
+                    {section.type === 'category_grid' as any && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-black/5 rounded-xl">
+                          <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Section Title</label>
+                          <input
+                            type="text"
+                            value={section.config.title || ''}
+                            onChange={e => {
+                              const newLayout = [...layout];
+                              newLayout[index].config.title = e.target.value;
+                              setLayout(newLayout);
+                            }}
+                            className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm font-bold"
+                            placeholder="Section Title (e.g. Shop by Category)"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(section.config.items || []).map((item: any, i: number) => (
+                            <div key={i} className="space-y-3 p-4 bg-black/5 rounded-xl relative group/item">
+                              <input
+                                type="text"
+                                value={item.title || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].title = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-2 rounded-xl text-sm font-bold"
+                                placeholder="Category Title"
+                              />
+                              <input
+                                type="text"
+                                value={item.image || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].image = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-2 rounded-xl text-sm"
+                                placeholder="Image URL"
+                              />
+                               <input
+                                type="text"
+                                value={item.link || ''}
+                                onChange={e => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items[i].link = e.target.value;
+                                  setLayout(newLayout);
+                                }}
+                                className="w-full bg-white border border-[#141414]/10 px-4 py-2 rounded-xl text-sm"
+                                placeholder="Link (e.g. /category/electronics)"
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const newLayout = [...layout];
+                                  newLayout[index].config.items.splice(i, 1);
+                                  setLayout(newLayout);
+                                }}
+                                className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLayout = [...layout];
+                            if (!newLayout[index].config.items) newLayout[index].config.items = [];
+                            newLayout[index].config.items.push({ title: 'New Category', image: '', link: '' });
+                            setLayout(newLayout);
+                          }}
+                          className="w-full py-3 border-2 border-dashed border-black/10 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black/5 transition-all"
+                        >
+                          + Add Category
+                        </button>
                       </div>
                     )}
                   </div>

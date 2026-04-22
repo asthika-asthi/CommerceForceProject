@@ -175,7 +175,7 @@ export class WarehouseService {
     if (!inventory) {
       const productResult = await query('SELECT name FROM products WHERE id = ?', [productId]);
       const productName = productResult.rows[0]?.name || productId;
-      throw new Error(`We're sorry, but we don't have enough of ${productName} available to complete your request.`);
+      throw new Error(`We're sorry, but we currently have limited stock of ${productName} available. Please try a smaller quantity or contact us for assistance.`);
     }
 
     const newQuantity = inventory.quantity - quantity;
