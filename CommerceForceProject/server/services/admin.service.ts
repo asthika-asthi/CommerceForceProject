@@ -16,6 +16,12 @@ export class AdminService {
       carousel_enabled: Boolean(branding.carousel_enabled),
       hero_enabled: branding.hero_enabled !== 0,
       footer_tagline: branding.footer_tagline,
+      sidebar_background_style: branding.sidebar_background_style || 'default',
+      sidebar_background_value: branding.sidebar_background_value,
+      top_nav_background_style: branding.top_nav_background_style || 'default',
+      top_nav_background_value: branding.top_nav_background_value,
+      footer_background_style: branding.footer_background_style || 'default',
+      footer_background_value: branding.footer_background_value,
       loyalty_points_per_currency: branding.loyalty_points_per_currency || 1,
       loyalty_redemption_value: branding.loyalty_redemption_value || 100,
       loyalty_program_name: branding.loyalty_program_name || 'Loyalty Points',
@@ -69,7 +75,13 @@ export class AdminService {
         { name: 'top_nav_font_size', type: 'INTEGER DEFAULT 12' },
         { name: 'top_nav_font_weight', type: 'TEXT DEFAULT "500"' },
         { name: 'nav_heading_color', type: 'TEXT' },
-        { name: 'nav_heading_font_weight', type: 'TEXT DEFAULT "700"' }
+        { name: 'nav_heading_font_weight', type: 'TEXT DEFAULT "700"' },
+        { name: 'sidebar_background_style', type: 'TEXT DEFAULT "default"' },
+        { name: 'sidebar_background_value', type: 'TEXT' },
+        { name: 'top_nav_background_style', type: 'TEXT DEFAULT "default"' },
+        { name: 'top_nav_background_value', type: 'TEXT' },
+        { name: 'footer_background_style', type: 'TEXT DEFAULT "default"' },
+        { name: 'footer_background_value', type: 'TEXT' }
       ];
 
       for (const col of columns) {
@@ -136,7 +148,13 @@ export class AdminService {
         ADD COLUMN IF NOT EXISTS top_nav_font_size INTEGER DEFAULT 12,
         ADD COLUMN IF NOT EXISTS top_nav_font_weight VARCHAR(20) DEFAULT '500',
         ADD COLUMN IF NOT EXISTS nav_heading_color TEXT,
-        ADD COLUMN IF NOT EXISTS nav_heading_font_weight VARCHAR(20) DEFAULT '700'
+        ADD COLUMN IF NOT EXISTS nav_heading_font_weight VARCHAR(20) DEFAULT '700',
+        ADD COLUMN IF NOT EXISTS sidebar_background_style TEXT DEFAULT 'default',
+        ADD COLUMN IF NOT EXISTS sidebar_background_value TEXT,
+        ADD COLUMN IF NOT EXISTS top_nav_background_style TEXT DEFAULT 'default',
+        ADD COLUMN IF NOT EXISTS top_nav_background_value TEXT,
+        ADD COLUMN IF NOT EXISTS footer_background_style TEXT DEFAULT 'default',
+        ADD COLUMN IF NOT EXISTS footer_background_value TEXT
       `);
     } catch (err) {
       console.error('Failed to ensure schema:', err);
@@ -161,7 +179,10 @@ export class AdminService {
             loyalty_points_per_currency = ?, loyalty_redemption_value = ?, loyalty_program_name = ?, loyalty_banner_image = ?,
             category_display_style = ?, nav_font_family = ?, nav_text_color = ?, 
             sidebar_font_size = ?, sidebar_font_weight = ?, top_nav_font_size = ?, top_nav_font_weight = ?,
-            nav_heading_color = ?, nav_heading_font_weight = ?
+            nav_heading_color = ?, nav_heading_font_weight = ?,
+            sidebar_background_style = ?, sidebar_background_value = ?,
+            top_nav_background_style = ?, top_nav_background_value = ?,
+            footer_background_style = ?, footer_background_value = ?
         WHERE id = ?
       `, [
         config.company_name || current.company_name,
@@ -214,6 +235,12 @@ export class AdminService {
         config.top_nav_font_weight !== undefined ? config.top_nav_font_weight : (current.top_nav_font_weight || '500'),
         config.nav_heading_color !== undefined ? config.nav_heading_color : current.nav_heading_color,
         config.nav_heading_font_weight !== undefined ? config.nav_heading_font_weight : (current.nav_heading_font_weight || '700'),
+        config.sidebar_background_style !== undefined ? config.sidebar_background_style : (current.sidebar_background_style || 'default'),
+        config.sidebar_background_value !== undefined ? config.sidebar_background_value : current.sidebar_background_value,
+        config.top_nav_background_style !== undefined ? config.top_nav_background_style : (current.top_nav_background_style || 'default'),
+        config.top_nav_background_value !== undefined ? config.top_nav_background_value : current.top_nav_background_value,
+        config.footer_background_style !== undefined ? config.footer_background_style : (current.footer_background_style || 'default'),
+        config.footer_background_value !== undefined ? config.footer_background_value : current.footer_background_value,
         current.id
       ]);
     }

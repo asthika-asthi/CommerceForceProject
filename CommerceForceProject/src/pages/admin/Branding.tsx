@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { BrandingConfig, LayoutSection, PaymentMethodConfig } from '../../shared/types';
 import { Save, Globe, Palette, Type, Award, Upload, Loader2, Layout, Image as ImageIcon, MousePointer2, Layers, MessageSquare, HelpCircle, Star, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X, AlignLeft, AlignCenter, AlignRight, Grid, Square, CreditCard, Banknote, Settings } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useAuth } from '../../context/AuthContext';
 import { StyleEditor } from '../../components/admin/StyleEditor';
 
@@ -150,6 +151,14 @@ export const Branding = () => {
 
   const removeSection = (id: string) => {
     setLayout(layout.filter(s => s.id !== id));
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    const items = [...layout];
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setLayout(items);
   };
 
   if (!config) return null;
@@ -547,7 +556,7 @@ export const Branding = () => {
                     <select
                       value={config.sidebar_background_style || 'default'}
                       onChange={e => setConfig({ ...config, sidebar_background_style: e.target.value as any })}
-                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
                     >
                       <option value="default">Default (White)</option>
                       <option value="primary">Primary Brand Color</option>
@@ -564,7 +573,59 @@ export const Branding = () => {
                         placeholder="https://..."
                         value={config.sidebar_background_value || ''}
                         onChange={e => setConfig({ ...config, sidebar_background_value: e.target.value })}
-                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Top Nav Background Style</label>
+                    <select
+                      value={config.top_nav_background_style || 'default'}
+                      onChange={e => setConfig({ ...config, top_nav_background_style: e.target.value as any })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                    >
+                      <option value="default">Default (Glass/White)</option>
+                      <option value="primary">Primary Brand Color</option>
+                      <option value="secondary">Secondary Brand Color</option>
+                      <option value="accent">Light Accent</option>
+                      <option value="image">Background Image</option>
+                    </select>
+                  </div>
+                  {config.top_nav_background_style === 'image' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Top Nav Background Image URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={config.top_nav_background_value || ''}
+                        onChange={e => setConfig({ ...config, top_nav_background_value: e.target.value })}
+                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Footer Background Style</label>
+                    <select
+                      value={config.footer_background_style || 'default'}
+                      onChange={e => setConfig({ ...config, footer_background_style: e.target.value as any })}
+                      className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
+                    >
+                      <option value="default">Default (White/Brand)</option>
+                      <option value="primary">Primary Brand Color</option>
+                      <option value="secondary">Secondary Brand Color</option>
+                      <option value="accent">Light Accent</option>
+                      <option value="image">Background Image</option>
+                    </select>
+                  </div>
+                  {config.footer_background_style === 'image' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-mono uppercase tracking-widest opacity-50 mb-2">Footer Background Image URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://..."
+                        value={config.footer_background_value || ''}
+                        onChange={e => setConfig({ ...config, footer_background_value: e.target.value })}
+                        className="w-full bg-white border border-[#141414]/10 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold"
                       />
                     </div>
                   )}
@@ -669,14 +730,33 @@ export const Branding = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
-              {layout.map((section, index) => (
-                <div key={section.id} className="border border-[#141414] p-6 bg-white/50 rounded-2xl shadow-sm flex gap-6">
-                  <div className="flex flex-col gap-2">
-                    <button type="button" onClick={() => moveSection(index, 'up')} className="p-1 hover:bg-black/5 rounded"><ChevronUp size={16} /></button>
-                    <div className="flex-1 flex items-center justify-center text-black/20"><GripVertical size={16} /></div>
-                    <button type="button" onClick={() => moveSection(index, 'down')} className="p-1 hover:bg-black/5 rounded"><ChevronDown size={16} /></button>
-                  </div>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="sections">
+                {(provided) => (
+                  <div 
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-4"
+                  >
+                    {layout.map((section, index) => (
+                      <React.Fragment key={section.id}>
+                        <Draggable draggableId={section.id} index={index}>
+                          {(provided, snapshot) => (
+                          <div 
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`border border-[#141414] p-6 bg-white/50 rounded-2xl shadow-sm flex gap-6 ${snapshot.isDragging ? 'shadow-2xl border-blue-500 bg-white ring-4 ring-blue-500/10' : ''}`}
+                          >
+                            <div className="flex flex-col gap-2">
+                              <button type="button" onClick={() => moveSection(index, 'up')} className="p-1 hover:bg-black/5 rounded"><ChevronUp size={16} /></button>
+                              <div 
+                                {...provided.dragHandleProps}
+                                className="flex-1 flex items-center justify-center text-black/20 cursor-grab active:cursor-grabbing"
+                              >
+                                <GripVertical size={16} />
+                              </div>
+                              <button type="button" onClick={() => moveSection(index, 'down')} className="p-1 hover:bg-black/5 rounded"><ChevronDown size={16} /></button>
+                            </div>
                   
                   <div className="flex-1 space-y-4">
                     <div className="flex items-center justify-between">
@@ -1454,16 +1534,23 @@ export const Branding = () => {
                         </button>
                       </div>
                     )}
-                  </div>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  </React.Fragment>
+                  ))}
+                  {provided.placeholder}
                 </div>
-              ))}
+              )}
+            </Droppable>
+          </DragDropContext>
               {layout.length === 0 && (
                 <div className="p-20 text-center border-2 border-dashed border-black/5 rounded-[40px] opacity-40">
                   No custom sections added yet.
                 </div>
               )}
             </div>
-          </div>
         )}
 
         {activeTab === 'footer' && (

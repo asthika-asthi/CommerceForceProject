@@ -18,6 +18,7 @@ import { UsersAdmin } from './pages/admin/Users';
 import { CouponsAdmin } from './pages/admin/Coupons';
 import { InventoryAlerts } from './pages/admin/InventoryAlerts';
 import { SystemTools } from './pages/admin/SystemTools';
+import { CategoriesAdmin } from './pages/admin/Categories';
 import { PromotionsPage } from './pages/PromotionsPage';
 import { MyOrders } from './pages/MyOrders';
 import { CustomerRFQ } from './pages/CustomerRFQ';
@@ -98,7 +99,7 @@ function AppContent() {
     // Check URL path first
     const path = window.location.pathname.substring(1);
     const rootPath = path.split('/')[0];
-    if (rootPath && ['landing', 'promotions', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders'].includes(rootPath)) {
+    if (rootPath && ['landing', 'promotions', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders', 'categories'].includes(rootPath)) {
       return rootPath;
     }
     
@@ -135,7 +136,7 @@ function AppContent() {
       setPathname(currentPath);
       const path = currentPath.substring(1);
       const rootPath = path.split('/')[0];
-      if (rootPath && ['landing', 'promotions', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders'].includes(rootPath)) {
+      if (rootPath && ['landing', 'promotions', 'dashboard', 'branding', 'features', 'products', 'orders', 'inventory', 'loyalty', 'rfq', 'email', 'coupons', 'users', 'contact', 'contact-us', 'cart', 'checkout', 'category', 'login', 'register', 'faq', 'my-orders', 'categories'].includes(rootPath)) {
         setActiveTab(rootPath);
       }
     };
@@ -171,6 +172,7 @@ function AppContent() {
         { id: 'rfq', roles: ['admin', 'superadmin', 'client'] },
         { id: 'loyalty', roles: ['admin', 'superadmin', 'client'] },
         { id: 'coupons', roles: ['admin', 'superadmin', 'client'] },
+        { id: 'categories', roles: ['admin', 'superadmin', 'client'] },
         { id: 'email', roles: ['superadmin'] },
         { id: 'users', roles: ['superadmin'] },
         { id: 'system-tools', roles: ['superadmin'] },
@@ -222,6 +224,8 @@ function AppContent() {
         return <FeatureFlags />;
       case 'products':
         return <Products />;
+      case 'categories':
+        return <CategoriesAdmin />;
       case 'orders':
         return <Orders />;
       case 'inventory':

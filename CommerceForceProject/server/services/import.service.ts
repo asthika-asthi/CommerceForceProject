@@ -18,7 +18,7 @@ export class ImportService {
     const parsed = Papa.parse(content, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.trim().toLowerCase()
+      transformHeader: (header) => header.trim().toLowerCase().replace(/-/g, '_')
     });
 
     if (parsed.errors.length > 0) {
@@ -31,6 +31,18 @@ export class ImportService {
 
     const rows = parsed.data as any[];
 
+    const isTrue = (val: any) => {
+      if (val === undefined || val === null || val === '') return true;
+      const v = String(val).toLowerCase().trim();
+      return v === 'true' || v === '1' || v === 'yes';
+    };
+
+    const isFalse = (val: any) => {
+      if (val === undefined || val === null || val === '') return false;
+      const v = String(val).toLowerCase().trim();
+      return v === 'false' || v === '0' || v === 'no';
+    };
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
@@ -42,10 +54,9 @@ export class ImportService {
           base_price: parseFloat(row.base_price) || 0,
           sale_percentage: parseFloat(row.sale_percentage) || 0,
           image_url: row.image_url,
-          // Default to true if the column is missing OR empty
-          is_active: row.is_active === undefined || row.is_active === '' || row.is_active === 'true' || row.is_active === '1' || row.is_active === 'yes',
-          is_featured: row.is_featured === 'true' || row.is_featured === '1' || row.is_featured === 'yes',
-          allow_direct_buy: row.allow_direct_buy === undefined || row.allow_direct_buy === '' || row.allow_direct_buy === 'true' || row.allow_direct_buy === '1' || row.allow_direct_buy === 'yes'
+          is_active: isTrue(row.is_active),
+          is_featured: row.is_featured ? isTrue(row.is_featured) : false,
+          allow_direct_buy: isTrue(row.allow_direct_buy)
         };
 
         // Handle multiple images (comma separated)

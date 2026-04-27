@@ -54,8 +54,8 @@ export async function initDb() {
   }
 
   if (poolConfig.user || poolConfig.connectionString) {
-    let retries = 10;
-    const retryDelay = 3000;
+    let retries = 3;
+    const retryDelay = 2000;
     
     while (retries > 0) {
       try {
@@ -67,7 +67,7 @@ export async function initDb() {
         });
 
         const client = await pool.connect();
-        console.log(`Successfully connected to Postgres on attempt ${11 - retries}`);
+        console.log(`Successfully connected to Postgres on attempt ${4 - retries}`);
         await initPostgresSchema(client);
         client.release();
         return;
@@ -103,7 +103,7 @@ export async function initDb() {
   const dbPath = path.join(dataDir, 'commerce.db');
   console.log(`Initializing SQLite database at: ${dbPath}`);
   sqliteDb = new Database(dbPath);
-  initSqliteSchema();
+  await initSqliteSchema();
 }
 
 async function initPostgresSchema(client: any) {
@@ -164,6 +164,8 @@ async function initPostgresSchema(client: any) {
         sidebar_background_value TEXT,
         footer_background_style TEXT DEFAULT 'default',
         footer_background_value TEXT,
+        top_nav_background_style TEXT DEFAULT 'default',
+        top_nav_background_value TEXT,
         loyalty_points_per_currency REAL DEFAULT 1,
         loyalty_redemption_value REAL DEFAULT 100,
         loyalty_program_name TEXT DEFAULT 'Loyalty Points',
@@ -248,6 +250,12 @@ async function initPostgresSchema(client: any) {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='footer_background_value') THEN
           ALTER TABLE branding_config ADD COLUMN footer_background_value TEXT;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='top_nav_background_style') THEN
+          ALTER TABLE branding_config ADD COLUMN top_nav_background_style TEXT DEFAULT 'default';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='branding_config' AND column_name='top_nav_background_value') THEN
+          ALTER TABLE branding_config ADD COLUMN top_nav_background_value TEXT;
+        END IF;
       END $$;
 
       CREATE TABLE IF NOT EXISTS feature_flags (
@@ -272,6 +280,19 @@ async function initPostgresSchema(client: any) {
         role_id INTEGER REFERENCES roles(id),
         credit_limit DECIMAL DEFAULT 0,
         available_credit DECIMAL DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        description TEXT,
+        image_url TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS products (
@@ -446,6 +467,7 @@ async function initPostgresSchema(client: any) {
         name = EXCLUDED.name;
     `);
     await client.query('COMMIT');
+    await syncCategoriesFromProducts();
     console.log("Postgres schema initialized successfully.");
   } catch (err) {
     await client.query('ROLLBACK');
@@ -454,7 +476,7 @@ async function initPostgresSchema(client: any) {
   }
 }
 
-function initSqliteSchema() {
+async function initSqliteSchema() {
   try {
     console.log("Initializing SQLite schema...");
     sqliteDb.transaction(() => {
@@ -516,6 +538,8 @@ function initSqliteSchema() {
           sidebar_background_value TEXT,
           footer_background_style TEXT DEFAULT 'default',
           footer_background_value TEXT,
+          top_nav_background_style TEXT DEFAULT 'default',
+          top_nav_background_value TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
@@ -547,6 +571,21 @@ function initSqliteSchema() {
           role_id INTEGER REFERENCES roles(id),
           credit_limit REAL DEFAULT 0,
           available_credit REAL DEFAULT 0
+        )
+      `).run();
+
+      sqliteDb.prepare(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+          name TEXT NOT NULL,
+          slug TEXT NOT NULL UNIQUE,
+          description TEXT,
+          image_url TEXT,
+          sort_order INTEGER DEFAULT 0,
+          is_active INTEGER DEFAULT 1,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
 
@@ -743,10 +782,29 @@ function initSqliteSchema() {
         }
       }
     })();
+    await syncCategoriesFromProducts();
     console.log("SQLite schema initialized successfully.");
   } catch (err) {
     console.error("Failed to initialize SQLite schema:", err);
     throw err;
+  }
+}
+
+async function syncCategoriesFromProducts() {
+  try {
+    const existingCats = await db.query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL AND category != ''");
+    for (const row of existingCats.rows) {
+      const name = row.category;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      
+      // Use standard SQL for compatibility
+      const check = await db.query('SELECT 1 FROM categories WHERE slug = ?', [slug]);
+      if (check.rows.length === 0) {
+        await db.query('INSERT INTO categories (name, slug) VALUES (?, ?)', [name, slug]);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to sync categories:', e);
   }
 }
 

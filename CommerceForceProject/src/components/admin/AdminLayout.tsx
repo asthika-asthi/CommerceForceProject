@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle, Sparkles, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -54,6 +54,21 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   const { user, logout, token } = useAuth();
   const { totalItems } = useCart();
   const { config } = useBranding();
+
+  // Auto-collapse sidebar on mobile screens
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 1024) { // lg breakpoint
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    
+    checkMobile(); // Initial check
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const b2bEnabled = features.find(f => f.feature_key === 'b2b_enabled')?.enabled ?? true;
   const rfqEnabled = features.find(f => f.feature_key === 'rfq_enabled')?.enabled ?? true;
@@ -177,6 +192,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
       title: 'Store',
       items: [
         { id: 'products', label: 'Products', icon: Package, roles: ['admin', 'superadmin', 'client', 'customer'] },
+        { id: 'categories', label: 'Categories', icon: Layers, roles: ['admin', 'superadmin', 'client'] },
         { id: 'my-orders', label: 'MyOrders', icon: ShoppingCart, roles: ['customer'] },
         { id: 'orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'superadmin', 'client'] },
         { id: 'coupons', label: 'Promotions', icon: Ticket, roles: ['admin', 'superadmin', 'client'] },
@@ -266,27 +282,70 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${config.sidebar_background_value})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          borderRight: 'none'
+          borderRight: 'none',
+          borderRadius: '1.5rem'
         };
       default:
-        return { backgroundColor: 'white' };
+        return { backgroundColor: 'white', borderRadius: '1.5rem' };
+    }
+  };
+
+  const getHeaderStyle = () => {
+    if (!config) return {};
+    
+    switch (config.top_nav_background_style) {
+      case 'primary':
+        return { backgroundColor: config.primary_color || '#1A56DB', borderBottomColor: 'rgba(255,255,255,0.1)', borderRadius: '1.5rem' };
+      case 'secondary':
+        return { backgroundColor: config.secondary_color || '#4B5563', borderBottomColor: 'rgba(255,255,255,0.1)', borderRadius: '1.5rem' };
+      case 'accent':
+        return { backgroundColor: 'var(--primary-color-light)', borderBottomColor: 'var(--primary-color)', borderRadius: '1.5rem' };
+      case 'image':
+        return { 
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${config.top_nav_background_value})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderBottom: 'none',
+          borderRadius: '1.5rem'
+        };
+      default:
+        return { backgroundColor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(12px)', borderRadius: '1.5rem' };
     }
   };
 
   const sidebarStyle = getSidebarStyle();
   const isDarkSidebar = ['primary', 'secondary', 'image'].includes(config?.sidebar_background_style || '');
 
+  const headerStyle = getHeaderStyle();
+  const isDarkHeader = ['primary', 'secondary', 'image'].includes(config?.top_nav_background_style || '');
+
   const hideSidebar = !user || filteredSections.length === 0;
 
   return (
-    <div className="min-h-screen flex font-[var(--font-family)] bg-[#fdfdfd]">
+    <div className="min-h-screen flex font-[var(--font-family)] bg-[#fdfdfd] relative">
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {!hideSidebar && isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       {!hideSidebar && (
         <aside 
           style={sidebarStyle}
-          className={`${
-            isSidebarOpen ? 'w-72' : 'w-24'
-          } border-r border-black/5 transition-all duration-300 flex flex-col shadow-xl z-20 sticky top-0 h-screen overflow-hidden`}
+          className={`
+            fixed lg:sticky top-4 left-4 z-50 lg:z-20
+            ${isSidebarOpen ? 'translate-x-0 w-72' : '-translate-x-[calc(100%+2rem)] lg:translate-x-0 lg:w-24'}
+            transition-all duration-300 flex flex-col shadow-xl 
+            h-[calc(100vh-2rem)] overflow-hidden m-4
+          `}
         >
           <div className="p-8 flex items-center justify-between relative z-10">
             {isSidebarOpen && (
@@ -361,22 +420,22 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           </nav>
 
           <div className="p-6 border-t border-black/5">
-            <div className="flex items-center justify-between gap-3 bg-black/5 p-3 rounded-2xl">
+            <div className={`flex items-center justify-between gap-3 p-3 rounded-2xl ${isDarkSidebar ? 'bg-white/10' : 'bg-black/5'}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary-color)] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[var(--primary-color)]/20">
                   {user?.name?.substring(0, 2).toUpperCase() || 'CF'}
                 </div>
                 {isSidebarOpen && (
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-xs font-bold text-[#141414] truncate">{user?.name}</span>
-                    <span className="text-[10px] text-[#141414]/50 uppercase tracking-wider font-bold">{user?.role}</span>
+                    <span className={`text-xs font-bold truncate ${isDarkSidebar ? 'text-white' : 'text-[#141414]'}`}>{user?.name}</span>
+                    <span className={`text-[10px] uppercase tracking-wider font-bold ${isDarkSidebar ? 'text-white/50' : 'text-[#141414]/50'}`}>{user?.role}</span>
                   </div>
                 )}
               </div>
               {isSidebarOpen && (
                 <button 
                   onClick={logout}
-                  className="p-2 hover:bg-white rounded-xl text-[#141414]/60 hover:text-red-600 transition-all shadow-sm"
+                  className={`p-2 rounded-xl transition-all shadow-sm ${isDarkSidebar ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-white text-[#141414]/60 hover:text-red-600'}`}
                   title="Logout"
                 >
                   <LogOut size={16} />
@@ -389,12 +448,26 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 border-b border-black/5 bg-white/80 backdrop-blur-md z-10 sticky top-0">
-          <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between">
-            <div className="flex items-center gap-8">
+        <header 
+          style={headerStyle}
+          className="h-20 border-b border-black/5 z-10 sticky top-4 mx-4 transition-all duration-500 shadow-sm"
+        >
+          <div className="max-w-[1600px] w-full mx-auto px-6 md:px-10 h-full flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-4 md:gap-8">
+              {/* Mobile Menu Toggle */}
+              {!hideSidebar && (
+                <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
+                  className={`lg:hidden p-2 rounded-xl transition-colors ${isDarkHeader ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
+                >
+                  <Menu size={20} />
+                </button>
+              )}
+              
               <h1 
-                style={{ color: 'var(--nav-text-color)' }}
-                className="font-bold text-xl tracking-tight"
+                style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
+                className="font-bold text-lg tracking-tight"
               >
                 {navSections.flatMap(s => s.items).find(i => i.id === activeTab)?.label || config?.company_name || 'CommerceForce'}
               </h1>
@@ -412,11 +485,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         }}
                         style={{ 
                           fontFamily: 'var(--nav-font-family)', 
-                          color: 'var(--nav-text-color)',
+                          color: isDarkHeader ? 'white' : 'var(--nav-text-color)',
                           fontSize: 'var(--top-nav-font-size)',
                           fontWeight: 'var(--top-nav-font-weight)'
                         }}
-                        className="opacity-60 hover:opacity-100 transition-colors capitalize whitespace-nowrap"
+                        className={`transition-colors capitalize whitespace-nowrap ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                       >
                         {cat}
                       </button>
@@ -427,11 +500,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     <button 
                       style={{ 
                         fontFamily: 'var(--nav-font-family)', 
-                        color: 'var(--nav-text-color)', 
+                        color: isDarkHeader ? 'white' : 'var(--nav-text-color)', 
                         fontSize: 'var(--top-nav-font-size)',
                         fontWeight: 'var(--top-nav-font-weight)'
                       }}
-                      className="opacity-60 hover:opacity-100 flex items-center gap-1 transition-colors"
+                      className={`flex items-center gap-1 transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                     >
                       Categories <ChevronDown size={14} />
                     </button>
@@ -465,11 +538,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   onClick={() => setActiveTab('products')}
                   style={{ 
                     fontFamily: 'var(--nav-font-family)', 
-                    color: 'var(--nav-text-color)', 
+                    color: isDarkHeader ? 'white' : 'var(--nav-text-color)', 
                     fontSize: 'var(--top-nav-font-size)',
                     fontWeight: 'var(--top-nav-font-weight)'
                   }}
-                  className="opacity-60 hover:opacity-100 transition-colors"
+                  className={`transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                 >
                   Products
                 </button>
@@ -478,7 +551,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     onClick={() => setActiveTab('promotions')}
                     style={{ 
                       fontFamily: 'var(--nav-font-family)', 
-                      color: '#E11D48', // Specialized color for promotions (rose-600)
+                      color: isDarkHeader ? '#FDA4AF' : '#E11D48', // Lighter rose for dark header
                       fontSize: 'var(--top-nav-font-size)',
                       fontWeight: 'bold'
                     }}
@@ -492,11 +565,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   onClick={() => setActiveTab('contact')}
                   style={{ 
                     fontFamily: 'var(--nav-font-family)', 
-                    color: 'var(--nav-text-color)', 
+                    color: isDarkHeader ? 'white' : 'var(--nav-text-color)', 
                     fontSize: 'var(--top-nav-font-size)',
                     fontWeight: 'var(--top-nav-font-weight)'
                   }}
-                  className="opacity-60 hover:opacity-100 transition-colors"
+                  className={`transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                 >
                   Support
                 </button>
@@ -504,11 +577,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   onClick={() => setActiveTab('contact-us')}
                   style={{ 
                     fontFamily: 'var(--nav-font-family)', 
-                    color: 'var(--nav-text-color)', 
+                    color: isDarkHeader ? 'white' : 'var(--nav-text-color)', 
                     fontSize: 'var(--top-nav-font-size)',
                     fontWeight: 'var(--top-nav-font-weight)'
                   }}
-                  className="opacity-60 hover:opacity-100 transition-colors"
+                  className={`transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                 >
                   Contact
                 </button>
@@ -516,11 +589,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="hidden sm:flex items-center gap-4 mr-4 border-r border-black/5 pr-6">
+              <div className={`hidden sm:flex items-center gap-4 mr-4 border-r pr-6 ${isDarkHeader ? 'border-white/10' : 'border-black/5'}`}>
                 {user ? (
                   <button 
                     onClick={logout}
-                    className="text-xs font-bold uppercase tracking-widest text-[#141414]/40 hover:text-red-600 transition-colors"
+                    className={`text-xs font-bold uppercase tracking-widest transition-colors ${isDarkHeader ? 'text-white/60 hover:text-white' : 'text-[#141414]/40 hover:text-red-600'}`}
                   >
                     Logout
                   </button>
@@ -531,8 +604,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         window.history.pushState({}, '', '/login');
                         window.dispatchEvent(new PopStateEvent('popstate'));
                       }}
-                      style={{ color: 'var(--nav-text-color)' }}
-                      className="text-xs font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-colors"
+                      style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
+                      className={`text-xs font-bold uppercase tracking-widest transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-40 hover:opacity-100'}`}
                     >
                       Login
                     </button>
@@ -541,8 +614,8 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         window.history.pushState({}, '', '/register');
                         window.dispatchEvent(new PopStateEvent('popstate'));
                       }}
-                      style={{ color: 'var(--nav-text-color)' }}
-                      className="text-xs font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-colors"
+                      style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
+                      className={`text-xs font-bold uppercase tracking-widest transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-40 hover:opacity-100'}`}
                     >
                       Register
                     </button>
@@ -550,7 +623,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                 )}
               </div>
               {user?.role === 'customer' && loyaltyEnabled && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl border border-amber-100 shadow-sm" title={config?.loyalty_program_name || 'Loyalty Points'}>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border shadow-sm ${isDarkHeader ? 'bg-amber-400/10 text-amber-300 border-amber-400/20' : 'bg-amber-50 text-amber-700 border-amber-100'}`} title={config?.loyalty_program_name || 'Loyalty Points'}>
                   <Award size={16} />
                   <span className="text-xs font-bold font-mono">{loyaltyPoints} {config?.loyalty_program_name ? '' : 'pts'}</span>
                   {config?.loyalty_program_name && <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 ml-1">{config.loyalty_program_name}</span>}
@@ -559,9 +632,9 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
               {user?.role === 'customer' && (
                 <button 
                   onClick={() => setIsCartOpen(true)}
-                  className="relative p-3 bg-white border border-black/5 rounded-2xl transition-all hover:shadow-lg group"
+                  className={`relative p-3 border rounded-2xl transition-all hover:shadow-lg group ${isDarkHeader ? 'bg-white/10 border-white/10 hover:bg-white/20' : 'bg-white border-black/5 '}`}
                 >
-                  <ShoppingCart size={20} style={{ color: 'var(--nav-text-color)' }} />
+                  <ShoppingCart size={20} style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }} />
                   {totalItems > 0 && (
                     <span className="absolute -top-1 -right-1 w-6 h-6 bg-[var(--primary-color)] text-white text-[10px] font-bold rounded-lg flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
                       {totalItems}

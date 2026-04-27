@@ -69,7 +69,7 @@ export const Footer = () => {
   const borderClass = isDarkFooter ? 'border-white/10' : 'border-[#141414]/5';
 
   return (
-    <footer style={footerStyle} className="mt-20 border-t relative overflow-hidden transition-all duration-500">
+    <footer style={{ ...footerStyle, borderTopLeftRadius: '4rem', borderTopRightRadius: '4rem' }} className="mt-20 border-t relative overflow-hidden transition-all duration-500">
       {/* Decorative background element */}
       {isDarkFooter && (
         <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform translate-x-1/2 pointer-events-none" />

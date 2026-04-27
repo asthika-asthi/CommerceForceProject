@@ -393,8 +393,8 @@ export const Products = () => {
       </div>
 
       {isAdmin ? (
-        <div className="bg-white rounded-[32px] border border-black/5 overflow-hidden shadow-sm">
-          <table className="w-full text-left border-collapse">
+        <div className="bg-white rounded-[32px] border border-black/5 overflow-x-auto shadow-sm">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-black/5 text-[#141414] text-[10px] font-mono uppercase tracking-widest">
                 <th className="p-6 font-bold">SKU</th>

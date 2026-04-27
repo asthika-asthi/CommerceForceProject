@@ -100,7 +100,10 @@ export class AuthService {
   static verifyToken(token: string): any {
     try {
       return jwt.verify(token, JWT_SECRET);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'TokenExpiredError') {
+        return { expired: true };
+      }
       return null;
     }
   }

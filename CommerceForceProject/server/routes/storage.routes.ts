@@ -7,7 +7,7 @@ const router = Router();
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 12 * 1024 * 1024 // 12MB general limit
+    fileSize: 50 * 1024 * 1024 // 50MB general limit
   }
 });
 
@@ -34,13 +34,13 @@ router.post('/upload', isAuthenticated, isAdmin, upload.single('file'), async (r
       return res.status(400).json({ error: 'Invalid file type. Only images and PDFs are allowed.' });
     }
 
-    // PDF specific size limit (12MB) vs others (5MB)
+    // PDF specific size limit (50MB) vs others (10MB)
     const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf');
-    const limit = isPdf ? 12 * 1024 * 1024 : 5 * 1024 * 1024;
+    const limit = isPdf ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
 
     if (req.file.size > limit) {
       return res.status(400).json({ 
-        error: `File too large. Max size for ${isPdf ? 'PDFs' : 'images'} is ${isPdf ? '12MB' : '5MB'}.` 
+        error: `File too large. Max size for ${isPdf ? 'PDFs' : 'images'} is ${isPdf ? '50MB' : '10MB'}.` 
       });
     }
 

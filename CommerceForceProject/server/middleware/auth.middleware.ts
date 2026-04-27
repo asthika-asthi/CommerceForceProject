@@ -12,11 +12,19 @@ export interface AuthRequest extends Request {
 export const isAuthenticated = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ error: 'Authentication required. Please sign in.' });
   }
   const token = authHeader.split(' ')[1];
   const decoded = AuthService.verifyToken(token);
-  if (!decoded) return res.status(401).json({ error: 'Invalid token' });
+  
+  if (!decoded) {
+    return res.status(401).json({ error: 'Your session is invalid. Please sign in again.' });
+  }
+
+  if (decoded.expired) {
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again to continue.' });
+  }
+
   req.user = decoded;
   next();
 };

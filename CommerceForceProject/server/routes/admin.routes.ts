@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AdminService } from "../services/admin.service";
 import { ConfigService } from "../services/config.service";
+import { CategoryService } from "../services/category.service";
 import { isAuthenticated, isAdmin, isSuperAdmin } from "../middleware/auth.middleware";
 import multer from "multer";
 import path from "path";
@@ -64,7 +65,11 @@ router.post("/branding", isSuperAdmin, async (req, res) => {
       'base_font_size', 'hero_font_size', 'heading_font_size', 'content_font_size',
       'carousel_enabled', 'carousel_images', 'hero_enabled',
       'hero_title', 'hero_subtitle', 'hero_image_url', 'hero_cta_text', 'hero_cta_link',
-      'admin_email', 'catalogue_url'
+      'admin_email', 'catalogue_url', 'nav_font_family', 'nav_text_color', 
+      'sidebar_font_size', 'sidebar_font_weight', 'top_nav_font_size', 'top_nav_font_weight',
+      'nav_heading_color', 'nav_heading_font_weight', 'sidebar_background_style', 
+      'sidebar_background_value', 'top_nav_background_style', 'top_nav_background_value',
+      'footer_background_style', 'footer_background_value', 'category_display_style', 'footer_tagline'
     ];
     
     brandingFields.forEach(field => {
@@ -115,6 +120,46 @@ router.post("/features/toggle", isSuperAdmin, async (req, res) => {
 
 router.get("/products", async (req, res) => {
   res.json(await AdminService.getProducts());
+});
+
+// Category Management
+router.get("/categories", async (req, res) => {
+  try {
+    const categories = await CategoryService.getAll();
+    res.json(categories);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/categories", async (req, res) => {
+  try {
+    const category = await CategoryService.create(req.body);
+    await AdminService.logActivity((req as any).user?.id, 'Category Created', `Category: ${category.name}`);
+    res.status(201).json(category);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.put("/categories/:id", async (req, res) => {
+  try {
+    await CategoryService.update(parseInt(req.params.id), req.body);
+    await AdminService.logActivity((req as any).user?.id, 'Category Updated', `ID: ${req.params.id}`);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete("/categories/:id", async (req, res) => {
+  try {
+    await CategoryService.delete(parseInt(req.params.id));
+    await AdminService.logActivity((req as any).user?.id, 'Category Deleted', `ID: ${req.params.id}`);
+    res.status(204).end();
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 router.get("/users", isSuperAdmin, async (req, res) => {

@@ -115,8 +115,8 @@ export const Orders = () => {
         </div>
       </div>
 
-      <div className="border border-[#141414] overflow-hidden min-h-[400px] flex flex-col">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-white rounded-[32px] border border-black/5 overflow-x-auto min-h-[400px] flex flex-col shadow-sm">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest">
               <th className="p-4 font-medium">Order ID</th>
@@ -269,8 +269,8 @@ export const Orders = () => {
                     <Package size={18} className="text-[#141414]" />
                     <h3 className="text-sm font-bold uppercase tracking-widest">Order Items</h3>
                   </div>
-                  <div className="border border-[#141414] rounded-xl overflow-hidden">
-                    <table className="w-full text-left border-collapse">
+                  <div className="border border-[#141414] rounded-xl overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                       <thead>
                         <tr className="bg-[#f5f5f5] text-[10px] font-mono uppercase tracking-widest border-b border-[#141414]">
                           <th className="p-3 font-medium">Product</th>
