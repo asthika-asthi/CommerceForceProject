@@ -1,16 +1,5 @@
 import db from '../db';
-
-export interface Category {
-  id: number;
-  parent_id?: number;
-  name: string;
-  slug: string;
-  description?: string;
-  image_url?: string;
-  sort_order: number;
-  is_active: boolean;
-  product_count?: number;
-}
+import { Category } from '../../src/shared/types';
 
 export class CategoryService {
   static async getAll(): Promise<Category[]> {
@@ -30,26 +19,34 @@ export class CategoryService {
   }
 
   static async create(data: Partial<Category>): Promise<Category> {
-    const { name, parent_id, description, image_url, sort_order = 0 } = data;
+    let { name, parent_id, description, image_url, sort_order = 0, show_in_menu = 1 } = data;
     if (!name) throw new Error('Category name is required');
+    
+    // Convert empty string parent_id to null
+    if ((parent_id as any) === '') parent_id = undefined;
     
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     
     await db.query(`
-      INSERT INTO categories (name, slug, parent_id, description, image_url, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [name, slug, parent_id, description, image_url, sort_order]);
+      INSERT INTO categories (name, slug, parent_id, description, image_url, sort_order, show_in_menu)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [name, slug, parent_id || null, description, image_url, sort_order, show_in_menu]);
     
     const result = await db.query('SELECT * FROM categories WHERE slug = ?', [slug]);
     return result.rows[0];
   }
 
   static async update(id: number, data: Partial<Category>): Promise<void> {
-    const fields = Object.keys(data).filter(k => ['name', 'parent_id', 'description', 'image_url', 'sort_order', 'is_active'].includes(k));
+    const fields = Object.keys(data).filter(k => ['name', 'parent_id', 'description', 'image_url', 'sort_order', 'is_active', 'show_in_menu'].includes(k));
     if (fields.length === 0) return;
 
+    const values = fields.map(f => {
+      let val = (data as any)[f];
+      if (f === 'parent_id' && val === '') return null;
+      return val;
+    });
+
     const setClause = fields.map(f => `${f} = ?`).join(', ');
-    const values = fields.map(f => (data as any)[f]);
 
     await db.query(`UPDATE categories SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [...values, id]);
   }

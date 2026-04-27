@@ -5,7 +5,7 @@
   "favicon_url": null,
   "secondary_color": null,
   "font_family": null,
-  "button_style": "square",
+  "button_style": "rounded",
   "background_style": "solid",
   "background_value": null,
   "footer_copyright": null,

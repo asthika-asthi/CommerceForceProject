@@ -4,12 +4,13 @@ import { ProductService } from './product.service';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
 import { WarehouseService } from './warehouse.service';
+import { CategoryService } from './category.service';
 import { Product } from '../../src/shared/types';
 
 export class ImportService {
   /**
    * Processes a Product CSV file
-   * Expected headers: name, description, category, base_price, sale_percentage, image_url, allow_direct_buy
+   * Expected headers: name, sku, description, category, sub_category, base_price, sale_percentage, stock, image_url, images, is_active, allow_direct_buy
    */
   static async processProductCsv(filePath: string, userId: string): Promise<{ success: number; failed: number; errors: string[] }> {
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -18,7 +19,7 @@ export class ImportService {
     const parsed = Papa.parse(content, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.trim().toLowerCase().replace(/-/g, '_')
+      transformHeader: (header) => header.trim().toLowerCase().replace(/-/g, '_').replace(/\s+/g, '_')
     });
 
     if (parsed.errors.length > 0) {
@@ -43,19 +44,62 @@ export class ImportService {
       return v === 'false' || v === '0' || v === 'no';
     };
 
+    // Shared category cache to avoid constant database lookups
+    const categoryCache = new Map<string, any>();
+    const allCategories = await CategoryService.getAll();
+    allCategories.forEach(cat => categoryCache.set(cat.name.toLowerCase(), cat));
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
+        // 1. Mandatory fields validation
+        if (!row.name) throw new Error('Product name is required');
+        if (row.base_price === undefined || row.base_price === '') throw new Error('Base price is required');
+
+        // 2. Category Handling
+        let categoryName = row.category || 'General';
+        let subCategoryName = row.sub_category;
+        
+        let finalCategory = categoryName;
+
+        // Ensure parent category exists
+        let parentCat = categoryCache.get(categoryName.toLowerCase());
+        if (!parentCat) {
+          parentCat = await CategoryService.create({ name: categoryName });
+          categoryCache.set(categoryName.toLowerCase(), parentCat);
+        }
+
+        // Handle sub-category if provided
+        if (subCategoryName && subCategoryName.trim().length > 0) {
+          const subCatKey = `${categoryName.toLowerCase()}:${subCategoryName.toLowerCase()}`;
+          let subCat = categoryCache.get(subCatKey);
+          
+          if (!subCat) {
+            // Check if it already exists in DB but not in cache with this parent
+            const allCats = await CategoryService.getAll();
+            subCat = allCats.find(c => c.name.toLowerCase() === subCategoryName.toLowerCase() && c.parent_id === parentCat.id);
+            
+            if (!subCat) {
+              subCat = await CategoryService.create({ 
+                name: subCategoryName, 
+                parent_id: parentCat.id 
+              });
+            }
+            categoryCache.set(subCatKey, subCat);
+          }
+          finalCategory = subCategoryName;
+        }
+
         const productData: Partial<Product> = {
           sku: row.sku || undefined,
           name: row.name,
-          description: row.description,
-          category: row.category,
+          description: row.description || '',
+          category: finalCategory,
           base_price: parseFloat(row.base_price) || 0,
           sale_percentage: parseFloat(row.sale_percentage) || 0,
-          image_url: row.image_url,
+          image_url: row.image_url || '',
           is_active: isTrue(row.is_active),
-          is_featured: row.is_featured ? isTrue(row.is_featured) : false,
+          is_featured: isTrue(row.is_featured),
           allow_direct_buy: isTrue(row.allow_direct_buy)
         };
 
@@ -66,32 +110,28 @@ export class ImportService {
 
         // Create/Update product
         let product: Product;
-        if (row.id) {
-          product = await ProductService.update(row.id, productData);
+        const existingBySku = productData.sku ? await ProductService.getBySku(productData.sku) : null;
+        
+        if (existingBySku) {
+          product = await ProductService.update(existingBySku.id, productData);
         } else {
-          // If we have an existing product with same SKU, update it instead of failing
-          const existingBySku = row.sku ? await ProductService.getBySku(row.sku) : null;
-          if (existingBySku) {
-            product = await ProductService.update(existingBySku.id, productData);
-          } else {
-            product = await ProductService.create(productData);
-          }
+          product = await ProductService.create(productData);
         }
 
-        // Handle initial stock if provided
-        const initialStock = parseInt(row.initial_stock);
-        const minStock = parseInt(row.min_stock_level);
+        // 3. Handle stock
+        const stockValue = parseInt(row.stock || row.initial_stock);
+        const minStock = parseInt(row.min_stock_level) || 0;
         
-        if (!isNaN(initialStock) || !isNaN(minStock)) {
+        if (!isNaN(stockValue)) {
           const warehouses = await WarehouseService.getAll();
           if (warehouses.length > 0) {
-            // Add to the first active warehouse
+            // Use the first warehouse as default
             const targetWarehouse = warehouses[0];
             await WarehouseService.updateStock(
               targetWarehouse.id, 
               product.id, 
-              isNaN(initialStock) ? 0 : initialStock, 
-              isNaN(minStock) ? 0 : minStock
+              stockValue, 
+              minStock
             );
           }
         }
@@ -99,7 +139,8 @@ export class ImportService {
         results.success++;
       } catch (err: any) {
         results.failed++;
-        results.errors.push(`Row ${i + 2}: ${err.message}`); // +2 because of header and 0-index
+        results.errors.push(`Row ${i + 2}: ${err.message}`);
+        console.error(`Import error at row ${i + 2}:`, err);
       }
     }
 

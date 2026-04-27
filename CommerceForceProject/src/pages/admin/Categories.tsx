@@ -15,11 +15,14 @@ import { useAuth } from '../../context/AuthContext';
 
 interface Category {
   id: number;
+  parent_id?: number;
   name: string;
   slug: string;
   description?: string;
   image_url?: string;
   product_count: number;
+  sort_order: number;
+  show_in_menu: number;
 }
 
 export const CategoriesAdmin = () => {
@@ -32,7 +35,10 @@ export const CategoriesAdmin = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image_url: ''
+    image_url: '',
+    parent_id: '' as string | number,
+    sort_order: 0,
+    show_in_menu: 1
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -119,7 +125,10 @@ export const CategoriesAdmin = () => {
     setFormData({
       name: category.name,
       description: category.description || '',
-      image_url: category.image_url || ''
+      image_url: category.image_url || '',
+      parent_id: category.parent_id || '',
+      sort_order: category.sort_order || 0,
+      show_in_menu: category.show_in_menu ?? 1
     });
     setIsModalOpen(true);
   };
@@ -127,13 +136,36 @@ export const CategoriesAdmin = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
-    setFormData({ name: '', description: '', image_url: '' });
+    setFormData({ name: '', description: '', image_url: '', parent_id: '', sort_order: 0, show_in_menu: 1 });
     setError(null);
   };
 
   const filteredCategories = categories.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Helper to get structured list for the table with indentation
+  const getOrderedCategories = () => {
+    const roots = [...categories].filter(c => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order);
+    const result: (Category & { level: number })[] = [];
+    
+    const traverse = (parentId: number, level: number) => {
+      const children = categories.filter(c => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
+      for (const child of children) {
+        result.push({ ...child, level });
+        traverse(child.id, level + 1);
+      }
+    };
+    
+    for (const root of roots) {
+      result.push({ ...root, level: 0 });
+      traverse(root.id, 1);
+    }
+    
+    return result.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  };
+
+  const displayCategories = search ? filteredCategories.map(c => ({...c, level: 0})) : getOrderedCategories();
 
   if (isLoading && categories.length === 0) {
     return (
@@ -171,23 +203,38 @@ export const CategoriesAdmin = () => {
             <tr className="bg-black/5 text-[#141414] text-[10px] font-mono uppercase tracking-widest">
               <th className="p-6 font-bold">Category Name</th>
               <th className="p-6 font-bold">Slug</th>
+              <th className="p-6 font-bold">Menu</th>
               <th className="p-6 font-bold">Products</th>
               <th className="p-6 font-bold">Usage</th>
               <th className="p-6 font-bold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5">
-            {filteredCategories.map((category) => (
+            {displayCategories.map((category) => (
               <tr key={category.id} className="hover:bg-gray-50 transition-colors group">
                 <td className="p-6">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3" style={{ paddingLeft: `${category.level * 2}rem` }}>
                     <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                      <Layers size={14} className="opacity-40" />
+                      <Layers size={14} className={category.level > 0 ? "opacity-20" : "opacity-40"} />
                     </div>
-                    <span className="text-sm font-bold">{category.name}</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold">{decodeURIComponent(category.name)}</span>
+                      {category.level > 0 && <span className="text-[10px] opacity-40">Sub-category</span>}
+                    </div>
                   </div>
                 </td>
                 <td className="p-6 text-xs font-mono text-[#141414]/60">{category.slug}</td>
+                <td className="p-6">
+                  {category.show_in_menu ? (
+                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full font-bold bg-blue-50 text-blue-600 block w-fit">
+                      Visible
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-400 block w-fit">
+                      Hidden
+                    </span>
+                  )}
+                </td>
                 <td className="p-6">
                   <div className="flex items-center gap-2">
                     <Package size={14} className="opacity-30" />
@@ -195,15 +242,18 @@ export const CategoriesAdmin = () => {
                   </div>
                 </td>
                 <td className="p-6">
-                  {category.product_count === 0 ? (
-                    <span className="text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded-full font-bold bg-amber-50 text-amber-600">
-                      Empty
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded-full font-bold bg-green-50 text-green-600">
-                      In Use
-                    </span>
-                  )}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-mono text-black/40">Sort: {category.sort_order}</span>
+                    {category.product_count === 0 ? (
+                      <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full font-bold bg-amber-50 text-amber-600 block w-fit">
+                        Empty
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full font-bold bg-green-50 text-green-600 block w-fit">
+                        In Use
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-6 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -287,6 +337,48 @@ export const CategoriesAdmin = () => {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all min-h-[100px]"
                     placeholder="Brief description of the category..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Parent Category</label>
+                  <select
+                    value={formData.parent_id}
+                    onChange={e => setFormData({...formData, parent_id: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all bg-white"
+                  >
+                    <option value="">None (Top Level)</option>
+                    {categories
+                      .filter(c => !editingCategory || c.id !== editingCategory.id)
+                      .map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {decodeURIComponent(cat.name)}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Sort Order</label>
+                    <input
+                      type="number"
+                      value={formData.sort_order}
+                      onChange={e => setFormData({...formData, sort_order: parseInt(e.target.value) || 0})}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Menu Visibility</label>
+                    <select
+                      value={formData.show_in_menu}
+                      onChange={e => setFormData({...formData, show_in_menu: parseInt(e.target.value)})}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all bg-white"
+                    >
+                      <option value={1}>Show in Menu</option>
+                      <option value={0}>Hide from Menu</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>

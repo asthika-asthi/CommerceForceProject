@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { AdminService } from "../services/admin.service";
+import { CategoryService } from "../services/category.service";
 
 const router = Router();
 const upload = multer({ dest: 'uploads/temp/' });
@@ -57,8 +58,8 @@ router.post("/config/master", upload.single('file'), async (req, res) => {
  * Download Product CSV Template
  */
 router.get("/products/template", async (req, res) => {
-  const headers = "id,sku,name,description,category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,is_featured,initial_stock,min_stock_level\n";
-  const example = ",SKU-001,Example Product,This is a description,Electronics,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,false,50,5\n";
+  const headers = "sku,name,description,category,sub_category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,is_featured,stock,min_stock_level\n";
+  const example = "SKU-001,Example Product,This is a description,Electronics,Smartphones,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,false,50,5\n";
   
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=product_template.csv');
@@ -71,10 +72,33 @@ router.get("/products/template", async (req, res) => {
 router.get("/products/export", async (req, res) => {
   try {
     const products = await AdminService.getProducts();
-    const headers = ["id", "sku", "name", "description", "category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "is_featured", "total_stock"];
+    // We try to infer if the product's category is a sub-category to populate sub_category column
+    const allCats = await CategoryService.getAll();
+    const headers = ["sku", "name", "description", "category", "sub_category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "is_featured", "stock"];
     
     const rows = products.map(p => {
+      let catName = p.category;
+      let parentName = "";
+      let subName = "";
+
+      const currentCat = allCats.find(c => c.name === catName);
+      if (currentCat && currentCat.parent_id) {
+        const parent = allCats.find(c => c.id === currentCat.parent_id);
+        if (parent) {
+          parentName = parent.name;
+          subName = catName;
+        } else {
+          parentName = catName;
+        }
+      } else {
+        parentName = catName || "General";
+      }
+
       return headers.map(h => {
+        if (h === 'category') return parentName;
+        if (h === 'sub_category') return subName;
+        if (h === 'stock') return p.total_stock || 0;
+
         let val = (p as any)[h];
         if (h === 'images' && Array.isArray(val)) {
           return `"${val.join(',')}"`;

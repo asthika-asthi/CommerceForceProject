@@ -6,17 +6,26 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 
+const ensureAbsoluteUrl = (url: string | undefined) => {
+  if (!url) return url;
+  if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
+  return `/${url}`;
+};
+
 const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void, onQuote: () => void, rfqEnabled: boolean }> = ({ product, onAddToCart, onQuote, rfqEnabled }) => {
   const { config: brandingConfig } = useBranding();
   const currency = brandingConfig?.currency_symbol || '£';
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
+
+  const images = [product.image_url, ...(product.images || [])]
+    .filter(Boolean)
+    .map(url => ensureAbsoluteUrl(url)) as string[];
 
   return (
     <div className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all flex flex-col">
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <img 
-          src={images[currentImageIndex] || 'https://picsum.photos/seed/product/800/800'} 
+          src={images[currentImageIndex]} 
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"
@@ -46,7 +55,7 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
         )}
 
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
-          {product.category || 'General'}
+          {product.category ? decodeURIComponent(product.category) : 'General'}
         </div>
       </div>
 
@@ -412,7 +421,7 @@ export const Products = () => {
                 <tr key={product.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="p-6 text-xs font-mono text-[#141414]/60">{product.sku}</td>
                   <td className="p-6 text-sm font-bold">{product.name}</td>
-                  <td className="p-6 text-xs text-[#141414]/60">{product.category || '-'}</td>
+                  <td className="p-6 text-xs text-[#141414]/60">{product.category ? decodeURIComponent(product.category) : '-'}</td>
                   <td className="p-6 text-sm font-mono font-bold">
                     {product.base_price !== undefined && product.base_price !== null ? (
                       product.sale_percentage && product.sale_percentage > 0 ? (

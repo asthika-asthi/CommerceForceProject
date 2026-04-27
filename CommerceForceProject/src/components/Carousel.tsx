@@ -20,9 +20,13 @@ export const Carousel: React.FC<CarouselProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const normalizedImages: CarouselImage[] = images.map(img => 
-    typeof img === 'string' ? { url: img } : img
-  ).filter(img => img.url && img.url.trim() !== '');
+    const normalizedImages: CarouselImage[] = images.map(img => {
+      const data = typeof img === 'string' ? { url: img } : img;
+      if (data.url && !data.url.startsWith('http') && !data.url.startsWith('/') && !data.url.startsWith('data:')) {
+        data.url = `/${data.url}`;
+      }
+      return data;
+    }).filter(img => img.url && img.url.trim() !== '');
 
   useEffect(() => {
     if (!autoPlay || normalizedImages.length <= 1) return;

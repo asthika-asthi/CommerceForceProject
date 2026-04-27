@@ -6,13 +6,22 @@ import { useCart } from '../context/CartContext';
 import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, onBack: () => void }) => {
+const ensureAbsoluteUrl = (url: string | undefined) => {
+  if (!url) return url;
+  if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
+  return `/${url}`;
+};
+
+export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { categoryName: string, onBack: () => void }) => {
+  const categoryName = decodeURIComponent(rawCategoryName);
   const { config: brandingConfig } = useBranding();
   const { user, setPendingAction } = useAuth();
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uiConfig, setUiConfig] = useState<any>(null);
+  const [currentCategory, setCurrentCategory] = useState<any>(null);
 
   const requireAuth = (product: Product) => {
     if (!user) {
@@ -45,24 +54,56 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
   }, []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await fetch('/api/products');
-        const allProducts: Product[] = await res.json();
-        // Filter by category (case-insensitive)
-        const filtered = allProducts.filter(p => 
-          p.category?.toLowerCase() === categoryName.toLowerCase() ||
-          (categoryName.toLowerCase() === 'general' && !p.category)
-        );
-        setProducts(filtered);
+        // 1. Fetch categories
+        const catsRes = await fetch('/api/categories');
+        const allCats = await catsRes.json();
+        
+        const current = allCats.find((c: any) => c.name.toLowerCase() === categoryName.toLowerCase());
+        setCurrentCategory(current);
+
+        // 2. Fetch products
+        const productsRes = await fetch('/api/products');
+        const allProducts: Product[] = await productsRes.json();
+
+        if (current) {
+          const children = allCats.filter((c: any) => c.parent_id === current.id);
+          if (children.length > 0) {
+            setSubCategories(children.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)));
+            // Filter products that belong to any of these children
+            const childNames = children.map((c: any) => c.name.toLowerCase());
+            const filtered = allProducts.filter(p => p.category && childNames.includes(decodeURIComponent(p.category).toLowerCase()));
+            setProducts(filtered);
+          } else {
+            // No sub-categories, just products in this category
+            const filtered = allProducts.filter(p => {
+              const productCat = p.category ? decodeURIComponent(p.category).toLowerCase() : 'general';
+              const targetCat = categoryName.toLowerCase();
+              return productCat === targetCat || (targetCat === 'general' && !p.category);
+            });
+            setProducts(filtered);
+            setSubCategories([]);
+          }
+        } else {
+          // If category not found in manual list, fallback to name-based product filter
+          const filtered = allProducts.filter(p => {
+            const productCat = p.category ? decodeURIComponent(p.category).toLowerCase() : 'general';
+            const targetCat = categoryName.toLowerCase();
+            return productCat === targetCat || (targetCat === 'general' && !p.category);
+          });
+          setProducts(filtered);
+          setSubCategories([]);
+        }
       } catch (err) {
-        console.error('Failed to fetch products:', err);
+        console.error('Failed to fetch data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, [categoryName]);
 
   if (loading) {
@@ -81,7 +122,7 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
           <div key="banner" className="relative h-[300px] rounded-[40px] overflow-hidden mb-8">
             {bannerImage ? (
               <img 
-                src={bannerImage} 
+                src={ensureAbsoluteUrl(bannerImage)} 
                 alt={categoryName}
                 className="absolute inset-0 w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -108,11 +149,84 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
             </button>
             <div>
               <h1 className="text-4xl font-bold tracking-tight capitalize">{categoryName}</h1>
-              <p className="text-black/40 font-medium">Showing {products.length} products</p>
+              {subCategories.length > 0 ? (
+                <p className="text-black/40 font-medium">Explore sub-categories in {categoryName}</p>
+              ) : (
+                <p className="text-black/40 font-medium">Showing {products.length} products</p>
+              )}
             </div>
           </div>
         );
       case 'product_grid':
+        if (subCategories.length > 0) {
+          return (
+            <div key="subcategory_sections" className="space-y-16">
+              {/* Category Grid for quick navigation */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {subCategories.map((sub) => (
+                  <button 
+                    key={sub.id}
+                    onClick={() => {
+                      window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                    className="group relative h-48 rounded-[40px] overflow-hidden border border-black/5 hover:shadow-2xl transition-all"
+                  >
+                    {sub.image_url ? (
+                      <img 
+                        src={ensureAbsoluteUrl(sub.image_url)} 
+                        alt={sub.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#141414] to-[#404040]" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-8 text-center group-hover:bg-black/60 transition-colors">
+                      <h3 className="text-xl font-bold text-white tracking-tight capitalize">{sub.name}</h3>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Products Grouped by Sub-Category */}
+              {subCategories.map(sub => {
+                const subProducts = products.filter(p => p.category && decodeURIComponent(p.category).toLowerCase() === sub.name.toLowerCase());
+                if (subProducts.length === 0) return null;
+
+                return (
+                  <div key={`section-${sub.id}`} className="space-y-8">
+                    <div className="flex items-center justify-between px-4">
+                      <h2 className="text-2xl font-bold tracking-tight capitalize">{sub.name}</h2>
+                      <button 
+                        onClick={() => {
+                          window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                        }}
+                        className="text-xs font-mono uppercase tracking-widest text-black/40 hover:text-black transition-colors"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                      {subProducts.map((product) => (
+                        <ProductCard 
+                          key={product.id} 
+                          product={product} 
+                          onAddToCart={() => {
+                            if (requireAuth(product)) {
+                              addToCart(product, 1);
+                            }
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
         return (
           <div key="grid">
             {products.length === 0 ? (
@@ -158,7 +272,10 @@ export const CategoryPage = ({ categoryName, onBack }: { categoryName: string, o
 const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ product, onAddToCart }) => {
   const { config } = useBranding();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
+
+  const images = [product.image_url, ...(product.images || [])]
+    .filter(Boolean)
+    .map(url => ensureAbsoluteUrl(url)) as string[];
 
   const buttonClass = `w-full flex items-center justify-center gap-2 py-4 bg-[var(--secondary-color)] text-white font-bold hover:bg-[var(--primary-color)] transition-all shadow-lg ${
     config?.button_style === 'pill' ? 'rounded-full' : 
@@ -173,7 +290,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
     >
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <img 
-          src={images[currentImageIndex] || 'https://picsum.photos/seed/product/800/800'} 
+          src={images[currentImageIndex]} 
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"

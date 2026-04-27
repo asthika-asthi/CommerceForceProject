@@ -291,9 +291,18 @@ async function initPostgresSchema(client: any) {
         image_url TEXT,
         sort_order INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
+        show_in_menu INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Add show_in_menu if it doesn't exist
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='show_in_menu') THEN
+          ALTER TABLE categories ADD COLUMN show_in_menu INTEGER DEFAULT 1;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
@@ -467,7 +476,7 @@ async function initPostgresSchema(client: any) {
         name = EXCLUDED.name;
     `);
     await client.query('COMMIT');
-    await syncCategoriesFromProducts();
+    // await syncCategoriesFromProducts();
     console.log("Postgres schema initialized successfully.");
   } catch (err) {
     await client.query('ROLLBACK');
@@ -584,10 +593,15 @@ async function initSqliteSchema() {
           image_url TEXT,
           sort_order INTEGER DEFAULT 0,
           is_active INTEGER DEFAULT 1,
+          show_in_menu INTEGER DEFAULT 1,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
+
+      try {
+        sqliteDb.prepare("ALTER TABLE categories ADD COLUMN show_in_menu INTEGER DEFAULT 1").run();
+      } catch (e) {}
 
       sqliteDb.prepare(`
         CREATE TABLE IF NOT EXISTS products (
@@ -782,7 +796,7 @@ async function initSqliteSchema() {
         }
       }
     })();
-    await syncCategoriesFromProducts();
+    // await syncCategoriesFromProducts();
     console.log("SQLite schema initialized successfully.");
   } catch (err) {
     console.error("Failed to initialize SQLite schema:", err);

@@ -8,6 +8,12 @@ import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, Chevro
 import { Carousel } from '../components/Carousel';
 import { useResponsiveStyle } from '../hooks/useResponsiveStyle';
 
+const ensureAbsoluteUrl = (url: string | undefined) => {
+  if (!url) return url;
+  if (url.startsWith('http') || url.startsWith('/') || url.startsWith('data:')) return url;
+  return `/${url}`;
+};
+
 export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const { config: brandingConfig, isLoading: brandingLoading } = useBranding();
   const { user, setPendingAction } = useAuth();
@@ -57,7 +63,7 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const heroConfig = {
     title: heroSection?.config.title || brandingConfig?.hero_title || 'Welcome to CommerceForce',
     subtitle: heroSection?.config.subtitle || heroSection?.config.desc || brandingConfig?.hero_subtitle || 'Discover premium products curated just for you.',
-    image: heroSection?.config.image || heroSection?.config.imageUrl || brandingConfig?.hero_image_url || 'https://picsum.photos/seed/hero/1920/1080',
+    image: ensureAbsoluteUrl(heroSection?.config.image || heroSection?.config.imageUrl || brandingConfig?.hero_image_url),
     cta_text: heroSection?.config.buttonText || brandingConfig?.hero_cta_text || 'Shop Now',
     cta_link: heroSection?.config.link || brandingConfig?.hero_cta_link || '/products',
     backgroundColor: heroSection?.config.backgroundColor || brandingConfig?.background_value
@@ -286,7 +292,12 @@ const DynamicSection = ({
           >
             {imageUrl && (
               <div className="w-full md:w-1/2 aspect-video rounded-3xl overflow-hidden">
-                <img src={imageUrl} alt="Promo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img 
+                  src={section.config.imageUrl ? ensureAbsoluteUrl(section.config.imageUrl) : ensureAbsoluteUrl(section.config.image)} 
+                  alt="Promo" 
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer"
+                />
               </div>
             )}
             <div className="flex-1 space-y-6 text-center md:text-left">
@@ -364,13 +375,13 @@ const DynamicSection = ({
                   className="group relative aspect-square rounded-[32px] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all"
                 >
                   <img 
-                    src={item.image || item.imageUrl} 
+                    src={ensureAbsoluteUrl(item.image || item.imageUrl)} 
                     alt={item.title} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                    <h3 style={titleStyles} className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                    <h3 style={titleStyles} className="text-xl font-bold text-white mb-2">{decodeURIComponent(item.title)}</h3>
                     <div className="flex items-center gap-2 text-white/70 text-sm font-bold group-hover:text-white transition-colors">
                       Shop Now <ArrowRight size={14} />
                     </div>
@@ -583,7 +594,10 @@ const DynamicSection = ({
 const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ product, onAddToCart }) => {
   const { config: brandingConfig } = useBranding();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [product.image_url, ...(product.images || [])].filter(Boolean) as string[];
+
+  const images = [product.image_url, ...(product.images || [])]
+    .filter(Boolean)
+    .map(url => ensureAbsoluteUrl(url)) as string[];
 
   const buttonClass = `w-full flex items-center justify-center gap-2 py-4 bg-[var(--secondary-color)] text-white font-bold hover:bg-[var(--primary-color)] transition-all shadow-lg ${
     brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
@@ -594,7 +608,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
     <div className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all">
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <img 
-          src={images[currentImageIndex] || 'https://picsum.photos/seed/product/800/800'} 
+          src={images[currentImageIndex]} 
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"
@@ -624,7 +638,7 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
         )}
 
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
-          {product.category || 'General'}
+          {product.category ? decodeURIComponent(product.category) : 'General'}
         </div>
       </div>
 

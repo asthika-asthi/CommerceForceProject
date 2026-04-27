@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, Database, HelpCircle, Sparkles, Layers } from 'lucide-react';
+import { LayoutDashboard, Settings, Flag, Package, Users, Menu, X, LogOut, ShoppingCart, Warehouse as WarehouseIcon, Award, FileText, Mail, Ticket, AlertTriangle, ShoppingBag, Coins, MessageSquare, ChevronDown, ChevronRight, Database, HelpCircle, Sparkles, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -48,7 +48,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [hasPromotions, setHasPromotions] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>(['Overview']); // Default open
   const { user, logout, token } = useAuth();
@@ -83,14 +83,21 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
   };
 
   useEffect(() => {
-    // Fetch public categories and promotions
+    // Fetch public categories (manually defined)
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch categories:', err));
+
+    // Fetch products for promotions check
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          const cats = Array.from(new Set(data.map((p: any) => p.category).filter(Boolean))) as string[];
-          setCategories(cats);
-          
           // Check for sale items
           const hasSales = data.some((p: any) => (p.sale_percentage || 0) > 0 && p.is_active);
           if (hasSales) {
@@ -113,7 +120,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
           }
         }
       })
-      .catch(err => console.error('Failed to fetch categories/promotions:', err));
+      .catch(err => console.error('Failed to fetch promotions info:', err));
   }, []);
 
   useEffect(() => {
@@ -313,6 +320,21 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
     }
   };
 
+  const categoryTree = React.useMemo(() => {
+    // Only show categories that are active AND marked for menu visibility
+    const visibleCategories = categories.filter(c => c.is_active && c.show_in_menu);
+    const roots = visibleCategories.filter(c => !c.parent_id);
+    
+    return roots
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map(root => ({
+        ...root,
+        children: visibleCategories
+          .filter(c => c.parent_id === root.id)
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      }));
+  }, [categories]);
+
   const sidebarStyle = getSidebarStyle();
   const isDarkSidebar = ['primary', 'secondary', 'image'].includes(config?.sidebar_background_style || '');
 
@@ -475,11 +497,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
               <nav className="hidden lg:flex items-center gap-8">
                 {config?.category_display_style === 'inline' ? (
                   <div className="flex items-center gap-6">
-                    {categories.map(cat => (
+                    {categoryTree.map(cat => (
                       <button
-                        key={cat}
+                        key={cat.id}
                         onClick={() => {
-                          window.history.pushState({}, '', `/category/${cat}`);
+                          window.history.pushState({}, '', `/category/${encodeURIComponent(cat.name)}`);
                           window.dispatchEvent(new PopStateEvent('popstate'));
                           setActiveTab('category');
                         }}
@@ -491,7 +513,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                         }}
                         className={`transition-colors capitalize whitespace-nowrap ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                       >
-                        {cat}
+                        {cat.name}
                       </button>
                     ))}
                   </div>
@@ -508,26 +530,48 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     >
                       Categories <ChevronDown size={14} />
                     </button>
-                    <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
-                      {categories.length > 0 ? (
-                        categories.map(cat => (
-                          <button
-                            key={cat}
-                            onClick={() => {
-                              window.history.pushState({}, '', `/category/${cat}`);
-                              window.dispatchEvent(new PopStateEvent('popstate'));
-                              setActiveTab('category');
-                            }}
-                            style={{ 
-                              fontFamily: 'var(--nav-font-family)', 
-                              color: 'var(--nav-text-color)',
-                              fontWeight: 'var(--top-nav-font-weight)'
-                            }}
-                            className="w-full text-left px-4 py-3 text-sm opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize"
-                          >
-                            {cat}
-                          </button>
-                        ))
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
+                      {categoryTree.length > 0 ? (
+                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                          {categoryTree.map(cat => (
+                            <div key={cat.id} className="group/sub relative">
+                              <button
+                                onClick={() => {
+                                  window.history.pushState({}, '', `/category/${encodeURIComponent(cat.name)}`);
+                                  window.dispatchEvent(new PopStateEvent('popstate'));
+                                  setActiveTab('category');
+                                }}
+                                style={{ 
+                                  fontFamily: 'var(--nav-font-family)', 
+                                  color: 'var(--nav-text-color)',
+                                  fontWeight: 'var(--top-nav-font-weight)'
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize flex items-center justify-between"
+                              >
+                                {cat.name}
+                                {cat.children?.length > 0 && <ChevronRight size={12} className="opacity-40" />}
+                              </button>
+                              
+                              {cat.children?.length > 0 && (
+                                <div className="absolute left-full top-0 ml-1 w-56 bg-white border border-black/5 rounded-2xl shadow-xl opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all p-2 transform origin-left scale-95 group-hover/sub:scale-100">
+                                  {cat.children.map((sub: any) => (
+                                    <button
+                                      key={sub.id}
+                                      onClick={() => {
+                                        window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
+                                        window.dispatchEvent(new PopStateEvent('popstate'));
+                                        setActiveTab('category');
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-xs opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize"
+                                    >
+                                      {sub.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       ) : (
                         <span className="block px-4 py-3 text-xs text-[#141414]/40 italic">No categories</span>
                       )}

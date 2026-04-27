@@ -184,7 +184,7 @@ export const PromotionsPage = () => {
                 >
                   <div className="relative aspect-square overflow-hidden bg-gray-50">
                     <img 
-                      src={product.image_url || 'https://picsum.photos/seed/promo/800/800'} 
+                      src={product.image_url} 
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       referrerPolicy="no-referrer"

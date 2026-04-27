@@ -28,6 +28,28 @@
           }
         ]
       }
+    },
+    {
+      "id": "jt3ebxr8f",
+      "type": "products",
+      "enabled": true,
+      "config": {
+        "title": "Test Product"
+      },
+      "styles": {
+        "container": {
+          "desktop": {
+            "backgroundColor": "#d34545",
+            "backgroundImage": "uploads/assets/img-001.png",
+            "fontSize": 20,
+            "paddingTop": 0,
+            "borderRadius": 0,
+            "marginTop": 0,
+            "paddingBottom": 0,
+            "marginBottom": 0
+          }
+        }
+      }
     }
   ]
 }

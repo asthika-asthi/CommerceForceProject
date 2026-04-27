@@ -166,6 +166,21 @@ export interface Product {
   created_at?: string;
 }
 
+export interface Category {
+  id: number;
+  parent_id?: number;
+  name: string;
+  slug: string;
+  description?: string;
+  image_url?: string;
+  is_active: boolean;
+  show_in_menu: boolean;
+  sort_order: number;
+  product_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 export interface OrderItem {
