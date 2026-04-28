@@ -1,22 +1,430 @@
 {
   "sections": [
     {
-      "type": "hero",
+      "id": "hero_trust_bar",
+      "type": "trust_bar",
+      "enabled": true,
       "config": {
-        "title": "Welcome to Our Premium Store",
-        "subtitle": "Discover our exclusive collection of high-quality products designed for professionals and enthusiasts alike.",
-        "backgroundColor": "#1e3a8a",
-        "cta_text": "Explore Collection",
-        "cta_link": "/products"
+        "items": [
+          {
+            "icon": "truck",
+            "title": "Fast UK Delivery",
+            "desc": "Reliable nationwide shipping direct from our regional hub"
+          },
+          {
+            "icon": "tag",
+            "title": "Trade-Only Pricing",
+            "desc": "Competitive wholesale rates exclusively for merchants & retailers"
+          },
+          {
+            "icon": "cube",
+            "title": "Bulk Pallet Supply",
+            "desc": "High-volume stock availability for large-scale requirements"
+          },
+          {
+            "icon": "shield",
+            "title": "30+ Years Experience",
+            "desc": "The silent partner behind the UK's leading builders merchants since 1990"
+          }
+        ]
       }
     },
     {
-      "type": "features",
+      "id": "product_categories",
+      "type": "content",
+      "enabled": true,
       "config": {
+        "title": "",
+        "subtitle": "Contractor-grade products across all major categories",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 4,
         "items": [
-          { "title": "Fast Delivery", "desc": "Global shipping with real-time tracking for all orders." },
-          { "title": "Secure Payments", "desc": "Enterprise-grade security for all your transactions." },
-          { "title": "Premium Quality", "desc": "Only the finest products sourced from trusted manufacturers." }
+          {
+            "title": "Dustsheets",
+            "body": "Contractor-grade protection for every surface",
+            "imageUrl": "uploads/assets/img-004.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/dustsheets"
+          },
+          {
+            "title": "Tarpaulins",
+            "body": "Heavy-duty reinforced covers for any job",
+            "imageUrl": "uploads/assets/img-168.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/tarpaulins"
+          },
+          {
+            "title": "Sacks & Bags",
+            "body": "Tear-resistant waste management solutions",
+            "imageUrl": "uploads/assets/img-249.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/SackBags"
+          },
+          {
+            "title": "Brushes & Rollers",
+            "body": "Professional decorating accessories and tools",
+            "imageUrl": "uploads/assets/img-081.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/PaintBrushes"
+          }
+        ]
+      },
+      "styles": {
+        "container": {
+          "desktop": {
+            "backgroundColor": "#ffffff"
+          }
+        },
+        "button": {
+          "desktop": {
+            "backgroundColor": "#f51919"
+          }
+        }
+      }
+    },
+    {
+      "id": "why_trade_tristar",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Why Trade with Tristar?",
+        "subtitle": "Since 1990, we have been the silent partner behind the UK's leading builders merchants and independent retailers, providing consistent quality and stock reliability.",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "backgroundStyle": "dark",
+        "backgroundColor": "#1A3C6E",
+        "items": [
+          {
+            "title": "A Legacy of Trust",
+            "body": "Over 30 years in the trade supplying the UK's builders merchants with consistency, quality and reliability. UK-wide next day delivery available. Consistent high stock availability. Competitive trade-only pricing. Direct links to global manufacturers ensuring premium quality at wholesale pricing.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/about",
+            "linkLabel": "About Tristar",
+            "displayMode": "side-by-side",
+            "bullets": [
+              "Over 30 years in the trade",
+              "UK-wide next day delivery",
+              "Consistent high stock availability",
+              "Competitive trade-only pricing"
+            ]
+          },
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-166.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "tristar_standards",
+      "type": "features",
+      "enabled": true,
+      "config": {
+        "title": "The Tristar Standard",
+        "subtitle": "Every aspect of our business is built around making trade supply simpler, faster and more reliable.",
+        "items": [
+          {
+            "icon": "globe",
+            "title": "Global Sourcing",
+            "desc": "By removing intermediaries and sourcing directly from ISO-certified manufacturers across Europe, India and the Far East, we pass significant cost savings to our trade partners."
+          },
+          {
+            "icon": "warehouse",
+            "title": "Stock Reliability",
+            "desc": "Our Stevenage hub maintains massive inventory levels, meaning your orders are ready for immediate dispatch, reducing site downtime."
+          },
+          {
+            "icon": "wrench",
+            "title": "Technical Expertise",
+            "desc": "Every product in our catalogue is technically vetted. We don't just sell items; we provide specifications you can rely on."
+          },
+          {
+            "icon": "leaf",
+            "title": "Responsible Sourcing",
+            "desc": "Committed to sustainable sourcing and consistent material standards across our entire product range."
+          },
+          {
+            "icon": "headset",
+            "title": "Dedicated Support",
+            "desc": "Expert technical advice and personalised account management for every merchant, from first order to long-term partnership."
+          },
+          {
+            "icon": "truck",
+            "title": "Fast Despatch",
+            "desc": "Free carriage on all orders over £495. Standard 2–3 working day delivery. Next-day UK mainland available for just £10 extra."
+          }
+        ]
+      }
+    },
+    {
+      "id": "about_split",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-209.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": ""
+          },
+          {
+            "title": "A Family-Owned Business with National Reach",
+            "body": "Tristar UK Ltd was established over 30 years ago with a single mission: to provide the UK building trade with direct access to high-quality surface protection and site materials without the middleman markups.\n\nAs a family-owned enterprise based in Stevenage, we have grown from a small regional distributor into a nationwide importer, maintaining direct relationships with global manufacturers to ensure our stockists receive only the best.\n\nWe aren't just a supplier; we are a strategic partner for builders' merchants and independent retailers across the country.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/about",
+            "linkLabel": "Read Our Story",
+            "displayMode": "side-by-side"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_highlight_dustsheets",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Cotton Dust Sheets & Floor Protection",
+        "subtitle": "Professional-grade surface protection trusted by contractors across the UK",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "Contractor to Heavy-Duty Professional range",
+            "body": "From lightweight 1.4kg contractor sheets to 1.9kg heavy-duty professional grade, our full range of cotton twill and calico dust sheets offer reusable, machine-washable protection for every decorating scenario — floors, furniture, stairs and more. All sourced directly from the manufacturer.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/category/dustsheets",
+            "linkLabel": "Browse Dustsheets",
+            "displayMode": "side-by-side"
+          },
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-003.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/dustsheets"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_highlight_tarpaulins",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Tarpaulins & Sheeting",
+        "subtitle": "Heavy-duty cover solutions for indoor and outdoor trade applications",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-169.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/tarpaulins"
+          },
+          {
+            "title": "General Purpose to Professional use",
+            "body": "Our tarpaulin range covers everything from lightweight 80g blue all-purpose covers to 175g extra-strong green heavy-duty tarps and clear Leno/Mono tarpaulins for applications requiring light penetration. Available in a wide range of sizes from 6ft x 4ft up to 10m x 17m.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/category/tarpaulins",
+            "linkLabel": "Browse Tarpaulins",
+            "displayMode": "side-by-side"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_highlight_sacks",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Sacks, Bags & Waste Management",
+        "subtitle": "Heavy-duty waste containment for building sites and trade professionals",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "From Rubble to Refuse Sacks",
+            "body": "Our comprehensive sacks and bags range includes heavy-duty blue and black rubble sacks, woven polypropylene tonne bags rated to 1000kg, wheelie bin liners, garden sacks, carrier bags and pallet wrap. Built to handle the rigours of professional site use.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/category/SackBags",
+            "linkLabel": "Browse Sacks & Bags",
+            "displayMode": "side-by-side"
+          },
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-191.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/SackBags"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product_highlight_brushes",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Brushes, Rollers & Decorating Tools",
+        "subtitle": "Professional decorating accessories for every finish and application",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "",
+            "body": "",
+            "imageUrl": "uploads/assets/img-066.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/category/PaintBrushes"
+          },
+          {
+            "title": "Contractor to Professional Grade",
+            "body": "Our decorating range covers 4\", 7\" and 9\" roller tray sets in foam, synthetic, microfibre and tiger stripe, plus Contractor and Acer paint brushes from 0.5\" to 4\". All technically vetted for professional use. Masonry brushes, scrapers, filling knives, masking tape and Mirka sandpaper also available.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/category/PaintBrushes",
+            "linkLabel": "Browse Brushes & Rollers",
+            "displayMode": "side-by-side"
+          }
+        ]
+      }
+    },
+    {
+      "id": "catalogue_cta",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Download the Full Trade Catalogue",
+        "subtitle": "Browse our complete January 2025 product range with codes, barcodes and trade pricing",
+        "layoutType": "single",
+        "backgroundStyle": "light",
+        "items": [
+          {
+            "title": "Full Product Catalogue — January 2025",
+            "body": "Over 400 product lines across dustsheets, tarpaulins, sacks & bags, brushes, rollers, masking tape, sandpaper, PPE and household cleaning products. All prices are shown as individual item prices and exclude VAT.",
+            "imageUrl": "uploads/assets/catalouge.png",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "uploads/assets/productcatalouge.pdf",
+            "linkLabel": "Download Catalogue (PDF)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "testimonials_section",
+      "type": "testimonials",
+      "enabled": true,
+      "config": {
+        "title": "What Our Trade Partners Say",
+        "subtitle": "Trusted by merchants and retailers across the UK",
+        "items": [
+          {
+            "name": "John D., Builders Merchant — Hertfordshire",
+            "text": "Tristar have been our go-to supplier for dust sheets and tarpaulins for over a decade. Consistent stock, great pricing and delivery always on time."
+          },
+          {
+            "name": "Mary K., Independent Retailer — West Midlands",
+            "text": "Excellent service every single time. The trade pricing is genuinely competitive and the range is everything our customers need."
+          },
+          {
+            "name": "Anita R., DIY Wholesale — Greater London",
+            "text": "Great bargains and superb quality. The 175g green tarpaulins in particular are outstanding value and our customers love them."
+          },
+          {
+            "name": "Steve B., Site Manager — Yorkshire",
+            "text": "Placed an order on Monday and it was on site by Wednesday. The rubble sacks are heavy-duty exactly as described. Will be ordering again."
+          }
+        ]
+      }
+    },
+    {
+      "id": "advice_hub_teaser",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "Technical Hub & Advice Centre",
+        "subtitle": "Need help choosing the right product for your project?",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "AI Product Assistant",
+            "body": "Our intelligent assistant can help you identify the right dust sheet weight, tarpaulin grade or roller type for any project. Available 24/7 on the advice page.",
+            "imageUrl": "",
+            "alignment": "left",
+            "includeInGrid": true,
+            "link": "/advice",
+            "linkLabel": "Ask the Assistant"
+          }
+        ]
+      }
+    },
+    {
+      "id": "8apdeuj2h",
+      "type": "content",
+      "enabled": true,
+      "config": {
+        "title": "",
+        "layoutType": "grid",
+        "rows": 1,
+        "columns": 2,
+        "items": [
+          {
+            "title": "Ready to Optimise Your Trade Supply?",
+            "body": "Whether you are a national merchant or an independent retailer, our portal is designed to support your growth. Direct technical desk: 01438 880178",
+            "imageUrl": "",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/rfq"
+          },
+          {
+            "title": "Frequently Asked Questions",
+            "body": "You can purchase directly from the website or submit a Request for Quote (RFQ) for bulk orders. For more information contact our sales team at 01438 880 178 or email sales@tristarltd.co.uk.",
+            "imageUrl": "",
+            "alignment": "center",
+            "includeInGrid": true,
+            "link": "/faq"
+          }
         ]
       }
     }
