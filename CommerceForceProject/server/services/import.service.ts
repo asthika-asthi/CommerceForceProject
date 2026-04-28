@@ -47,7 +47,20 @@ export class ImportService {
     // Shared category cache to avoid constant database lookups
     const categoryCache = new Map<string, any>();
     const allCategories = await CategoryService.getAll();
-    allCategories.forEach(cat => categoryCache.set(cat.name.toLowerCase(), cat));
+    
+    // First pass: index parent categories
+    allCategories.filter(c => !c.parent_id).forEach(cat => {
+      categoryCache.set(cat.name.toLowerCase(), cat);
+    });
+
+    // Second pass: index sub-categories with parent context
+    allCategories.filter(c => c.parent_id).forEach(cat => {
+      const parent = allCategories.find(p => p.id === cat.parent_id);
+      if (parent) {
+        const key = `${parent.name.toLowerCase()}:${cat.name.toLowerCase()}`;
+        categoryCache.set(key, cat);
+      }
+    });
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -62,12 +75,21 @@ export class ImportService {
         
         let finalCategory = categoryName;
 
+        let categoryId: number | undefined;
+
         // Ensure parent category exists
         let parentCat = categoryCache.get(categoryName.toLowerCase());
         if (!parentCat) {
-          parentCat = await CategoryService.create({ name: categoryName });
+          parentCat = await CategoryService.create({ 
+            name: categoryName,
+            image_url: row.category_image || undefined
+          });
           categoryCache.set(categoryName.toLowerCase(), parentCat);
+        } else if (row.category_image && (!parentCat.image_url || parentCat.image_url !== row.category_image)) {
+          await CategoryService.update(parentCat.id, { image_url: row.category_image });
+          parentCat.image_url = row.category_image;
         }
+        categoryId = parentCat.id;
 
         // Handle sub-category if provided
         if (subCategoryName && subCategoryName.trim().length > 0) {
@@ -82,12 +104,20 @@ export class ImportService {
             if (!subCat) {
               subCat = await CategoryService.create({ 
                 name: subCategoryName, 
-                parent_id: parentCat.id 
+                parent_id: parentCat.id,
+                image_url: row.sub_category_image || undefined
               });
             }
             categoryCache.set(subCatKey, subCat);
           }
+          
+          if (row.sub_category_image && (!subCat.image_url || subCat.image_url !== row.sub_category_image)) {
+            await CategoryService.update(subCat.id, { image_url: row.sub_category_image });
+            subCat.image_url = row.sub_category_image;
+          }
+
           finalCategory = subCategoryName;
+          categoryId = subCat.id;
         }
 
         const productData: Partial<Product> = {
@@ -95,6 +125,7 @@ export class ImportService {
           name: row.name,
           description: row.description || '',
           category: finalCategory,
+          category_id: categoryId,
           base_price: parseFloat(row.base_price) || 0,
           sale_percentage: parseFloat(row.sale_percentage) || 0,
           image_url: row.image_url || '',

@@ -21,6 +21,7 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uiConfig, setUiConfig] = useState<any>(null);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
   const [currentCategory, setCurrentCategory] = useState<any>(null);
 
   const requireAuth = (product: Product) => {
@@ -60,8 +61,9 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
         // 1. Fetch categories
         const catsRes = await fetch('/api/categories');
         const allCats = await catsRes.json();
+        setAllCategories(allCats);
         
-        const current = allCats.find((c: any) => c.name.toLowerCase() === categoryName.toLowerCase());
+        const current = allCats.find((c: any) => c.slug === categoryName || c.name.toLowerCase() === categoryName.toLowerCase());
         setCurrentCategory(current);
 
         // 2. Fetch products
@@ -72,16 +74,19 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
           const children = allCats.filter((c: any) => c.parent_id === current.id);
           if (children.length > 0) {
             setSubCategories(children.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)));
-            // Filter products that belong to any of these children
-            const childNames = children.map((c: any) => c.name.toLowerCase());
-            const filtered = allProducts.filter(p => p.category && childNames.includes(decodeURIComponent(p.category).toLowerCase()));
-            setProducts(filtered);
+            // Clear products because we only want to show sub-categories if they exist
+            setProducts([]);
           } else {
             // No sub-categories, just products in this category
             const filtered = allProducts.filter(p => {
+              // Prefer category_id for accurate matching
+              if (p.category_id !== undefined && p.category_id !== null) {
+                return p.category_id === current.id;
+              }
+              // Fallback to name for legacy data
               const productCat = p.category ? decodeURIComponent(p.category).toLowerCase() : 'general';
-              const targetCat = categoryName.toLowerCase();
-              return productCat === targetCat || (targetCat === 'general' && !p.category);
+              const targetName = current.name.toLowerCase();
+              return productCat === targetName || (targetName === 'general' && !p.category);
             });
             setProducts(filtered);
             setSubCategories([]);
@@ -117,7 +122,8 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
   const renderLayoutItem = (item: any) => {
     switch (item.type) {
       case 'banner':
-        const bannerImage = item.image || products[0]?.image_url;
+        const parentCategory = currentCategory?.parent_id ? allCategories.find(c => c.id === currentCategory.parent_id) : null;
+        const bannerImage = item.image || currentCategory?.image_url || parentCategory?.image_url;
         return (
           <div key="banner" className="relative h-[300px] rounded-[40px] overflow-hidden mb-8">
             {bannerImage ? (
@@ -160,70 +166,34 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
       case 'product_grid':
         if (subCategories.length > 0) {
           return (
-            <div key="subcategory_sections" className="space-y-16">
-              {/* Category Grid for quick navigation */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {subCategories.map((sub) => (
-                  <button 
-                    key={sub.id}
-                    onClick={() => {
-                      window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    }}
-                    className="group relative h-48 rounded-[40px] overflow-hidden border border-black/5 hover:shadow-2xl transition-all"
-                  >
-                    {sub.image_url ? (
-                      <img 
-                        src={ensureAbsoluteUrl(sub.image_url)} 
-                        alt={sub.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#141414] to-[#404040]" />
+            <div key="subcategory_grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {subCategories.map((sub) => (
+                <button 
+                  key={sub.id}
+                  onClick={() => {
+                    window.history.pushState({}, '', `/category/${encodeURIComponent(sub.slug)}`);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                  className="group relative h-64 rounded-[40px] overflow-hidden border border-black/5 hover:shadow-2xl transition-all"
+                >
+                  {sub.image_url ? (
+                    <img 
+                      src={ensureAbsoluteUrl(sub.image_url)} 
+                      alt={sub.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-110"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#141414] to-[#404040]" />
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-8 text-center group-hover:bg-black/60 transition-colors">
+                    <h3 className="text-2xl font-bold text-white tracking-tight capitalize">{sub.name}</h3>
+                    {sub.description && (
+                      <p className="text-white/60 text-sm mt-2 line-clamp-2">{sub.description}</p>
                     )}
-                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-8 text-center group-hover:bg-black/60 transition-colors">
-                      <h3 className="text-xl font-bold text-white tracking-tight capitalize">{sub.name}</h3>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Products Grouped by Sub-Category */}
-              {subCategories.map(sub => {
-                const subProducts = products.filter(p => p.category && decodeURIComponent(p.category).toLowerCase() === sub.name.toLowerCase());
-                if (subProducts.length === 0) return null;
-
-                return (
-                  <div key={`section-${sub.id}`} className="space-y-8">
-                    <div className="flex items-center justify-between px-4">
-                      <h2 className="text-2xl font-bold tracking-tight capitalize">{sub.name}</h2>
-                      <button 
-                        onClick={() => {
-                          window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                        }}
-                        className="text-xs font-mono uppercase tracking-widest text-black/40 hover:text-black transition-colors"
-                      >
-                        View All
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                      {subProducts.map((product) => (
-                        <ProductCard 
-                          key={product.id} 
-                          product={product} 
-                          onAddToCart={() => {
-                            if (requireAuth(product)) {
-                              addToCart(product, 1);
-                            }
-                          }} 
-                        />
-                      ))}
-                    </div>
                   </div>
-                );
-              })}
+                </button>
+              ))}
             </div>
           );
         }
@@ -282,17 +252,22 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
     config?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   }`;
 
+  const cardClass = `group bg-white border border-black/5 overflow-hidden hover:shadow-2xl transition-all h-full flex flex-col ${
+    config?.button_style === 'pill' ? 'rounded-[40px]' : 
+    config?.button_style === 'square' ? 'rounded-none' : 'rounded-[32px]'
+  }`;
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all h-full flex flex-col"
+      className={cardClass}
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden bg-gray-50 p-4">
         <img 
           src={images[currentImageIndex]} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"
         />
         

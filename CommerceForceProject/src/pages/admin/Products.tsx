@@ -21,13 +21,28 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
     .filter(Boolean)
     .map(url => ensureAbsoluteUrl(url)) as string[];
 
+  const cardClass = `group bg-white border border-black/5 overflow-hidden hover:shadow-2xl transition-all flex flex-col ${
+    brandingConfig?.button_style === 'pill' ? 'rounded-[40px]' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-[32px]'
+  }`;
+
+  const primaryBtnClass = `w-full flex items-center justify-center gap-2 py-3 bg-black text-white text-xs font-bold hover:bg-[var(--primary-color)] transition-all shadow-md ${
+    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-xl'
+  } ${product.total_stock !== undefined && product.total_stock <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`;
+
+  const secondaryBtnClass = `w-full flex items-center justify-center gap-2 py-3 bg-white border border-black/5 text-black text-xs font-bold hover:bg-gray-50 transition-all ${
+    brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-xl'
+  }`;
+
   return (
-    <div className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all flex flex-col">
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+    <div className={cardClass}>
+      <div className="relative aspect-square overflow-hidden bg-gray-50 p-4">
         <img 
           src={images[currentImageIndex]} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"
         />
         
@@ -86,7 +101,7 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
             <button 
               onClick={onAddToCart}
               disabled={product.total_stock !== undefined && product.total_stock <= 0}
-              className={`w-full flex items-center justify-center gap-2 py-3 bg-black text-white rounded-xl text-xs font-bold hover:bg-[var(--primary-color)] transition-all shadow-md ${product.total_stock !== undefined && product.total_stock <= 0 ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+              className={primaryBtnClass}
             >
               {product.total_stock !== undefined && product.total_stock <= 0 ? (
                 <>
@@ -104,7 +119,7 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
           {rfqEnabled && (
             <button 
               onClick={onQuote}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-black/5 text-black rounded-xl text-xs font-bold hover:bg-gray-50 transition-all"
+              className={secondaryBtnClass}
             >
               Request Quote
             </button>
@@ -117,6 +132,7 @@ const CustomerProductCard: React.FC<{ product: Product, onAddToCart: () => void,
 
 export const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [features, setFeatures] = useState<FeatureFlag[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -139,11 +155,19 @@ export const Products = () => {
     base_price: '',
     sale_percentage: '0',
     category: '',
+    category_id: '' as string | number,
     description: '',
     image_url: '',
     images: [] as string[],
     allow_direct_buy: true
   });
+
+  const fetchCategories = () => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(setCategories)
+      .catch(err => console.error('Failed to fetch categories:', err));
+  };
 
   const requireAuth = (action: 'ADD_TO_CART' | 'BUY_NOW' | 'REQUEST_QUOTE', product: Product) => {
     if (!user) {
@@ -201,6 +225,7 @@ export const Products = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
     if (token) fetchFeatures();
   }, [token]);
 
@@ -239,6 +264,7 @@ export const Products = () => {
       base_price: product.base_price.toString(),
       sale_percentage: (product.sale_percentage || 0).toString(),
       category: product.category || '',
+      category_id: product.category_id || '',
       description: product.description || '',
       image_url: product.image_url || '',
       images: product.images || [],
@@ -264,6 +290,7 @@ export const Products = () => {
         },
         body: JSON.stringify({
           ...formData,
+          category_id: formData.category_id ? Number(formData.category_id) : null,
           base_price: parseFloat(formData.base_price),
           sale_percentage: parseFloat(formData.sale_percentage || '0'),
           allow_direct_buy: formData.allow_direct_buy ? 1 : 0
@@ -289,7 +316,7 @@ export const Products = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    setFormData({ sku: '', name: '', base_price: '', sale_percentage: '0', category: '', description: '', image_url: '', images: [], allow_direct_buy: true });
+    setFormData({ sku: '', name: '', base_price: '', sale_percentage: '0', category: '', category_id: '', description: '', image_url: '', images: [], allow_direct_buy: true });
   };
 
   const handleAddImageUrl = () => {
@@ -594,13 +621,22 @@ export const Products = () => {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#141414] uppercase tracking-wider mb-1.5 ml-1">Category</label>
-                    <input
-                      type="text"
-                      value={formData.category}
-                      onChange={e => setFormData({...formData, category: e.target.value})}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all"
-                      placeholder="e.g. Electronics"
-                    />
+                    <select
+                      value={formData.category_id}
+                      onChange={e => {
+                        const id = e.target.value;
+                        const cat = categories.find(c => c.id.toString() === id);
+                        setFormData({...formData, category_id: id, category: cat ? cat.name : ''});
+                      }}
+                      className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] focus:outline-none focus:ring-2 focus:ring-[#141414] transition-all bg-white"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.parent_id ? '↳ ' : ''}{cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>

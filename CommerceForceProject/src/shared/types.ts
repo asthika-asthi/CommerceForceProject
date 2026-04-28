@@ -155,6 +155,7 @@ export interface Product {
   name: string;
   description?: string;
   category?: string;
+  category_id?: number;
   base_price: number;
   sale_percentage?: number;
   image_url?: string;

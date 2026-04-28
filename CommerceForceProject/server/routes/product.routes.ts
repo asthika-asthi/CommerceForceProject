@@ -82,8 +82,11 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res) => {
     }
     res.status(204).end();
   } catch (error: any) {
+    if (error.message?.includes('Cannot delete product with existing orders')) {
+      return res.status(400).json({ error: error.message });
+    }
     if (error.message?.includes('FOREIGN KEY') || error.message?.includes('constraint')) {
-      return res.status(400).json({ error: 'Cannot delete product with existing orders or inventory. Try deactivating it instead.' });
+      return res.status(400).json({ error: 'Cannot delete product with existing records that depend on it. Try deactivating it instead.' });
     }
     res.status(500).json({ error: error.message });
   }

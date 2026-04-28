@@ -25,7 +25,21 @@ export class CategoryService {
     // Convert empty string parent_id to null
     if ((parent_id as any) === '') parent_id = undefined;
     
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    
+    // If it has a parent, try to make slug unique by prefixing parent slug
+    if (parent_id) {
+      const parentResult = await db.query('SELECT slug FROM categories WHERE id = ?', [parent_id]);
+      if (parentResult.rows.length > 0) {
+        slug = `${parentResult.rows[0].slug}-${slug}`;
+      }
+    }
+
+    // Ensure slug is unique even if prefixing didn't help (e.g. same name, same parent - shouldn't happen but for safety)
+    const existingSlug = await db.query('SELECT id FROM categories WHERE slug = ?', [slug]);
+    if (existingSlug.rows.length > 0) {
+      slug = `${slug}-${Math.random().toString(36).substring(7)}`;
+    }
     
     await db.query(`
       INSERT INTO categories (name, slug, parent_id, description, image_url, sort_order, show_in_menu)

@@ -51,7 +51,7 @@ export class ProductService {
 
   static async create(data: Partial<Product>): Promise<Product> {
     const id = uuidv4();
-    let { sku, name, description, category, base_price, sale_percentage = 0, image_url, images = [], is_active = 1, allow_direct_buy = 1 } = data;
+    let { sku, name, description, category, category_id, base_price, sale_percentage = 0, image_url, images = [], is_active = 1, allow_direct_buy = 1 } = data;
 
     if (!name || base_price === undefined) {
       throw new Error('Missing required product fields: name, base_price');
@@ -64,9 +64,9 @@ export class ProductService {
     }
 
     await db.query(`
-      INSERT INTO products (id, sku, name, description, category, base_price, sale_percentage, image_url, images, is_active, allow_direct_buy)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, sku, name, description, category, base_price, sale_percentage, image_url, JSON.stringify(images), is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
+      INSERT INTO products (id, sku, name, description, category, category_id, base_price, sale_percentage, image_url, images, is_active, allow_direct_buy)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, sku, name, description, category, category_id || null, base_price, sale_percentage, image_url, JSON.stringify(images), is_active ? 1 : 0, allow_direct_buy ? 1 : 0]);
 
     const product = await this.getById(id);
     return product!;
@@ -79,7 +79,7 @@ export class ProductService {
     }
 
     const fields = Object.keys(data).filter(key => 
-      ['sku', 'name', 'description', 'category', 'base_price', 'sale_percentage', 'image_url', 'images', 'is_active', 'allow_direct_buy'].includes(key)
+      ['sku', 'name', 'description', 'category', 'category_id', 'base_price', 'sale_percentage', 'image_url', 'images', 'is_active', 'allow_direct_buy'].includes(key)
     );
 
     if (fields.length === 0) return existing;
@@ -99,7 +99,51 @@ export class ProductService {
   }
 
   static async delete(id: string): Promise<void> {
-    await db.query('DELETE FROM products WHERE id = ?', [id]);
+    const client = await db.getClient();
+    try {
+      if (!db.isSqlite()) {
+        await client.query('BEGIN');
+      } else {
+        await client.query('BEGIN TRANSACTION');
+      }
+
+      // 1. Check for orders
+      const orderItems = await db.queryWithClient(client, 'SELECT 1 FROM order_items WHERE product_id = ? LIMIT 1', [id]);
+      if (orderItems.rows.length > 0) {
+        throw new Error('Cannot delete product with existing orders. This product has historical order data.');
+      }
+
+      // 2. Clear inventory alerts
+      await db.queryWithClient(client, 'DELETE FROM inventory_alerts WHERE product_id = ?', [id]);
+
+      // 3. Clear inventory
+      await db.queryWithClient(client, 'DELETE FROM inventory WHERE product_id = ?', [id]);
+
+      // 4. Clear RFQ items
+      await db.queryWithClient(client, 'DELETE FROM rfq_items WHERE product_id = ?', [id]);
+
+      // 5. Delete product
+      const result = await db.queryWithClient(client, 'DELETE FROM products WHERE id = ?', [id]);
+      
+      if (result.rowCount === 0) {
+        throw new Error('Product not found');
+      }
+
+      if (!db.isSqlite()) {
+        await client.query('COMMIT');
+      } else {
+        await client.query('COMMIT');
+      }
+    } catch (error) {
+      if (!db.isSqlite()) {
+        await client.query('ROLLBACK');
+      } else {
+        await client.query('ROLLBACK');
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private static mapToProduct(row: any): Product {

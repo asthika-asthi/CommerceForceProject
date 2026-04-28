@@ -174,19 +174,29 @@ export const PromotionsPage = () => {
             {products.map((product, idx) => {
               const salePrice = product.base_price * (1 - (product.sale_percentage || 0) / 100);
               
+              const cardClass = `group bg-white border border-black/5 overflow-hidden hover:shadow-2xl transition-all h-full flex flex-col ${
+                brandingConfig?.button_style === 'pill' ? 'rounded-[40px]' : 
+                brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-[32px]'
+              }`;
+
+              const buttonClass = `w-full py-4 bg-white border border-[#141414]/10 text-xs font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-white hover:border-[#141414] transition-all ${
+                brandingConfig?.button_style === 'pill' ? 'rounded-full' : 
+                brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
+              }`;
+
               return (
                 <motion.div 
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + idx * 0.1 }}
-                  className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all h-full flex flex-col"
+                  className={cardClass}
                 >
-                  <div className="relative aspect-square overflow-hidden bg-gray-50">
+                  <div className="relative aspect-square overflow-hidden bg-gray-50 p-4">
                     <img 
                       src={product.image_url} 
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute top-4 left-4 py-1.5 px-3 bg-rose-600 text-white text-[10px] font-bold rounded-full shadow-lg">
@@ -205,7 +215,7 @@ export const PromotionsPage = () => {
 
                     <button 
                       onClick={() => addToCart(product)}
-                      className="w-full py-4 bg-white border border-[#141414]/10 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-white hover:border-[#141414] transition-all"
+                      className={buttonClass}
                     >
                       Add to Cart
                     </button>

@@ -310,6 +310,7 @@ async function initPostgresSchema(client: any) {
         name TEXT NOT NULL,
         description TEXT,
         category TEXT,
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
         base_price DECIMAL NOT NULL,
         sale_percentage DECIMAL DEFAULT 0,
         image_url TEXT,
@@ -319,6 +320,14 @@ async function initPostgresSchema(client: any) {
         allow_direct_buy INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Add category_id to products if it doesn't exist (migration for existing DBs)
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='category_id') THEN
+          ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS orders (
         id TEXT PRIMARY KEY,
@@ -610,6 +619,7 @@ async function initSqliteSchema() {
           name TEXT NOT NULL,
           description TEXT,
           category TEXT,
+          category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
           base_price REAL NOT NULL,
           sale_percentage REAL DEFAULT 0,
           image_url TEXT,
@@ -620,6 +630,10 @@ async function initSqliteSchema() {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `).run();
+
+      try {
+        sqliteDb.prepare("ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL").run();
+      } catch (e) {}
 
       sqliteDb.prepare(`
         CREATE TABLE IF NOT EXISTS orders (

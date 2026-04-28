@@ -328,7 +328,9 @@ const DynamicSection = ({
             <div className="flex items-end justify-between px-4">
               <div className="space-y-2">
                 <h2 style={titleStyles} className="text-3xl font-bold tracking-tight">{title || 'Featured Products'}</h2>
-                <p style={subtitleStyles} className="text-black/40 font-medium">{section.config.subtitle || 'Handpicked selections just for you'}</p>
+                {section.config.subtitle && (
+                  <p style={subtitleStyles} className="text-black/40 font-medium">{section.config.subtitle}</p>
+                )}
               </div>
               <button onClick={onShopNow} className="text-sm font-bold text-[var(--primary-color)] hover:underline flex items-center gap-2">
                 View All <ArrowRight size={16} />
@@ -604,13 +606,18 @@ const ProductCard: React.FC<{ product: Product, onAddToCart: () => void }> = ({ 
     brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-2xl'
   }`;
 
+  const cardClass = `group bg-white border border-black/5 overflow-hidden hover:shadow-2xl transition-all ${
+    brandingConfig?.button_style === 'pill' ? 'rounded-[40px]' : 
+    brandingConfig?.button_style === 'square' ? 'rounded-none' : 'rounded-[32px]'
+  }`;
+
   return (
-    <div className="group bg-white rounded-[32px] border border-black/5 overflow-hidden hover:shadow-2xl transition-all">
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+    <div className={cardClass}>
+      <div className="relative aspect-square overflow-hidden bg-gray-50 p-4">
         <img 
           src={images[currentImageIndex]} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
           referrerPolicy="no-referrer"
         />
         
