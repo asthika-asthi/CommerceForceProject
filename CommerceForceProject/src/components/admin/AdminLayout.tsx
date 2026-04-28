@@ -510,8 +510,11 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                           fontSize: 'var(--top-nav-font-size)',
                           fontWeight: 'var(--top-nav-font-weight)'
                         }}
-                        className={`transition-colors capitalize whitespace-nowrap ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
+                        className={`transition-colors capitalize whitespace-nowrap flex items-center gap-2 ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
                       >
+                        {cat.image_url && (
+                          <img src={cat.image_url} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" referrerPolicy="no-referrer" />
+                        )}
                         {cat.name}
                       </button>
                     ))}
@@ -529,9 +532,9 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     >
                       Categories <ChevronDown size={14} />
                     </button>
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
+                    <div className="absolute top-full left-0 mt-2 min-w-[280px] w-max max-w-[calc(100vw-2rem)] bg-white border border-black/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 transform origin-top scale-95 group-hover:scale-100">
                       {categoryTree.length > 0 ? (
-                        <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <div className="flex flex-col">
                           {categoryTree.map(cat => (
                             <div key={cat.id} className="group/sub relative">
                               <button
@@ -543,23 +546,33 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                                   color: 'var(--nav-text-color)',
                                   fontWeight: 'var(--top-nav-font-weight)'
                                 }}
-                                className="w-full text-left px-4 py-2 text-sm opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize flex items-center justify-between"
+                                className="w-full text-left px-4 py-2 text-sm opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize flex items-center justify-between gap-4 leading-tight whitespace-normal"
                               >
-                                {cat.name}
-                                {cat.children?.length > 0 && <ChevronRight size={12} className="opacity-40" />}
+                                <div className="flex items-center gap-3">
+                                  {cat.image_url && (
+                                    <img src={cat.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 shadow-sm border border-black/5" referrerPolicy="no-referrer" />
+                                  )}
+                                  <span>{cat.name}</span>
+                                </div>
+                                {cat.children?.length > 0 && <ChevronRight size={12} className="opacity-40 flex-shrink-0" />}
                               </button>
                               
                               {cat.children?.length > 0 && (
-                                <div className="absolute left-full top-0 ml-1 w-56 bg-white border border-black/5 rounded-2xl shadow-xl opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all p-2 transform origin-left scale-95 group-hover/sub:scale-100">
+                                <div className="absolute left-full top-0 ml-1 min-w-[240px] w-max max-w-[300px] bg-white border border-black/5 rounded-2xl shadow-xl opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all p-2 transform origin-left scale-95 group-hover/sub:scale-100">
                                   {cat.children.map((sub: any) => (
                                     <button
                                       key={sub.id}
                                       onClick={() => {
                                         navigateTo('category', encodeURIComponent(sub.name));
                                       }}
-                                      className="w-full text-left px-4 py-2 text-xs opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize"
+                                      className="w-full text-left px-4 py-2 text-xs opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize leading-tight whitespace-normal"
                                     >
-                                      {sub.name}
+                                      <div className="flex items-center gap-2">
+                                        {sub.image_url && (
+                                          <img src={sub.image_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0 shadow-sm border border-black/5" referrerPolicy="no-referrer" />
+                                        )}
+                                        <span>{sub.name}</span>
+                                      </div>
                                     </button>
                                   ))}
                                 </div>

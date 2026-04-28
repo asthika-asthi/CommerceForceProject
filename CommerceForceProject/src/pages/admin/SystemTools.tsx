@@ -616,7 +616,7 @@ export const SystemTools = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-[11px] opacity-60 leading-relaxed font-mono uppercase tracking-wider">
           <div>
             <p className="font-bold mb-2 text-white">CSV Import</p>
-            <p>New Format: sku, name, description, category, sub_category, base_price, sale_percentage, stock, image_url, images, is_active, allow_direct_buy. Categories are auto-created if missing.</p>
+            <p>New Format: sku, name, description, category, category_image, sub_category, sub_category_image, base_price, sale_percentage, stock, image_url, images, is_active, allow_direct_buy. Categories are auto-created if missing.</p>
           </div>
           <div>
             <p className="font-bold mb-2 text-white">Master JSON</p>

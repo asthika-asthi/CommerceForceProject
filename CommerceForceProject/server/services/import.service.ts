@@ -10,7 +10,7 @@ import { Product } from '../../src/shared/types';
 export class ImportService {
   /**
    * Processes a Product CSV file
-   * Expected headers: name, sku, description, category, sub_category, base_price, sale_percentage, stock, image_url, images, is_active, allow_direct_buy
+   * Expected headers: name, sku, description, category, category_image, sub_category, sub_category_image, base_price, sale_percentage, stock, image_url, images, is_active, allow_direct_buy
    */
   static async processProductCsv(filePath: string, userId: string): Promise<{ success: number; failed: number; errors: string[] }> {
     const content = fs.readFileSync(filePath, 'utf-8');

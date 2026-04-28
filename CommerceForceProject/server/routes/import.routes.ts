@@ -58,8 +58,8 @@ router.post("/config/master", upload.single('file'), async (req, res) => {
  * Download Product CSV Template
  */
 router.get("/products/template", async (req, res) => {
-  const headers = "sku,name,description,category,sub_category,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,is_featured,stock,min_stock_level\n";
-  const example = "SKU-001,Example Product,This is a description,Electronics,Smartphones,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,false,50,5\n";
+  const headers = "sku,name,description,category,category_image,sub_category,sub_category_image,base_price,sale_percentage,image_url,images,allow_direct_buy,is_active,is_featured,stock,min_stock_level\n";
+  const example = "SKU-001,Example Product,This is a description,Electronics,https://example.com/electronics.jpg,Smartphones,https://example.com/smartphones.jpg,99.99,10,https://picsum.photos/200,\"https://picsum.photos/300,https://picsum.photos/400\",true,true,false,50,5\n";
   
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=product_template.csv');
@@ -74,29 +74,37 @@ router.get("/products/export", async (req, res) => {
     const products = await AdminService.getProducts();
     // We try to infer if the product's category is a sub-category to populate sub_category column
     const allCats = await CategoryService.getAll();
-    const headers = ["sku", "name", "description", "category", "sub_category", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "is_featured", "stock"];
+    const headers = ["sku", "name", "description", "category", "category_image", "sub_category", "sub_category_image", "base_price", "sale_percentage", "image_url", "images", "allow_direct_buy", "is_active", "is_featured", "stock"];
     
     const rows = products.map(p => {
       let catName = p.category;
       let parentName = "";
+      let parentImage = "";
       let subName = "";
+      let subImage = "";
 
       const currentCat = allCats.find(c => c.name === catName);
       if (currentCat && currentCat.parent_id) {
         const parent = allCats.find(c => c.id === currentCat.parent_id);
         if (parent) {
           parentName = parent.name;
+          parentImage = parent.image_url || "";
           subName = catName;
+          subImage = currentCat.image_url || "";
         } else {
           parentName = catName;
+          parentImage = currentCat.image_url || "";
         }
       } else {
         parentName = catName || "General";
+        parentImage = currentCat?.image_url || "";
       }
 
       return headers.map(h => {
         if (h === 'category') return parentName;
+        if (h === 'category_image') return parentImage;
         if (h === 'sub_category') return subName;
+        if (h === 'sub_category_image') return subImage;
         if (h === 'stock') return p.total_stock || 0;
 
         let val = (p as any)[h];
