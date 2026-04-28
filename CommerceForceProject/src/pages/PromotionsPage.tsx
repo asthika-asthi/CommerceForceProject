@@ -4,6 +4,7 @@ import { useBranding } from '../context/BrandingContext';
 import { motion } from 'motion/react';
 import { Tag, Ticket, Percent, Calendar, ShoppingBag, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { navigateTo } from '../lib/navigation';
 
 export const PromotionsPage = () => {
   const { config: brandingConfig } = useBranding();
@@ -13,8 +14,10 @@ export const PromotionsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    const parts = path.split('/').filter(Boolean);
+    const tab = parts[0] || 'landing';
+    const subPath = parts.slice(1).join('/');
+    navigateTo(tab, subPath);
   };
 
   useEffect(() => {

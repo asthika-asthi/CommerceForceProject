@@ -14,9 +14,18 @@
       "type": "features",
       "config": {
         "items": [
-          { "title": "Fast Delivery", "desc": "Global shipping with real-time tracking for all orders." },
-          { "title": "Secure Payments", "desc": "Enterprise-grade security for all your transactions." },
-          { "title": "Premium Quality", "desc": "Only the finest products sourced from trusted manufacturers." }
+          {
+            "title": "Fast Delivery",
+            "desc": "Global shipping with real-time tracking for all orders."
+          },
+          {
+            "title": "Secure Payments",
+            "desc": "Enterprise-grade security for all your transactions."
+          },
+          {
+            "title": "Premium Quality",
+            "desc": "Only the finest products sourced from trusted manufacturers."
+          }
         ]
       }
     }

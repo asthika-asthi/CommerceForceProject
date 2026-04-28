@@ -3,6 +3,7 @@ import { Product, LayoutSection } from '../shared/types';
 import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { navigateTo } from '../lib/navigation';
 import { motion } from 'motion/react';
 import { ShoppingBag, ArrowRight, Star, Shield, Truck, Plus, ChevronLeft, ChevronRight, HelpCircle, MessageSquare, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
 import { Carousel } from '../components/Carousel';
@@ -23,8 +24,10 @@ export const LandingPage = ({ onShopNow }: { onShopNow: () => void }) => {
   const [layout, setLayout] = useState<LayoutSection[]>([]);
 
   const navigate = useCallback((path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    const parts = path.split('/').filter(Boolean);
+    const tab = parts[0] || 'landing';
+    const subPath = parts.slice(1).join('/');
+    navigateTo(tab, subPath);
   }, []);
 
   const requireAuth = useCallback((product: Product) => {

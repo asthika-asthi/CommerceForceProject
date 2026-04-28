@@ -8,6 +8,7 @@ import { CartModal } from '../CartModal';
 import { Footer } from '../Footer';
 import { AIChat } from '../AIChat';
 import { FeatureFlag } from '../../shared/types';
+import { navigateTo } from '../../lib/navigation';
 
 interface NavItemProps {
   icon: any;
@@ -501,9 +502,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                       <button
                         key={cat.id}
                         onClick={() => {
-                          window.history.pushState({}, '', `/category/${encodeURIComponent(cat.name)}`);
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                          setActiveTab('category');
+                          navigateTo('category', encodeURIComponent(cat.name));
                         }}
                         style={{ 
                           fontFamily: 'var(--nav-font-family)', 
@@ -537,9 +536,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                             <div key={cat.id} className="group/sub relative">
                               <button
                                 onClick={() => {
-                                  window.history.pushState({}, '', `/category/${encodeURIComponent(cat.name)}`);
-                                  window.dispatchEvent(new PopStateEvent('popstate'));
-                                  setActiveTab('category');
+                                  navigateTo('category', encodeURIComponent(cat.name));
                                 }}
                                 style={{ 
                                   fontFamily: 'var(--nav-font-family)', 
@@ -558,9 +555,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                                     <button
                                       key={sub.id}
                                       onClick={() => {
-                                        window.history.pushState({}, '', `/category/${encodeURIComponent(sub.name)}`);
-                                        window.dispatchEvent(new PopStateEvent('popstate'));
-                                        setActiveTab('category');
+                                        navigateTo('category', encodeURIComponent(sub.name));
                                       }}
                                       className="w-full text-left px-4 py-2 text-xs opacity-60 hover:opacity-100 hover:bg-black/5 rounded-xl transition-all capitalize"
                                     >
@@ -578,6 +573,18 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     </div>
                   </div>
                 )}
+                <button 
+                  onClick={() => setActiveTab('landing')}
+                  style={{ 
+                    fontFamily: 'var(--nav-font-family)', 
+                    color: isDarkHeader ? 'white' : 'var(--nav-text-color)', 
+                    fontSize: 'var(--top-nav-font-size)',
+                    fontWeight: 'var(--top-nav-font-weight)'
+                  }}
+                  className={`transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-60 hover:opacity-100'}`}
+                >
+                  Home
+                </button>
                 <button 
                   onClick={() => setActiveTab('products')}
                   style={{ 
@@ -645,8 +652,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                   <>
                     <button 
                       onClick={() => {
-                        window.history.pushState({}, '', '/login');
-                        window.dispatchEvent(new PopStateEvent('popstate'));
+                        navigateTo('login');
                       }}
                       style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
                       className={`text-xs font-bold uppercase tracking-widest transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-40 hover:opacity-100'}`}
@@ -655,8 +661,7 @@ export const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutPr
                     </button>
                     <button 
                       onClick={() => {
-                        window.history.pushState({}, '', '/register');
-                        window.dispatchEvent(new PopStateEvent('popstate'));
+                        navigateTo('register');
                       }}
                       style={{ color: isDarkHeader ? 'white' : 'var(--nav-text-color)' }}
                       className={`text-xs font-bold uppercase tracking-widest transition-colors ${isDarkHeader ? 'opacity-70 hover:opacity-100' : 'opacity-40 hover:opacity-100'}`}

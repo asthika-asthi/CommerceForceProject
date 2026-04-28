@@ -1,6 +1,7 @@
 import React from 'react';
 import { useBranding } from '../context/BrandingContext';
 import { Mail, MapPin, Phone, Instagram, Twitter, Facebook, Linkedin, ArrowRight, ExternalLink } from 'lucide-react';
+import { navigateTo } from '../lib/navigation';
 
 export const Footer = () => {
   const { config } = useBranding();
@@ -184,16 +185,29 @@ export const Footer = () => {
   );
 };
 
-const FooterLink = ({ href, label, opacityClass, external }: { href: string; label: string; opacityClass: string; external?: boolean }) => (
-  <a 
-    href={href} 
-    target={external ? "_blank" : "_self"}
-    className={`text-xs flex items-center gap-1 hover:text-[var(--primary-color)] transition-all ${opacityClass}`}
-  >
-    {label}
-    {external && <ExternalLink size={10} />}
-  </a>
-);
+const FooterLink = ({ href, label, opacityClass, external }: { href: string; label: string; opacityClass: string; external?: boolean }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (!external && href.startsWith('/')) {
+      e.preventDefault();
+      const parts = href.split('/').filter(Boolean);
+      const tab = parts[0] || 'landing';
+      const subPath = parts.slice(1).join('/');
+      navigateTo(tab, subPath);
+    }
+  };
+  
+  return (
+    <a 
+      href={href} 
+      onClick={handleClick}
+      target={external ? "_blank" : "_self"}
+      className={`text-xs flex items-center gap-1 hover:text-[var(--primary-color)] transition-all ${opacityClass}`}
+    >
+      {label}
+      {external && <ExternalLink size={10} />}
+    </a>
+  );
+};
 
 const SocialIcon = ({ icon: Icon }: { icon: any }) => (
   <a href="#" className="w-9 h-9 rounded-xl bg-[#141414]/5 flex items-center justify-center hover:bg-[var(--primary-color)] hover:text-white transition-all group">

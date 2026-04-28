@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingBag, ArrowLeft, Plus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { navigateTo } from '../lib/navigation';
 
 const ensureAbsoluteUrl = (url: string | undefined) => {
   if (!url) return url;
@@ -171,8 +172,7 @@ export const CategoryPage = ({ categoryName: rawCategoryName, onBack }: { catego
                 <button 
                   key={sub.id}
                   onClick={() => {
-                    window.history.pushState({}, '', `/category/${encodeURIComponent(sub.slug)}`);
-                    window.dispatchEvent(new PopStateEvent('popstate'));
+                    navigateTo('category', encodeURIComponent(sub.slug));
                   }}
                   className="group relative h-64 rounded-[40px] overflow-hidden border border-black/5 hover:shadow-2xl transition-all"
                 >

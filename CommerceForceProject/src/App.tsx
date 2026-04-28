@@ -34,6 +34,7 @@ import { LoginPage } from './pages/LoginPage';
 import { CategoryPage } from './pages/CategoryPage';
 import { FAQ } from './pages/FAQPage';
 import { Loader2, AlertTriangle } from 'lucide-react';
+import { goBack } from './lib/navigation';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -252,11 +253,11 @@ function AppContent() {
         return <ContactUsPage />;
       case 'category':
         const catName = pathname.split('/')[2] || 'general';
-        return <CategoryPage categoryName={catName} onBack={() => setActiveTab('landing')} />;
+        return <CategoryPage categoryName={catName} onBack={() => goBack('landing')} />;
       case 'checkout':
-        return <Checkout onBack={() => setActiveTab('products')} />;
+        return <Checkout onBack={() => goBack('cart')} />;
       case 'cart':
-        return <Cart onCheckout={() => setActiveTab('checkout')} onBack={() => setActiveTab('products')} />;
+        return <Cart onCheckout={() => setActiveTab('checkout')} onBack={() => goBack('products')} />;
       case 'users':
         return <UsersAdmin />;
       case 'system-tools':

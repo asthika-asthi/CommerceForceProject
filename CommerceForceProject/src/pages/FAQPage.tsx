@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown, MessageCircle, HelpCircle, Search } from 'lucide-react';
 import { useBranding } from '../context/BrandingContext';
 import { STATIC_FAQS } from '../constants/faqData';
+import { navigateTo } from '../lib/navigation';
 
 export const FAQ = () => {
   const { config } = useBranding();
@@ -105,18 +106,18 @@ export const FAQ = () => {
         <h3 className="text-2xl font-serif italic mb-4">Still have questions?</h3>
         <p className="text-sm opacity-60 mb-8 max-w-sm mx-auto tracking-wide"> Our team is ready to help you with any specific queries you may have.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="/contact-us"
+          <button 
+            onClick={() => navigateTo('contact-us')}
             className="px-8 py-3 bg-[var(--primary-color)] text-white text-xs font-mono uppercase tracking-[0.2em] font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-[var(--primary-color)]/20"
           >
             Contact Support
-          </a>
-          <a 
-            href="/contact"
+          </button>
+          <button 
+            onClick={() => navigateTo('contact')}
             className="px-8 py-3 bg-white/5 border border-white/10 text-white text-xs font-mono uppercase tracking-[0.2em] font-bold rounded-xl hover:bg-white/10 transition-all"
           >
             Support Center
-          </a>
+          </button>
         </div>
       </div>
     </div>
